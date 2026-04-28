@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "../static"),
     filename: "js/bundle.js",
-    publicPath: "/static/",
+    publicPath: "/nightfall-game/static/",
   },
   devServer: {
     static: {
@@ -39,7 +39,7 @@ module.exports = {
         type: "asset/resource",
         generator: {
           filename: "media/[name].[contenthash:8][ext]",
-          publicPath: "/static/",
+          publicPath: "/nightfall-game/static/",
         },
       },
     ],
