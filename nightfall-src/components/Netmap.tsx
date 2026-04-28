@@ -17,8 +17,10 @@ import { CreditDisplay } from "./CreditDisplay";
 import CurrentPrograms from "./CurrentPrograms";
 
 import "./Netmap.css";
-import { leadDebounce, clamp, matchFlag } from "../util/util";
+import { leadDebounce, clamp, matchFlag, resolveImage } from "../util/util";
 import Button from "./Button";
+
+const underSelectedImg: string = resolveImage("nodes/under-selected.png");
 
 type NightfallStatus = "entering" | "entered" | "exit" | null;
 
@@ -303,15 +305,24 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
       left: x + "px",
     };
     const onClick = () => this.props.onSelectNode(id);
+    const isSelected = id === selectedID;
+    const underStyle = {
+      top: (y - 14) + "px",
+      left: x + "px",
+      opacity: isSelected ? 0.7 : 0,
+    };
     return (
-      <div key={"node-" + id} className={className} style={nodeStyle}>
-        <img src={imgSrc} onClick={onClick} onMouseEnter={this.onMouseEnter} />
-        <div className="node-tooltip">
-          <span>{node.nodeStyle.netmapOrgName}</span>
-          <span>{node.name}</span>
-          <span>Security Level {node.securityLevel}</span>
+      <React.Fragment key={"node-" + id}>
+        <img className="node-under-selected" src={underSelectedImg} style={underStyle} />
+        <div className={className} style={nodeStyle}>
+          <img src={imgSrc} onClick={onClick} onMouseEnter={this.onMouseEnter} />
+          <div className="node-tooltip">
+            <span>{node.nodeStyle.netmapOrgName}</span>
+            <span>{node.name}</span>
+            <span>Security Level {node.securityLevel}</span>
+          </div>
         </div>
-      </div>
+      </React.Fragment>
     );
   };
 
