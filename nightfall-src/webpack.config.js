@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "../static"),
     filename: "js/bundle.js",
-    publicPath: "/static/",
+    publicPath: "/nightfall-game/static/",
   },
   devServer: {
     static: {
@@ -42,7 +42,7 @@ module.exports = {
             options: {
               name: "[name].[hash:8].[ext]",
               outputPath: "media/",
-              publicPath: "/static/media/",
+              publicPath: "/nightfall-game/static/media/",
               esModule: false,
             },
           },
