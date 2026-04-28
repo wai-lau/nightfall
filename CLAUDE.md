@@ -40,21 +40,66 @@ Compiled JS/CSS are gitignored — only source is tracked.
 
 ## Deploy
 
+**DEPLOY = BACKGROUND AGENT. ALWAYS. NO EXCEPTIONS.**
+
 Host path: `/exec-fn/nightfall-incident/` (volume-mounted into exec-fn container at `/app/nightfall/`).
 StaticFiles serves live from the volume — no container restart needed.
 
+Two cases:
+
+### Source/asset changes only (no compiled JS/CSS)
+
 ```bash
-# Build first
-cd nightfall-src && npm run build
+# 1. commit + push locally
+git add <files> && git commit && git push
 
-# Deploy compiled assets
-scp -r ../static/ root@wai-lau.net:/exec-fn/nightfall-incident/static/
-
-# Or: push to GitHub and pull on host
+# 2. pull on host
 ssh root@wai-lau.net "git -C /exec-fn/nightfall-incident pull"
+
+# 3. verify
+curl -sf https://wai-lau.net/nightfall | head -c 200
 ```
 
-Note: `static/js/` and `static/css/` are gitignored — git pull only works for source/asset changes, not compiled bundles. Use scp for compiled output.
+### Compiled bundle changes (anything in static/js/ or static/css/)
+
+`static/js/` and `static/css/` are gitignored — must scp.
+
+```bash
+# 1. build
+cd nightfall-src && npm run build
+
+# 2. scp compiled output
+scp -r static/js/ static/css/ root@wai-lau.net:/exec-fn/nightfall-incident/static/
+
+# 3. scp any other changed files (index.html, wai-*.js, audio, etc.)
+scp index.html root@wai-lau.net:/exec-fn/nightfall-incident/
+
+# 4. commit + push source changes
+git add <source files> && git commit && git push
+
+# 5. verify
+curl -sf https://wai-lau.net/nightfall | head -c 200
+```
+
+No restart needed — volume mount serves files directly.
+
+### Deploy agent prompt template
+
+```
+Deploy nightfall changes to production.
+
+WHAT CHANGED:
+<summary>
+
+DEPLOY:
+1. cd /home/wai/src/nightfall && npm run build (if JS/CSS changed)
+2. scp static/js/ static/css/ root@wai-lau.net:/exec-fn/nightfall-incident/static/ (if compiled)
+   OR ssh root@wai-lau.net "git -C /exec-fn/nightfall-incident pull" (source/assets only)
+3. Verify: WebFetch https://wai-lau.net/nightfall — 200 = healthy
+4. git add <source files> && git commit && git push
+
+Report what was deployed and health check result.
+```
 
 ---
 
