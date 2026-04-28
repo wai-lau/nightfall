@@ -1,0 +1,7 @@
+nightfall_save*.json
+save*.json
+nightfall-src/node_modules/
+node_modules/
+static/js/
+static/css/
+static/media/

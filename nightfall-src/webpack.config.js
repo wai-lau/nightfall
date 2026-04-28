@@ -15,12 +15,16 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: { loader: "ts-loader", options: { transpileOnly: true } },
         exclude: /node_modules/,
       },
       {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, { loader: "css-loader", options: { url: false } }],
+      },
+      {
+        test: /\.(mp3|wav)$/,
+        use: "arraybuffer-loader",
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|ttf|woff|woff2|eot)$/,
