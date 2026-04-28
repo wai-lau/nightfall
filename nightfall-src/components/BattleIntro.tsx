@@ -19,6 +19,7 @@ class BattleIntro extends React.Component<BattleIntroProps, BattleIntroState> {
   static contextType = AudioContext;
 
   audioContext: IAudioContext;
+  buttonReadyTimer: ReturnType<typeof setTimeout> | null = null;
 
   animDuration = 1000;
   animDelay = 250;
@@ -39,9 +40,13 @@ class BattleIntro extends React.Component<BattleIntroProps, BattleIntroState> {
       waitForEnd: false,
     });
     await this.audioContext.player.playAudio(AudioSources.IntroNoise);
-    setTimeout(() => {
+    this.buttonReadyTimer = setTimeout(() => {
       this.setState({ buttonReady: true });
     }, this.animDuration + this.animDelay);
+  }
+
+  componentWillUnmount() {
+    if (this.buttonReadyTimer) clearTimeout(this.buttonReadyTimer);
   }
 
   render() {

@@ -36,17 +36,11 @@ module.exports = {
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|ttf|woff|woff2|eot)$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "[name].[hash:8].[ext]",
-              outputPath: "media/",
-              publicPath: "/static/media/",
-              esModule: false,
-            },
-          },
-        ],
+        type: "asset/resource",
+        generator: {
+          filename: "media/[name].[contenthash:8][ext]",
+          publicPath: "/static/",
+        },
       },
     ],
   },

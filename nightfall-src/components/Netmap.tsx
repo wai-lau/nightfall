@@ -84,10 +84,9 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
   }
 
   static getScale = () => {
-    return (
-      parseFloat(getComputedStyle(document.getElementsByClassName("container")[0]).fontSize) /
-      Netmap.zoom
-    );
+    const el = document.getElementsByClassName("container")[0];
+    const fontSize = el ? parseFloat(getComputedStyle(el).fontSize) : 0;
+    return fontSize / Netmap.zoom;
   };
 
   componentDidMount() {
@@ -98,6 +97,9 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
 
     // If the size of the netmap container changes without the size of the window changes, then this won't fire. Probably okay for now.
     window.addEventListener("resize", this.onResize);
+
+    // Recalculate scale after mount — CSS may not be applied at constructor time
+    this.setState({ scale: Netmap.getScale() }, () => this.updateScroll());
   }
 
   componentDidUpdate(prevProps: NetmapProps) {
@@ -265,6 +267,8 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
 
   componentWillUnmount = () => {
     document.body.removeEventListener("mouseup", this.endScroll);
+    window.removeEventListener("resize", this.onResize);
+    this.cancelScrollToPosition();
   };
 
   getTransformStyle = () =>
@@ -273,7 +277,7 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
     }px) scale(${this.state.scale})`;
 
   renderNode = (node: INetmapNode) => {
-    const { selectedID, nodes, positions } = this.props;
+    const { selectedID, positions } = this.props;
     const { id } = node;
     const position = positions[id];
     if (!position) {
@@ -317,11 +321,11 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
       .filter((node) => !nightfallAvailableNodes?.includes(node.id))
       .map(this.renderNode);
     const nightfallStatus = cn(["nightfall", this.state.nightfallStatus]);
-    const nightfallShield = <div className={nightfallStatus} />;
+    const nightfallShield = <div key="nightfall-shield" className={nightfallStatus} />;
     const nodeElsAboveNightfall =
       nightfallAvailableNodes &&
       nodes.filter((node) => nightfallAvailableNodes.includes(node.id)).map(this.renderNode);
-    return [...nodeElsUnderNightfall, nightfallShield, nodeElsAboveNightfall];
+    return [...nodeElsUnderNightfall, nightfallShield, ...(nodeElsAboveNightfall || [])];
   }
 
   render() {
