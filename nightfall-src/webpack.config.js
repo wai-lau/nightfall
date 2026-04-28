@@ -8,6 +8,14 @@ module.exports = {
     filename: "js/bundle.js",
     publicPath: "/static/",
   },
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, ".."),
+      publicPath: "/",
+    },
+    port: 3000,
+    open: false,
+  },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
@@ -35,6 +43,7 @@ module.exports = {
               name: "[name].[hash:8].[ext]",
               outputPath: "media/",
               publicPath: "/static/media/",
+              esModule: false,
             },
           },
         ],

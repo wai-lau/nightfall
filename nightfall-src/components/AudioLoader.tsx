@@ -24,7 +24,9 @@ export default class AudioLoader extends React.Component<AudioLoaderProps, Audio
 
   async loadAudio() {
     const loadPromises = Object.values(AudioSources).map((source) =>
-      this.context.player.loadAudio(source)
+      this.context.player.loadAudio(source).catch((e) => {
+        console.warn("Failed to load audio:", source.name, e);
+      })
     );
     await Promise.all(loadPromises);
     this.props.onLoad();

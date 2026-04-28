@@ -78,13 +78,11 @@ export const SelectAction: IAudioSource = {
   name: "select-action",
 };
 
-// TODO: Identical to SelectAction?
 export const NoAction: IAudioSource = {
   srcBuffer: require("./select-action.mp3"),
   name: "select-action",
 };
 
-// TODO: Identical to SelectAction?
 export const ButtonNormal: IAudioSource = {
   srcBuffer: require("./select-action.mp3"),
   name: "select-action",

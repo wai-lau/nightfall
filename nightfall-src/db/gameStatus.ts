@@ -127,6 +127,7 @@ export async function deleteGameStatus(key: string) {
 export async function loadGameStatus(key: string = DEFAULT_KEY, failValue: IGameStatus) {
   try {
     const json = (await db.getItem(key)) as string;
+    if (!json) return failValue;
     const status = SerializableGameStatus.fromJSON(json).toIGameStatus();
     return status;
   } catch (e) {
