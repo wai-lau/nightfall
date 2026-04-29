@@ -11,6 +11,7 @@ interface UploadMenuProps {
   programs: IProgram[];
   selectedIndexes?: number[];
   onSelectProgram: (i: number) => void;
+  keyboardHighlightIndex?: number;
 }
 
 interface UploadMenuState {
@@ -54,9 +55,9 @@ export default class UploadMenu extends React.Component<UploadMenuProps, UploadM
   };
 
   renderProgramEntries = () => {
-    const { programs, onSelectProgram, selectedIndexes = [] } = this.props;
+    const { programs, onSelectProgram, selectedIndexes = [], keyboardHighlightIndex } = this.props;
     const counts = this.getCounts();
-    return Object.entries(counts).map(([id, indexes]) => {
+    return Object.entries(counts).map(([id, indexes], entryIndex) => {
       const program = programs.find((p) => p.id === id);
       if (!program) {
         throw new Error("Invalid program ID " + id);
@@ -73,9 +74,8 @@ export default class UploadMenu extends React.Component<UploadMenuProps, UploadM
         : () => {};
       const className = cn([
         "ul-item",
-        {
-          clickable: !!filteredIndexes.length,
-        },
+        { clickable: !!filteredIndexes.length },
+        { "keyboard-highlight": entryIndex === keyboardHighlightIndex },
       ]);
       return (
         <div className={className} onClick={onClick} key={id} data-name={program.name}>

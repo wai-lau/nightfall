@@ -6,10 +6,19 @@ export interface IUploadZone {
   team: string;
 }
 
+export interface IGridActiveUploadZone extends IUploadZone {
+  id: string;
+  programIndex: number | null;
+}
+
 export interface ICredit {
   id: string;
   amount: number;
   position: Coordinate;
+}
+
+export interface IGridActiveCredit extends ICredit {
+  collected: boolean;
 }
 
 export interface ILevel {

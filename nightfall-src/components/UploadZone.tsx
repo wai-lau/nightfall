@@ -27,7 +27,7 @@ export default class UploadZone extends React.Component<UploadZoneProps> {
         head={position}
         body={[position]}
         onClickHead={onClick}
-        isInTurn={false}
+        isInTurn={true}
         isSelectable={true}
         name="Upload Zone" // TODO: Figure out which of these can be stripped away
         color="#ffffff"

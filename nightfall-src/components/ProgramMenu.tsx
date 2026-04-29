@@ -26,13 +26,15 @@ class ProgramMenu extends React.Component<ProgramMenuProps> {
         }
       : () => {};
     const actionText = sizeReq ? `${action.name} (${action.sizeReq})` : action.name;
+    const keyLabels = ["Q", "E"];
+    const keyLabel = keyLabels[i];
     return (
       <Button
         key={"action-" + action.name + "-" + i}
         bgColor={ButtonColor.LightBlueGradient}
         onClick={onClick}
       >
-        {actionText}
+        {keyLabel && <span className="pm-key-hint">[{keyLabel}]</span>}{actionText}
       </Button>
     );
   };
@@ -80,7 +82,7 @@ class ProgramMenu extends React.Component<ProgramMenuProps> {
         <div className="pm-actions">
           {program.actions.map(this.renderAction)}
           <Button onClick={this.props.onSelectNoAction} bgColor={ButtonColor.DarkBlueGradient}>
-            No Action
+            <span className="pm-key-hint">[Space]</span>No Action
           </Button>
         </div>
         {descriptionEl}

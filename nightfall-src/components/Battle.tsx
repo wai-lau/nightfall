@@ -83,6 +83,7 @@ export interface BattleState {
   attackAnimation: Coordinate | null;
   hasSelectedUploadZone: boolean;
   hasUploadedProgram: boolean;
+  keyboardUploadIndex: number;
 }
 
 class Battle extends PComponent<BattleProps, BattleState> implements IActionCoordinator {
@@ -130,6 +131,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       attackAnimation: null,
       hasSelectedUploadZone: false,
       hasUploadedProgram: false,
+      keyboardUploadIndex: 0,
       programs,
       uploadZones,
       credits,
@@ -144,6 +146,8 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   componentDidMount() {
     this.audioContext = this.context;
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("wheel", this.onWheel, { passive: true });
   }
 
   // Clone state if selection changed; check for guide text if battle is not yet begun
@@ -1067,13 +1071,166 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     });
   };
 
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("wheel", this.onWheel);
+  }
+
+  onKeyDown = async (e: KeyboardEvent) => {
+    if (this.state.modal) return;
+
+    const key = e.key;
+    const started = this.isDatabattleStarted();
+
+    if (key === "Escape") {
+      await this.undo();
+      return;
+    }
+
+    if (!started) {
+      await this.onKeyDownUpload(e);
+      return;
+    }
+
+    await this.onKeyDownBattle(e);
+  };
+
+  onWheel = (e: WheelEvent) => {
+    if (this.state.modal) return;
+    const delta = e.deltaY > 0 ? 1 : -1;
+    if (this.isDatabattleStarted()) {
+      const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
+      if (!isPlayerTurn) return;
+      this.cycleToNextProgram(delta as 1 | -1);
+    } else {
+      const entries = this.getUploadMenuEntries();
+      const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
+      this.setStateP(() => ({ keyboardUploadIndex: next }));
+    }
+  };
+
+  onKeyDownUpload = async (e: KeyboardEvent) => {
+    const key = e.key;
+
+    if (key === "w" || key === "W" || key === "s" || key === "S") {
+      const entries = this.getUploadMenuEntries();
+      const delta = key === "w" || key === "W" ? -1 : 1;
+      const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
+      this.setStateP(() => ({ keyboardUploadIndex: next }));
+      return;
+    }
+
+    if (key === " ") {
+      e.preventDefault();
+      const { selection } = this.state;
+      if (selection?.type !== SelectionType.UPLOAD_ZONE) return;
+      const entries = this.getUploadMenuEntries();
+      const entry = entries[this.state.keyboardUploadIndex];
+      if (!entry || !entry.filteredIndexes.length) return;
+      await this.audioContext.player.playAudio(AudioSources.UploadProgram);
+      this.onUploadProgram(entry.filteredIndexes[0]);
+      return;
+    }
+  };
+
+  onKeyDownBattle = async (e: KeyboardEvent) => {
+    const key = e.key;
+    const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
+
+    if (key === " ") {
+      e.preventDefault();
+      const { selection } = this.state;
+      if (selection?.type !== SelectionType.PROGRAM) return;
+      if (this.getProgramByID(selection.id).team !== "P1") return;
+      if (!isPlayerTurn) return;
+      await this.onSelectNoAction();
+      return;
+    }
+
+    if (key === "q" || key === "Q" || key === "e" || key === "E") {
+      const { selection } = this.state;
+      if (selection?.type !== SelectionType.PROGRAM) return;
+      const program = this.getProgramByID(selection.id);
+      const actionIndex = key === "q" || key === "Q" ? 0 : 1;
+      const action = program.actions[actionIndex];
+      if (!action) return;
+      if (action.sizeReq && action.sizeReq > program.body.length) return;
+      await this.onSelectAction(actionIndex);
+      return;
+    }
+
+    if (key === "Tab") {
+      e.preventDefault();
+      if (!isPlayerTurn) return;
+      this.cycleToNextProgram(e.shiftKey ? -1 : 1);
+      return;
+    }
+
+    const wasdDelta: Record<string, Coordinate> = {
+      w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0],
+    };
+    const delta = wasdDelta[key];
+    if (!delta) return;
+    if (!isPlayerTurn) return;
+
+    const { selection, actionIndex } = this.state;
+    if (selection?.type !== SelectionType.PROGRAM) return;
+    const program = this.getProgramByID(selection.id);
+    if (program.team !== "P1" || actionIndex !== null) return;
+
+    const target: Coordinate = [program.head[0] + delta[0], program.head[1] + delta[1]];
+    const validMoves = this.getValidMoves();
+    const canMove = validMoves?.some((c) => coordinatesEqual(c, target)) ?? false;
+
+    if (!canMove) {
+      await this.audioContext.player.playAudio(AudioSources.UploadProgram);
+      return;
+    }
+
+    await this.createOnMove(target)();
+  };
+
+  getUploadMenuEntries = () => {
+    const { availablePrograms } = this.props;
+    const selectedIndexes = this.state.uploadZones
+      .map((z) => z.programIndex)
+      .filter((n) => n !== null) as number[];
+    const seen: Record<string, number> = {};
+    const entries: { id: string; filteredIndexes: number[] }[] = [];
+    availablePrograms.forEach((p, i) => {
+      if (seen[p.id] === undefined) {
+        seen[p.id] = entries.length;
+        entries.push({ id: p.id, filteredIndexes: [] });
+      }
+      if (!selectedIndexes.includes(i)) {
+        entries[seen[p.id]].filteredIndexes.push(i);
+      }
+    });
+    return entries;
+  };
+
+  cycleToNextProgram = (direction: 1 | -1 = 1) => {
+    const { programs, selection } = this.state;
+    const unacted = programs.filter((p) => p.team === "P1" && !p.hasActed);
+    if (!unacted.length) return;
+    let nextIndex = direction === 1 ? 0 : unacted.length - 1;
+    if (selection?.type === SelectionType.PROGRAM) {
+      const cur = unacted.findIndex((p) => p.id === selection.id);
+      if (cur !== -1) nextIndex = (cur + direction + unacted.length) % unacted.length;
+    }
+    this.createOnSelectProgram(unacted[nextIndex].id)();
+  };
+
   // Hide the BattleIntro
   dismissIntro = async () => {
     await this.setStateP(() => ({
       showIntro: false,
     }));
-    // await this.audioContext.player.loopAudio(AudioSources.Loop1);
     new AudioShuffler(this.audioContext.player, DatabattleAudioShufflerConfig).play();
+    const { uploadZones } = this.state;
+    if (uploadZones.length) {
+      await this.createOnSelectUploadZone(uploadZones[0].id)();
+    }
   };
 
   // Undo all state changes since the currently selected program was selected
@@ -1355,7 +1512,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
           <ProgramInfo
             program={program}
             actionIndex={this.state.actionIndex}
-            onSelectAction={this.onSelectAction}
+            onSelectAction={async (i) => { await this.setStateP(() => ({ actionIndex: i })); }}
           />
         );
       }
@@ -1439,6 +1596,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
         <UploadMenu
           programs={this.props.availablePrograms}
           onSelectProgram={this.onUploadProgram}
+          keyboardHighlightIndex={this.state.keyboardUploadIndex}
           selectedIndexes={
             this.state.uploadZones.map((z) => z.programIndex).filter((n) => n !== null) as number[]
           }
@@ -1467,7 +1625,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
           onClick={this.undo}
           playSound={false}
         >
-          Undo
+          <span className="pm-key-hint">[Esc]</span>Undo
         </Button>
       </div>
     );

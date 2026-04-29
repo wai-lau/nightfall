@@ -97,8 +97,9 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
 
     this.props.bindScrollFunction(this.scrollToPosition);
 
-    // If the size of the netmap container changes without the size of the window changes, then this won't fire. Probably okay for now.
     window.addEventListener("resize", this.onResize);
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
 
     // Recalculate scale after mount — CSS may not be applied at constructor time
     this.setState({ scale: Netmap.getScale() }, () => this.updateScroll());
@@ -267,9 +268,30 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
     );
   };
 
+  keyToDirection: Record<string, Direction> = {
+    w: Direction.Up,
+    s: Direction.Down,
+    a: Direction.Left,
+    d: Direction.Right,
+  };
+
+  onKeyDown = (e: KeyboardEvent) => {
+    const dir = this.keyToDirection[e.key];
+    if (!dir) return;
+    if (this.state.scrollDirection === dir) return;
+    this.startScroll(dir);
+  };
+
+  onKeyUp = (e: KeyboardEvent) => {
+    if (!this.keyToDirection[e.key]) return;
+    this.endScroll();
+  };
+
   componentWillUnmount = () => {
     document.body.removeEventListener("mouseup", this.endScroll);
     window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
     this.cancelScrollToPosition();
   };
 

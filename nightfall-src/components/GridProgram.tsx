@@ -19,7 +19,9 @@ interface GridProgramProps extends IGridActiveProgram {
   hasSelectedAction?: boolean;
   isActive: boolean;
   isInTurn: boolean;
+  isSelectable: boolean;
 }
+
 
 interface GridProgramState {
   fadingTiles: FadingTile[];

@@ -16,12 +16,14 @@ class ProgramInfo extends React.Component<ProgramInfoProps> {
   renderAction = (action: ProgramAction, i: number) => {
     const { sizeReq } = action;
     const actionText = sizeReq ? `${action.name} (${action.sizeReq})` : action.name;
+    const keyLabels = ["Q", "E"];
+    const keyLabel = keyLabels[i];
     const onClick = () => {
       this.props.onSelectAction(i);
     };
     return (
       <div key={"action-" + action.name + "-" + i} className="pm-info-action" onClick={onClick}>
-        {actionText}
+        {keyLabel && <span className="pm-key-hint">[{keyLabel}]</span>}{actionText}
       </div>
     );
   };
