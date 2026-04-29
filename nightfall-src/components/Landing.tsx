@@ -36,9 +36,8 @@ class Landing extends React.Component<LandingProps, LandingState> {
     return (
       <div className={landingClassname} style={landingStyle}>
         <div className="landing-text">
-          <h1 className="landing-title">The</h1>
           <h1 className="landing-title">Nightfall</h1>
-          <h1 className="landing-title">Incident</h1>
+          <h1 className="landing-title landing-title-small">Incident</h1>
         </div>
         <TitleButton className="landing-button" onClick={this.onClose}>
           Start

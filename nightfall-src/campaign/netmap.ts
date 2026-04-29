@@ -412,7 +412,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.D2,
       firstClearCredits: 800,
-      onFirstClear: chain(startDialogue(Dialogue.WintermutantD3), revealNode(Nodes.L9)),
+      onFirstClear: chain(startDialogue(Dialogue.WintermutantD3), revealNode(Nodes.L9), revealNode(Nodes.D4)),
     },
     {
       ...NodeStyle.donut,
@@ -423,7 +423,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.D3,
       firstClearCredits: 800,
-      onFirstClear: chain(startDialogue(Dialogue.SpinnerD4), revealNode(Nodes.P7)),
+      onFirstClear: chain(startDialogue(Dialogue.SpinnerD4), revealNode(Nodes.L7), revealNode(Nodes.P7)),
     },
     {
       ...NodeStyle.donut,

@@ -1670,6 +1670,9 @@ h3 {
 .landing-title {
   font-size: 6em;
 }
+.landing-title-small {
+  font-size: 3em;
+}
 .landing-button {
   flex: none;
   font-size: 2em;
