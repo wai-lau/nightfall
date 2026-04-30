@@ -10,12 +10,7 @@
     {
       "src": "hack.png",
       "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "hack.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "27x27"
     }
   ],
   "start_url": ".",
