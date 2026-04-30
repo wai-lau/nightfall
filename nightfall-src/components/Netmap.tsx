@@ -61,6 +61,7 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
   audioContext: IAudioContext;
   positionScrollInterval: ReturnType<typeof setTimeout> | null;
   onFinishScroll: ((position: NetmapPosition) => void) | null;
+  resizeObserver: ResizeObserver | null;
 
   nodeHoverSounds: IAudioSource[] = [
     AudioSources.HoverC,
@@ -83,6 +84,7 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
     this.audioContext = this.context;
     this.positionScrollInterval = null;
     this.onFinishScroll = null;
+    this.resizeObserver = null;
   }
 
   static getScale = () => {
@@ -97,7 +99,11 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
 
     this.props.bindScrollFunction(this.scrollToPosition);
 
-    window.addEventListener("resize", this.onResize);
+    const root = document.getElementById("root");
+    if (root) {
+      this.resizeObserver = new ResizeObserver(this.onResize);
+      this.resizeObserver.observe(root);
+    }
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
 
@@ -289,7 +295,7 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
 
   componentWillUnmount = () => {
     document.body.removeEventListener("mouseup", this.endScroll);
-    window.removeEventListener("resize", this.onResize);
+    this.resizeObserver?.disconnect();
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
     this.cancelScrollToPosition();
