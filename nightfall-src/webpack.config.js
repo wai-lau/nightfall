@@ -2,12 +2,15 @@ const path = require("path");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+const isProd = process.env.NODE_ENV === "production";
+const staticPublicPath = isProd ? "/nightfall-game/static/" : "/static/";
+
 module.exports = {
   entry: "./index.tsx",
   output: {
     path: path.resolve(__dirname, "../static"),
     filename: "js/bundle.js",
-    publicPath: "/nightfall-game/static/",
+    publicPath: staticPublicPath,
   },
   devServer: {
     static: {
@@ -36,7 +39,7 @@ module.exports = {
         type: "asset/resource",
         generator: {
           filename: "media/[name].[contenthash:8][ext]",
-          publicPath: "/nightfall-game/static/",
+          publicPath: staticPublicPath,
         },
       },
     ],
