@@ -38,7 +38,9 @@ export const setNightfallNodes = (ids?: string[]) => async (gsc: IGameStatusCoor
   return;
 };
 
-export const chain = (...funcs: Function[]) => async (gsc: IGameStatusCoordinator) => {
+type GscFunc = (gsc: IGameStatusCoordinator) => Promise<void>;
+
+export const chain = (...funcs: GscFunc[]) => async (gsc: IGameStatusCoordinator) => {
   for (let f of funcs) {
     await f(gsc);
   }

@@ -27,7 +27,7 @@ const creditValues: number[] = [440, 450, 500, 470, 450, 370, 370, 380, 420, 470
 
 const level = processMap(id, map, enemies, creditValues);
 
-level.credits &&
+if (level.credits) {
   level.credits.push(
     {
       id: "ph-clinical-x1",
@@ -45,6 +45,7 @@ level.credits &&
       amount: 490,
     }
   );
+}
 
 export default level;
 

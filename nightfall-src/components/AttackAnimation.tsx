@@ -6,7 +6,7 @@ import { delay } from "../util/util";
 
 interface AttackAnimationProps {
   position: Coordinate;
-  onCompleteCallback: () => {};
+  onCompleteCallback: () => void;
 }
 
 type Offset = { position: number; angle: number };

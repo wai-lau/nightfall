@@ -68,7 +68,7 @@ class BattleIntro extends React.Component<BattleIntroProps, BattleIntroState> {
             <h3 className="battle-intro-header">{warningHeader}</h3>
             <h3 className="battle-warning">Warning</h3>
             {warningText.map((x, i) => (
-              <p className="battle-intro-text" children={x} key={i} />
+              <p className="battle-intro-text" key={i}>{x}</p>
             ))}
           </div>
           <div className="battle-intro-bottom">

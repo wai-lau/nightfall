@@ -40,13 +40,13 @@ export default class Hackerman extends React.Component<HackermanProps, Hackerman
         index: (state.index + 1) % this.state.text.length,
       }));
       requestAnimationFrame(() => {
-        this.divRef.current && (this.divRef.current.scrollTop = 99999999);
+        if (this.divRef.current) { this.divRef.current.scrollTop = 99999999; }
       });
     }, this.updateDelay);
   }
 
   componentWillUnmount() {
-    this.updateInterval && clearInterval(this.updateInterval);
+    if (this.updateInterval) { clearInterval(this.updateInterval); }
   }
 
   render() {

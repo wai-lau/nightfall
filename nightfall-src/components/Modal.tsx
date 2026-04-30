@@ -52,9 +52,8 @@ export default class Modal extends React.Component<ModalProps, ModalState> {
         key={i}
         onClick={onClick}
         isBold
-        children={text}
         bgColor={ButtonColor.LightBlueGradient}
-      />
+      >{text}</Button>
     );
   };
 
