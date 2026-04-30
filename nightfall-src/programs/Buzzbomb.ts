@@ -24,6 +24,6 @@ export const Buzzbomb: IProgram = {
       ],
     },
   ],
-  maxSize: 2,
+  maxSize: 1,
   numMoves: 8,
 };

@@ -1,4 +1,5 @@
 import { INetmap, NodeType, NodeStatus, NetmapPosition } from "../types";
+import { CARConfig, LMMConfig, DonutConfig, Q1Config } from "./corpAudioConfigs";
 import * as Programs from "../programs";
 import * as Dialogue from "./dialogues";
 import * as NodeStyle from "./nodeStyle";
@@ -156,6 +157,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L1,
+      audioConfig: LMMConfig,
       description: Descriptions.L1,
       name: "Tech Support",
       securityLevel: 1,
@@ -187,6 +189,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C1,
+      audioConfig: CARConfig,
       description: Descriptions.C1,
       name: "Memory Tower",
       securityLevel: 1,
@@ -209,6 +212,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C2,
+      audioConfig: CARConfig,
       description: Descriptions.C2,
       name: "Sydney Project",
       securityLevel: 1,
@@ -223,6 +227,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L2,
+      audioConfig: LMMConfig,
       description: Descriptions.L2,
       name: "Club Center",
       securityLevel: 2,
@@ -234,6 +239,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C3,
+      audioConfig: CARConfig,
       description: Descriptions.C3,
       name: "Inventory Archives",
       securityLevel: 2,
@@ -262,6 +268,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L3,
+      audioConfig: LMMConfig,
       description: Descriptions.L3,
       name: "Eastern Distribution Site",
       securityLevel: 2,
@@ -284,6 +291,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C4,
+      audioConfig: CARConfig,
       description: Descriptions.C4,
       name: "Communications Hub",
       securityLevel: 2,
@@ -295,6 +303,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L4,
+      audioConfig: LMMConfig,
       description: Descriptions.L4,
       name: "Print Assets",
       securityLevel: 2,
@@ -306,6 +315,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L5,
+      audioConfig: LMMConfig,
       description: Descriptions.L5,
       name: "Banane System",
       securityLevel: 2,
@@ -317,6 +327,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D1,
+      audioConfig: DonutConfig,
       description: Descriptions.D1,
       name: "Supply Management",
       securityLevel: 2,
@@ -328,6 +339,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D2,
+      audioConfig: DonutConfig,
       description: Descriptions.D2,
       name: "Franchise Office",
       securityLevel: 2,
@@ -342,6 +354,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L6,
+      audioConfig: LMMConfig,
       description: Descriptions.L6,
       name: "Toy Properties",
       securityLevel: 3,
@@ -406,6 +419,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D3,
+      audioConfig: DonutConfig,
       description: Descriptions.D3,
       name: "Market Research",
       securityLevel: 3,
@@ -417,6 +431,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D4,
+      audioConfig: DonutConfig,
       description: Descriptions.D4,
       name: "Beverage Subsidiaries",
       securityLevel: 3,
@@ -428,6 +443,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D5,
+      audioConfig: DonutConfig,
       description: Descriptions.D5,
       name: "Flavor Evaluation Lab",
       securityLevel: 3,
@@ -439,6 +455,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L8,
+      audioConfig: LMMConfig,
       description: Descriptions.L8,
       name: "Lucky Jungle Central",
       securityLevel: 3,
@@ -460,6 +477,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C5,
+      audioConfig: CARConfig,
       description: Descriptions.C5,
       name: "Sub-Station Gamma",
       securityLevel: 3,
@@ -471,6 +489,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.car,
       id: Nodes.C6,
+      audioConfig: CARConfig,
       description: Descriptions.C6,
       name: "S.A. Archives",
       securityLevel: 3,
@@ -496,6 +515,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L7,
+      audioConfig: LMMConfig,
       description: Descriptions.L7,
       name: "Assimilation Timetable",
       securityLevel: 4,
@@ -524,6 +544,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.donut,
       id: Nodes.D6,
+      audioConfig: DonutConfig,
       description: Descriptions.D6,
       name: "Recipe Database",
       securityLevel: 4,
@@ -535,6 +556,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.lmm,
       id: Nodes.L9,
+      audioConfig: LMMConfig,
       description: Descriptions.L9,
       name: "Film Properties",
       securityLevel: 4,
@@ -620,6 +642,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.hq,
       id: Nodes.Q1,
+      audioConfig: Q1Config,
       description: Descriptions.Q1,
       name: "Unknown Node",
       securityLevel: 5,

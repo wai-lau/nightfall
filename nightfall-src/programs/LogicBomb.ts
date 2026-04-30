@@ -18,6 +18,6 @@ export const LogicBomb: IProgram = {
       ],
     },
   ],
-  maxSize: 6,
-  numMoves: 3,
+  maxSize: 7,
+  numMoves: 4,
 };

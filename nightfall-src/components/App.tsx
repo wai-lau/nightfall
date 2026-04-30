@@ -29,6 +29,7 @@ import {
 import { AudioContext, IAudioContext } from "../util/AudioContext";
 
 import { IBattleResult } from "../types/Battle";
+import { IAudioShufflerConfig } from "../util/AudioShuffler";
 import { IGameStatus, IGameStatusCoordinator } from "../types/GameStatus";
 
 import { delay, addCoordinates, matchFlag } from "../util/util";
@@ -63,6 +64,7 @@ interface AppState extends IGameStatus {
   smartHQ: ISMARTData | null;
   firstClearCredits: number | null;
   battleStyle: IBattleStyle | null;
+  audioConfig: IAudioShufflerConfig | null;
   dialogue: IDialogue | null;
   popup: PopupConfig | null;
   selection: (INetmapBattleNode | INetmapNonBattleNode) | null;
@@ -87,6 +89,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       smartHQ: null,
       firstClearCredits: null,
       battleStyle: null,
+      audioConfig: null,
       dialogue: null,
       popup: null,
       selection: null,
@@ -251,6 +254,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
             ? null
             : selection.firstClearCredits || null,
         battleStyle: selection.battleStyle,
+        audioConfig: selection.audioConfig || null,
       }));
     } else if (selection.type === NodeType.WarezNode) {
       const warez = (await import("../campaign/levels/" + id)).default;
@@ -321,6 +325,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       numCredits: state.numCredits + numNewCredits,
       netmapStatus: { ...state.netmapStatus, [id]: NodeStatus.CLEARED },
       battleStyle: null,
+      audioConfig: null,
     }));
     await this.showPostVictory();
     await this.setStateP(() => ({
@@ -502,6 +507,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
         <Battle
           battleStyle={this.state.battleStyle!}
           firstClearCredits={this.state.firstClearCredits}
+          audioConfig={this.state.audioConfig}
           availablePrograms={availablePrograms}
           onFinishBattle={this.onFinishBattle}
           {...level}

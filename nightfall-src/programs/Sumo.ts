@@ -12,9 +12,10 @@ export const Sumo: IProgram = {
       name: "Slam",
       description: "Deletes 8 Sectors From Target",
       range: 1,
+      sizeReq: 6,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 8)],
     },
   ],
   maxSize: 12,
-  numMoves: 2,
+  numMoves: 3,
 };

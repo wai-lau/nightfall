@@ -21,6 +21,6 @@ export const BlackWidow: IProgram = {
       run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
     },
   ],
-  maxSize: 3,
+  maxSize: 2,
   numMoves: 4,
 };

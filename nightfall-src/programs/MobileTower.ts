@@ -10,9 +10,9 @@ export const MobileTower: IProgram = {
   actions: [
     {
       name: "Spot",
-      description: "Deletes 3 Sectors From Target",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
+      description: "Deletes 1 Sector From Target",
+      range: 6,
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
     },
   ],
   maxSize: 1,

@@ -9,5 +9,5 @@ export const MemoryHog: IProgram = {
   description: "Massive Memory-Filling Bloatware",
   actions: [],
   maxSize: 30,
-  numMoves: 5,
+  numMoves: 8,
 };

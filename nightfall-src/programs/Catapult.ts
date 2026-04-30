@@ -11,7 +11,7 @@ export const Catapult: IProgram = {
     {
       name: "Fling",
       description: "Deletes 2 Sectors From Target",
-      range: 4,
+      range: 5,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
   ],

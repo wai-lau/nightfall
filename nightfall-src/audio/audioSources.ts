@@ -188,3 +188,31 @@ export const Received: IAudioSource = {
   srcBuffer: require("./received.mp3"),
   name: "received",
 };
+
+export const BattleCAR: IAudioSource = {
+  solo: true,
+  srcBuffer: require("./CAR.mp3"),
+  name: "battle-car",
+  volume: 0.4,
+};
+
+export const BattleLMM: IAudioSource = {
+  solo: true,
+  srcBuffer: require("./LMM.mp3"),
+  name: "battle-lmm",
+  volume: 0.4,
+};
+
+export const BattleDonut: IAudioSource = {
+  solo: true,
+  srcBuffer: require("./Donut.mp3"),
+  name: "battle-donut",
+  volume: 0.4,
+};
+
+export const BattleQ1: IAudioSource = {
+  solo: true,
+  srcBuffer: require("./Q1.mp3"),
+  name: "battle-q1",
+  volume: 0.4,
+};

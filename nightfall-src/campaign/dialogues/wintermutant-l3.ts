@@ -3,30 +3,30 @@ import parseDialogue from "../../util/parseDialogue";
 export const WintermutantL3 = parseDialogue(`
 wintermutant:l3:100-600
 
-#100 Hey dude. Sorry to interrupt an elite S.M.A.R.T agent like yourself. Is it okay if we chat for a sec?
->200 Umm... who are you?
->201 Sure thing.
+#100 No cap, I've been lowkey watching your runs and bro you are GOATED. Sorry to interrupt tho. Can we talk real quick?
+>200 Who are you?
+>201 Sure.
 
-#200 Oh, I'm sort of a hacker too. I mean I'd like to be one. I hope you don't mind that I've been checking out your radical runs. Taking care of the Dr. Donut problems?
->300 What Dr. Donut problems?
->301 Where did you hear about problems?
+#200 I'm kinda a hacker? Still learning but fr fr your moves are insane. You here for the Dr. Donut situation?
+>300 What Dr. Donut situation?
+>301 Where did you hear about that?
 
-#201 Thanx. I noticed S.M.A.R.T was down but you seem to be doing fine. You must have some radical tricks up your sleeve. :) Here to take care of the Dr. Donut problems?
->300 What Dr. Donut problems?
->301 Where did you hear about problems?
+#201 I noticed S.M.A.R.T was down but you're still out here grinding. Lowkey respect. You here about the Dr. Donut thing?
+>300 What Dr. Donut situation?
+>301 Where did you hear about that?
 
-#300 I guess that's way beneath your radar. Some hacker screwed around with their systems and now they're all buggy.
->400 Could you tell me where the node is?
->400 Give me the info about the node.
+#300 I guess that's not on your radar rn. Some hacker cooked their systems and now everything's glitching out.
+>400 Send me the node info.
+>400 Where is it?
 
-#301 Oh, I saw S.M.A.R.T had crashed and I decided to do some snooping. Yeah, they got hit by a recent hack and their systems are all buggy.
->400 Could you tell me where that is?
->400 Give me the info about the node.
+#301 S.M.A.R.T crashed so I went full detective mode. Yeah, they got hit and their systems are completely cooked.
+>400 Send me the node info.
+>400 Where is it?
 
-#400 Sure, I'll send it to you right away. I know I've got it around here somewhere. Hang on a sec...
+#400 On it, just give me a sec, I know I have it somewhere...
 >500 I'm waiting.
 >500 Take your time.
 
-#500 Got it! I'm uploaindg the node onto your netmap for you. Kewl talkin to you. CUL8R.
+#500 Found it! Uploading the node to your netmap now. Was bussin talking to you. Laters.
 >600 Ready to receive node data.
 `);

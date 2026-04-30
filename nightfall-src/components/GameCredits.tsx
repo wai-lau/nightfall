@@ -58,6 +58,9 @@ Remake+ (2026)/
 
 _QoL + Hosting/
 W ai      L au
+
+_Music Archivist/
+Jo el   Jak  ub ov ic
 `;
 
 const GameCredits = () => (

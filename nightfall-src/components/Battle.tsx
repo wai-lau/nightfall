@@ -54,7 +54,7 @@ import { HeaderBox } from "./HeaderBox";
 import Hackerman from "./Hackerman";
 import ProgramInfo from "./ProgramInfo";
 import AttackAnimation from "./AttackAnimation";
-import AudioShuffler from "../util/AudioShuffler";
+import AudioShuffler, { IAudioShufflerConfig } from "../util/AudioShuffler";
 import { DatabattleConfig as DatabattleAudioShufflerConfig } from "../campaign/databattleAudioShuffleConfig";
 import GuideText from "./GuideText";
 
@@ -65,6 +65,7 @@ import IGameAI from "../types/GameAI";
 export interface BattleProps extends ILevel {
   firstClearCredits: number | null;
   battleStyle: IBattleStyle;
+  audioConfig: IAudioShufflerConfig | null;
   availablePrograms: IProgram[];
   onFinishBattle: (result: IBattleResult) => void;
   noModals?: boolean;
@@ -1226,7 +1227,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     await this.setStateP(() => ({
       showIntro: false,
     }));
-    new AudioShuffler(this.audioContext.player, DatabattleAudioShufflerConfig).play();
+    new AudioShuffler(this.audioContext.player, this.props.audioConfig || DatabattleAudioShufflerConfig).play();
     const { uploadZones } = this.state;
     if (uploadZones.length) {
       await this.createOnSelectUploadZone(uploadZones[0].id)();

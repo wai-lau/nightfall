@@ -15,6 +15,6 @@ export const WolfSpider: IProgram = {
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
   ],
-  maxSize: 3,
-  numMoves: 3,
+  maxSize: 2,
+  numMoves: 4,
 };

@@ -1,5 +1,6 @@
 import { IGameStatus, IGameStatusCoordinator } from "./GameStatus";
 import { IAudioSource } from "./Audio";
+import { IAudioShufflerConfig } from "../util/AudioShuffler";
 
 export enum NodeType {
   SmartHQ,
@@ -40,6 +41,7 @@ export interface INetmapNode {
 export interface INetmapBattleNode extends INetmapNode {
   type: NodeType.Battle;
   battleStyle: IBattleStyle;
+  audioConfig?: IAudioShufflerConfig;
 }
 
 export interface INetmapNonBattleNode extends INetmapNode {
