@@ -5,7 +5,7 @@ export enum PlayType {
 
 export interface IAudioSource {
   solo?: boolean;
-  srcBuffer: ArrayBuffer;
+  srcUrl: string;
   name: string;
   volume?: number;
   offset?: number;

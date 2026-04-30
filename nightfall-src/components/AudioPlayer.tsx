@@ -38,15 +38,15 @@ class AudioPlayer extends PComponent<AudioPlayerProps, AudioPlayerState> impleme
   }
 
   loadAudio = async (source: IAudioSource) => {
-    const { srcBuffer, name } = source;
+    const { srcUrl, name } = source;
     if (this.buffers[name]) {
       return true;
     }
+    const res = await fetch(srcUrl);
+    const arrayBuffer = await res.arrayBuffer();
     const data = await new Promise((resolve, reject) => {
-      this.audioCtx.decodeAudioData(srcBuffer.slice(0), resolve, reject);
+      this.audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
     });
-    // Safari doesn't yet support the Promise version of decodeAudioData
-    // const data = await this.audioCtx.decodeAudioData(asBuffer);
     this.buffers[name] = data;
     return true;
   };

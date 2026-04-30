@@ -31,10 +31,6 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, { loader: "css-loader", options: { url: false } }],
       },
       {
-        test: /\.(mp3|wav)$/,
-        use: "arraybuffer-loader",
-      },
-      {
         test: /\.(png|jpg|jpeg|gif|svg|ttf|woff|woff2|eot)$/,
         type: "asset/resource",
         generator: {
@@ -43,6 +39,10 @@ module.exports = {
         },
       },
     ],
+  },
+  performance: {
+    maxAssetSize: 512 * 1024,
+    maxEntrypointSize: 512 * 1024,
   },
   plugins: [
     new MiniCssExtractPlugin({

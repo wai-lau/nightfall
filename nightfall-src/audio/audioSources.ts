@@ -1,218 +1,220 @@
 import { IAudioSource } from "../types";
 
+const u = (file: string): string => `/nightfall-game/audio/${file}`;
+
 export const __TODO__: IAudioSource = {
   solo: true,
-  srcBuffer: require("./hover-c.mp3"),
+  srcUrl: u("hover-c.mp3"),
   name: "__TODO__",
 };
 
 export const Theme: IAudioSource = {
   solo: true,
-  srcBuffer: require("./theme.wav"),
+  srcUrl: u("theme.wav"),
   name: "theme",
   volume: 0.8,
 };
 
 export const Netmap: IAudioSource = {
   solo: true,
-  srcBuffer: require("./netmap.mp3"),
+  srcUrl: u("netmap.mp3"),
   name: "netmap",
   volume: 0.4,
 };
 
 export const Move: IAudioSource = {
-  srcBuffer: require("./move.mp3"),
+  srcUrl: u("move.mp3"),
   name: "move",
 };
 
 export const Attack: IAudioSource = {
-  srcBuffer: require("./attack.mp3"),
+  srcUrl: u("attack.mp3"),
   name: "attack",
 };
 
 export const BitFlip: IAudioSource = {
-  srcBuffer: require("./bitflip.mp3"),
+  srcUrl: u("bitflip.mp3"),
   name: "bitflip",
 };
 
 export const Heal: IAudioSource = {
-  srcBuffer: require("./heal.mp3"),
+  srcUrl: u("heal.mp3"),
   name: "heal",
 };
 
 export const Loop1: IAudioSource = {
   solo: true,
-  srcBuffer: require("./loop-1.mp3"),
+  srcUrl: u("loop-1.mp3"),
   name: "loop-1",
   volume: 0.4,
 };
 
 export const Loop2: IAudioSource = {
   solo: true,
-  srcBuffer: require("./loop-2.mp3"),
+  srcUrl: u("loop-2.mp3"),
   name: "loop-2",
   volume: 0.4,
 };
 
 export const Loop3: IAudioSource = {
   solo: true,
-  srcBuffer: require("./loop-3.mp3"),
+  srcUrl: u("loop-3.mp3"),
   name: "loop-3",
   volume: 0.4,
 };
 
 export const Loop4: IAudioSource = {
   solo: true,
-  srcBuffer: require("./loop-4.mp3"),
+  srcUrl: u("loop-4.mp3"),
   name: "loop-4",
   volume: 0.4,
 };
 
 export const ProgramReady: IAudioSource = {
-  srcBuffer: require("./program-ready.mp3"),
+  srcUrl: u("program-ready.mp3"),
   name: "program-ready",
 };
 
 export const SelectAction: IAudioSource = {
-  srcBuffer: require("./select-action.mp3"),
+  srcUrl: u("select-action.mp3"),
   name: "select-action",
 };
 
 export const NoAction: IAudioSource = {
-  srcBuffer: require("./select-action.mp3"),
+  srcUrl: u("select-action.mp3"),
   name: "select-action",
 };
 
 export const ButtonNormal: IAudioSource = {
-  srcBuffer: require("./select-action.mp3"),
+  srcUrl: u("select-action.mp3"),
   name: "select-action",
 };
 
 export const Disconnect: IAudioSource = {
-  srcBuffer: require("./disconnect.mp3"),
+  srcUrl: u("disconnect.mp3"),
   name: "disconnect",
   solo: true,
   volume: 0.6,
 };
 
 export const Success: IAudioSource = {
-  srcBuffer: require("./success.mp3"),
+  srcUrl: u("success.mp3"),
   name: "success",
   solo: true,
 };
 
 export const Credit: IAudioSource = {
-  srcBuffer: require("./credit.mp3"),
+  srcUrl: u("credit.mp3"),
   name: "credit",
 };
 
 export const HoverC: IAudioSource = {
-  srcBuffer: require("./hover-c.mp3"),
+  srcUrl: u("hover-c.mp3"),
   name: "hover-c",
 };
 
 export const HoverEb: IAudioSource = {
-  srcBuffer: require("./hover-eb.mp3"),
+  srcUrl: u("hover-eb.mp3"),
   name: "hover-eb",
 };
 
 export const HoverF: IAudioSource = {
-  srcBuffer: require("./hover-f.mp3"),
+  srcUrl: u("hover-f.mp3"),
   name: "hover-f",
 };
 
 export const LMMIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./lmm-intro.mp3"),
+  srcUrl: u("lmm-intro.mp3"),
   name: "lmm-intro",
 };
 
 export const PHIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./ph-intro.mp3"),
+  srcUrl: u("ph-intro.mp3"),
   name: "ph-intro",
 };
 
 export const CARIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./car-intro.mp3"),
+  srcUrl: u("car-intro.mp3"),
   name: "car-intro",
 };
 
 export const PEDIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./ped-intro.mp3"),
+  srcUrl: u("ped-intro.mp3"),
   name: "ped-intro",
 };
 
 export const DonutIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./donut-intro.mp3"),
+  srcUrl: u("donut-intro.mp3"),
   name: "donut-intro",
 };
 
 export const DisarrayIntro: IAudioSource = {
   solo: true,
-  srcBuffer: require("./disarray-intro.mp3"),
+  srcUrl: u("disarray-intro.mp3"),
   name: "disarray-intro",
 };
 
 export const IntroNoise: IAudioSource = {
   solo: false,
-  srcBuffer: require("./intro-noise.mp3"),
+  srcUrl: u("intro-noise.mp3"),
   name: "intro-noise",
   volume: 0.6,
 };
 
 export const Zap: IAudioSource = {
-  srcBuffer: require("./zap.mp3"),
+  srcUrl: u("zap.mp3"),
   name: "zap",
 };
 
 export const Clog: IAudioSource = {
-  srcBuffer: require("./clog.mp3"),
+  srcUrl: u("clog.mp3"),
   name: "clog",
 };
 
 export const Grow: IAudioSource = {
-  srcBuffer: require("./grow.mp3"),
+  srcUrl: u("grow.mp3"),
   name: "grow",
 };
 
 export const UploadProgram: IAudioSource = {
-  srcBuffer: require("./upload-program.mp3"),
+  srcUrl: u("upload-program.mp3"),
   name: "upload-program",
 };
 
 export const Received: IAudioSource = {
-  srcBuffer: require("./received.mp3"),
+  srcUrl: u("received.mp3"),
   name: "received",
 };
 
 export const BattleCAR: IAudioSource = {
   solo: true,
-  srcBuffer: require("./CAR.mp3"),
+  srcUrl: u("CAR.mp3"),
   name: "battle-car",
   volume: 0.4,
 };
 
 export const BattleLMM: IAudioSource = {
   solo: true,
-  srcBuffer: require("./LMM.mp3"),
+  srcUrl: u("LMM.mp3"),
   name: "battle-lmm",
   volume: 0.4,
 };
 
 export const BattleDonut: IAudioSource = {
   solo: true,
-  srcBuffer: require("./Donut.mp3"),
+  srcUrl: u("Donut.mp3"),
   name: "battle-donut",
   volume: 0.4,
 };
 
 export const BattleQ1: IAudioSource = {
   solo: true,
-  srcBuffer: require("./Q1.mp3"),
+  srcUrl: u("Q1.mp3"),
   name: "battle-q1",
   volume: 0.4,
 };
