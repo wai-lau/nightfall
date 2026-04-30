@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
@@ -45,6 +46,11 @@ module.exports = {
     maxEntrypointSize: 512 * 1024,
   },
   plugins: [
+    new webpack.DefinePlugin({
+      AUDIO_BASE_URL: JSON.stringify(
+        process.env.NODE_ENV === "production" ? "/nightfall-game/audio" : "/audio"
+      ),
+    }),
     new MiniCssExtractPlugin({
       filename: "css/bundle.css",
     }),

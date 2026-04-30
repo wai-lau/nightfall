@@ -1,6 +1,7 @@
 import { IAudioSource } from "../types";
 
-const u = (file: string): string => `/nightfall-game/audio/${file}`;
+declare const AUDIO_BASE_URL: string;
+const u = (file: string): string => `${AUDIO_BASE_URL}/${file}`;
 
 export const __TODO__: IAudioSource = {
   solo: true,
