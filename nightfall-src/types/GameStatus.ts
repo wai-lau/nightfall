@@ -16,6 +16,10 @@ export interface IGameStatusCoordinator {
   setNodeStatus(id: string, status: NodeStatus): Promise<void>;
   setScrollPosition(pos: NetmapPosition): Promise<void>;
   setFirstClearNode(node: { id: string; result: "clear" | "lose" } | null): Promise<void>;
-  startDialogue(dialogue: IDialogue): void;
+  startDialogue(dialogue: IDialogue): Promise<boolean>;
   openNode(id: string): Promise<void>;
+  revealNode(id: string): Promise<void>;
+  setLevel(l: number): Promise<void>;
+  displayMessage(header: string, message: string): Promise<void>;
+  setNightfallNodes(ids?: string[]): Promise<void>;
 }

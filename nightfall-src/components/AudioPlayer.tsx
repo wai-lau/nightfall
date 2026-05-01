@@ -1,6 +1,4 @@
-import React from "react";
 import { IAudioPlayer, IPlayingAudio, IAudioSource } from "../types";
-import { IAudioContext } from "../util/AudioContext";
 import PComponent from "../util/PComponent";
 
 interface AudioPlayerProps {
@@ -12,7 +10,7 @@ interface AudioPlayerState {
   audios: IPlayingAudio[];
 }
 
-const AudioContext = window.webkitAudioContext || window.AudioContext;
+const AudioContext = (window as Window & { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext || window.AudioContext;
 
 // Should be the type of AudioBufferSourceNode.buffer
 type DecodedBuffer = any;
