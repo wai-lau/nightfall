@@ -22,7 +22,7 @@ const GLB_URLS: Record<string, string> = {
   warez: require("../../img/nodes/3d/warez.glb"),
 };
 
-const MODEL_FIT_SIZE = 8.0; // target max dimension in world units
+const MODEL_SCALE = 0.04; // uniform scale for all models — tune this one value
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -80,22 +80,19 @@ interface NodeModelProps {
 function NodeModel({ corpKey, material }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
 
-  const { clone, scale, offset } = useMemo(() => {
+  const { clone, offset } = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
     const c = scene.clone(true);
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
     });
-    const box = new THREE.Box3().setFromObject(c);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const s = maxDim > 0 ? MODEL_FIT_SIZE / maxDim : 1;
-    return { clone: c, scale: s, offset: new THREE.Vector3(-center.x * s, -box.min.y * s, -center.z * s) };
+    // center XZ, sit bottom on y=0
+    return { clone: c, offset: new THREE.Vector3(-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE) };
   }, [scene, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <primitive object={clone} scale={scale} position={[offset.x, offset.y, offset.z]} />;
+  return <primitive object={clone} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} />;
 }
 
 interface NetmapNodeProps {
