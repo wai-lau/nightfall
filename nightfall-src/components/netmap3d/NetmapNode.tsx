@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -80,27 +80,22 @@ interface NodeModelProps {
 function NodeModel({ corpKey, material }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
 
-  const { scale, offset } = useMemo(() => {
-    const box = new THREE.Box3().setFromObject(scene);
+  const { clone, scale, offset } = useMemo(() => {
+    const c = scene.clone(true);
+    c.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
+    });
+    const box = new THREE.Box3().setFromObject(c);
     const size = new THREE.Vector3();
     box.getSize(size);
     const center = new THREE.Vector3();
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z);
     const s = maxDim > 0 ? MODEL_FIT_SIZE / maxDim : 1;
-    // center X/Z, sit bottom on y=0
-    return { scale: s, offset: new THREE.Vector3(-center.x * s, -box.min.y * s, -center.z * s) };
-  }, [scene]);
+    return { clone: c, scale: s, offset: new THREE.Vector3(-center.x * s, -box.min.y * s, -center.z * s) };
+  }, [scene, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        (child as THREE.Mesh).material = material;
-      }
-    });
-  }, [scene, material]);
-
-  return <primitive object={scene} scale={scale} position={[offset.x, offset.y, offset.z]} />;
+  return <primitive object={clone} scale={scale} position={[offset.x, offset.y, offset.z]} />;
 }
 
 interface NetmapNodeProps {
