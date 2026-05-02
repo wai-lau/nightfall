@@ -57,24 +57,41 @@ function crossCount(segs: Seg[], existing: Seg[]): number {
 }
 
 export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEdgesProps) {
-  const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
-
   const edges = useMemo(() => {
     const routed: Seg[] = [];
     const result: { points: [number, number, number][]; accessible: boolean }[] = [];
 
-    for (const node of nodes) {
-      if (!node.prereq) continue;
-      const fromNode = nodeMap.get(node.prereq);
-      const fromPos = positions[node.prereq];
-      const toPos = positions[node.id];
-      if (!fromNode || !fromPos || !toPos) continue;
+    // Visual edges from PNG not captured by prereqs (root nodes connecting to S1)
+    const extraEdges: { from: string; to: string }[] = [
+      { from: "smart-hq", to: "warez-1" },
+      { from: "smart-hq", to: "lmm-techsupport" },
+      { from: "smart-hq", to: "ph-prdatabase" },
+    ];
 
-      const [fx, , fz] = toWorld(fromPos, fromNode.securityLevel);
-      const [tx, , tz] = toWorld(toPos, node.securityLevel);
+    const allEdges: { from: string; to: string; accessible: boolean }[] = [
+      ...extraEdges.map(e => {
+        const toStatus = netmapStatus[e.to];
+        const accessible = toStatus !== undefined && toStatus !== NodeStatus.INVISIBLE;
+        return { ...e, accessible };
+      }),
+      ...nodes
+        .filter(n => !!n.prereq)
+        .map(n => {
+          const toStatus = netmapStatus[n.id];
+          const accessible = toStatus !== undefined && toStatus !== NodeStatus.INVISIBLE;
+          return { from: n.prereq!, to: n.id, accessible };
+        }),
+    ];
 
-      const status = netmapStatus[node.id];
-      const accessible = status !== undefined && status !== NodeStatus.INVISIBLE;
+    for (const edge of allEdges) {
+      const fromPos = positions[edge.from];
+      const toPos = positions[edge.to];
+      if (!fromPos || !toPos) continue;
+
+      const [fx, , fz] = toWorld(fromPos, 0);
+      const [tx, , tz] = toWorld(toPos, 0);
+
+      const { accessible } = edge;
 
       const from3: [number, number, number] = [fx, EDGE_Y, fz];
       const to3: [number, number, number] = [tx, EDGE_Y, tz];
@@ -104,7 +121,7 @@ export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEd
     }
 
     return result;
-  }, [nodes, positions, netmapStatus, nodeMap]);
+  }, [nodes, positions, netmapStatus]);
 
   return (
     <>
