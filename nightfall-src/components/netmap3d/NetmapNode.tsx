@@ -31,6 +31,7 @@ const COLOR_DIMMED = 0x334455;
 
 const MODEL_ROTATION_Y: Partial<Record<string, number>> = {
   warez: -Math.PI / 2,
+  car:   -Math.PI / 2,
 };
 
 const NODE_Y = 0;
@@ -101,7 +102,12 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     );
   }, [scene]);
 
-  return <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />;
+  const rotY = MODEL_ROTATION_Y[corpKey] ?? 0;
+  return (
+    <group rotation={[0, rotY, 0]}>
+      <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />
+    </group>
+  );
 }
 
 interface NetmapNodeProps {
