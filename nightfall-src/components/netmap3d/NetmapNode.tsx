@@ -92,6 +92,7 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
   }, [scene, material]);
 
   const pos = useMemo(() => {
+    scene.rotation.y = MODEL_ROTATION_Y[corpKey] ?? 0;
     const box = new THREE.Box3().setFromObject(scene);
     const center = new THREE.Vector3();
     box.getCenter(center);
@@ -100,14 +101,9 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
       -box.min.y * MODEL_SCALE,
       -center.z * MODEL_SCALE,
     );
-  }, [scene]);
+  }, [scene, corpKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const rotY = MODEL_ROTATION_Y[corpKey] ?? 0;
-  return (
-    <group rotation={[0, rotY, 0]}>
-      <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />
-    </group>
-  );
+  return <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />;
 }
 
 interface NetmapNodeProps {
