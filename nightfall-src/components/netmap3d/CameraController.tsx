@@ -3,11 +3,12 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Direction, NetmapPosition } from "../../types";
 import { pixelToWorldXZ } from "../../util/netmap3d";
 
-const CAM_HEIGHT = 45;
-const CAM_DISTANCE = 35;
+const CAM_HEIGHT = 30;
+const CAM_DISTANCE = 50;
 const CAM_ANGLE = Math.PI / 4;
 const CAM_OFFSET_X = -CAM_DISTANCE * Math.sin(CAM_ANGLE);
 const CAM_OFFSET_Z = CAM_DISTANCE * Math.cos(CAM_ANGLE);
+const DIAG = Math.SQRT1_2; // 1/√2 — forward/right unit vectors in XZ at 45°
 const VELOCITY = 20;
 const LERP_FACTOR = 0.1;
 
@@ -49,10 +50,11 @@ export default function CameraController({ initialTarget, bindScrollFunction, bi
       }
     } else {
       const keys = keysRef.current;
-      if (keys.has("w") || keys.has("arrowup")) targetRef.current[1] -= VELOCITY * delta;
-      if (keys.has("s") || keys.has("arrowdown")) targetRef.current[1] += VELOCITY * delta;
-      if (keys.has("a") || keys.has("arrowleft")) targetRef.current[0] -= VELOCITY * delta;
-      if (keys.has("d") || keys.has("arrowright")) targetRef.current[0] += VELOCITY * delta;
+      const v = VELOCITY * delta;
+      if (keys.has("w") || keys.has("arrowup"))    { targetRef.current[0] += DIAG * v; targetRef.current[1] -= DIAG * v; }
+      if (keys.has("s") || keys.has("arrowdown"))  { targetRef.current[0] -= DIAG * v; targetRef.current[1] += DIAG * v; }
+      if (keys.has("a") || keys.has("arrowleft"))  { targetRef.current[0] -= DIAG * v; targetRef.current[1] -= DIAG * v; }
+      if (keys.has("d") || keys.has("arrowright")) { targetRef.current[0] += DIAG * v; targetRef.current[1] += DIAG * v; }
     }
 
     const [ntx, ntz] = targetRef.current;
