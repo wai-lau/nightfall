@@ -90,7 +90,18 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     });
   }, [scene, material]);
 
-  return <primitive object={scene} scale={MODEL_SCALE} />;
+  const pos = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    return new THREE.Vector3(
+      -center.x * MODEL_SCALE,
+      -box.min.y * MODEL_SCALE,
+      -center.z * MODEL_SCALE,
+    );
+  }, [scene]);
+
+  return <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />;
 }
 
 interface NetmapNodeProps {
