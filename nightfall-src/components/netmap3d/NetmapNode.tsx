@@ -41,9 +41,11 @@ const LERP = 0.12;
 const LERP_EPSILON = 0.001;
 const PLATFORM_Y_OFFSET = FLOOR_Y;
 
-const unclearedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_UNCLEARED });
+const unclearedLineMat = new THREE.LineBasicMaterial({ color: COLOR_UNCLEARED });
 const clearedMat = new THREE.MeshStandardMaterial({ color: COLOR_CLEARED, emissive: EMISSIVE_CLEARED, emissiveIntensity: 0.4 });
-const dimmedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
+const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
+
+const EDGES_THRESHOLD = 15; // degrees — only show edges sharper than this
 
 const TILE_OFFSETS: [number, number][] = [];
 for (let row = -1; row <= 1; row++) {
@@ -80,10 +82,11 @@ function getCorpKey(node: INetmapBattleNode | INetmapNonBattleNode): string {
 
 interface NodeModelProps {
   corpKey: string;
-  material: THREE.Material;
+  cleared: boolean;
+  dimmed: boolean;
 }
 
-function NodeModel({ corpKey, material }: NodeModelProps) {
+function NodeModel({ corpKey, cleared, dimmed }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
 
   const { obj, pos } = useMemo(() => {
@@ -93,14 +96,35 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     const box = new THREE.Box3().setFromObject(c);
     const center = new THREE.Vector3();
     box.getCenter(center);
-    c.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
-    });
+
+    if (cleared && !dimmed) {
+      c.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = clearedMat;
+      });
+    } else {
+      const lineMat = dimmed ? dimmedLineMat : unclearedLineMat;
+      const toReplace: { parent: THREE.Object3D; old: THREE.Object3D; replacement: THREE.LineSegments }[] = [];
+      c.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (!mesh.isMesh || !mesh.parent) return;
+        const edges = new THREE.EdgesGeometry(mesh.geometry, EDGES_THRESHOLD);
+        const lines = new THREE.LineSegments(edges, lineMat);
+        lines.position.copy(mesh.position);
+        lines.rotation.copy(mesh.rotation);
+        lines.scale.copy(mesh.scale);
+        toReplace.push({ parent: mesh.parent, old: mesh, replacement: lines });
+      });
+      toReplace.forEach(({ parent, old, replacement }) => {
+        parent.remove(old);
+        parent.add(replacement);
+      });
+    }
+
     return {
       obj: c,
       pos: [-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE] as [number, number, number],
     };
-  }, [scene, corpKey, material]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scene, corpKey, cleared, dimmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <primitive object={obj} scale={MODEL_SCALE} position={pos} />;
 }
@@ -142,7 +166,6 @@ export default function NetmapNode({
   if (status === undefined || status === NodeStatus.INVISIBLE) return null;
 
   const cleared = matchFlag(status, NodeStatus.WON);
-  const material = isNightfallDimmed ? dimmedMat : cleared ? clearedMat : unclearedMat;
 
   return (
     <>
@@ -153,7 +176,7 @@ export default function NetmapNode({
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
       >
-        <NodeModel corpKey={corpKey} material={material} />
+        <NodeModel corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} />
 
         {hovered && (
           <Html center distanceFactor={30} style={{ pointerEvents: "none" }}>
