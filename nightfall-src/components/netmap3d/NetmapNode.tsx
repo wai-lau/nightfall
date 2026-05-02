@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -85,25 +85,23 @@ interface NodeModelProps {
 function NodeModel({ corpKey, material }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
 
-  useEffect(() => {
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
-    });
-  }, [scene, material]);
-
-  const pos = useMemo(() => {
-    scene.rotation.y = MODEL_ROTATION_Y[corpKey] ?? 0;
-    const box = new THREE.Box3().setFromObject(scene);
+  const { obj, pos } = useMemo(() => {
+    const c = scene.clone(true);
+    c.rotation.y = MODEL_ROTATION_Y[corpKey] ?? 0;
+    c.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(c);
     const center = new THREE.Vector3();
     box.getCenter(center);
-    return new THREE.Vector3(
-      -center.x * MODEL_SCALE,
-      -box.min.y * MODEL_SCALE,
-      -center.z * MODEL_SCALE,
-    );
-  }, [scene, corpKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    c.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
+    });
+    return {
+      obj: c,
+      pos: [-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE] as [number, number, number],
+    };
+  }, [scene, corpKey, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <primitive object={scene} scale={MODEL_SCALE} position={[pos.x, pos.y, pos.z]} />;
+  return <primitive object={obj} scale={MODEL_SCALE} position={pos} />;
 }
 
 interface NetmapNodeProps {
