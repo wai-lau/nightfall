@@ -29,6 +29,7 @@ const COLOR_CLEARED = 0x6a8a9e;
 const EMISSIVE_CLEARED = 0x2a4a5e;
 const COLOR_DIMMED = 0x334455;
 
+const MODEL_BASE_ROTATION_Y = -Math.PI / 2;
 const MODEL_ROTATION_Y: Partial<Record<string, number>> = {
   warez: -Math.PI / 2,
   car:   -Math.PI / 2,
@@ -87,7 +88,7 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
 
   const { obj, pos } = useMemo(() => {
     const c = scene.clone(true);
-    c.rotation.y = MODEL_ROTATION_Y[corpKey] ?? 0;
+    c.rotation.y = MODEL_BASE_ROTATION_Y + (MODEL_ROTATION_Y[corpKey] ?? 0);
     c.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(c);
     const center = new THREE.Vector3();
