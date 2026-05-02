@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
+import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import {
   INetmapBattleNode,
@@ -9,7 +9,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_TILE_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT, FLOOR_Y } from "./NetmapFloor";
+import { FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT, FLOOR_Y } from "./NetmapFloor";
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -20,7 +20,7 @@ const NODE_Y = 0;
 const RISE_AMOUNT = 1.5;
 const LERP = 0.12;
 const LERP_EPSILON = 0.001;
-const PLATFORM_Y_OFFSET = FLOOR_Y; // platform rests at floor level, rises with node on select
+const PLATFORM_Y_OFFSET = FLOOR_Y;
 
 const unclearedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_UNCLEARED });
 const clearedMat = new THREE.MeshStandardMaterial({ color: COLOR_CLEARED, emissive: EMISSIVE_CLEARED, emissiveIntensity: 0.4 });
@@ -46,6 +46,39 @@ const platformEdgeGeo = (() => {
   return geo;
 })();
 
+function getCorpKey(node: INetmapBattleNode | INetmapNonBattleNode): string {
+  const orgName = node.nodeStyle.netmapOrgName.toLowerCase();
+  if (orgName.includes("pharmhaus"))                          return "ph";
+  if (orgName.includes("lucky monkey"))                       return "lmm";
+  if (orgName.includes("cellular"))                           return "car";
+  if (orgName.includes("ped") || orgName.includes("parker"))  return "ped";
+  if (orgName.includes("donut"))                              return "donut";
+  if (orgName.includes("s.m.a.r.t") || orgName.includes("smart")) return "smart";
+  if (orgName.includes("warez"))                              return "warez";
+  if (orgName === "")                                         return "hq";
+  return "hq";
+}
+
+interface NodeModelProps {
+  corpKey: string;
+  material: THREE.Material;
+}
+
+function NodeModel({ corpKey, material }: NodeModelProps) {
+  const url: string = require(`../../img/nodes/3d/${corpKey}.glb`);
+  const { scene } = useGLTF(url);
+  const cloned = useMemo(() => {
+    const c = scene.clone(true);
+    c.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        (child as THREE.Mesh).material = material;
+      }
+    });
+    return c;
+  }, [scene, material]);
+  return <primitive object={cloned} />;
+}
+
 interface NetmapNodeProps {
   node: INetmapBattleNode | INetmapNonBattleNode;
   position: [number, number, number];
@@ -53,33 +86,6 @@ interface NetmapNodeProps {
   isSelected: boolean;
   isNightfallDimmed: boolean;
   onClick: () => void;
-}
-
-function getGeometry(corpKey: string): THREE.BufferGeometry {
-  switch (corpKey) {
-    case "ph":    return new THREE.CapsuleGeometry(0.9, 2.5, 6, 12);
-    case "lmm":   return new THREE.TorusGeometry(1.8, 0.5, 6, 18);
-    case "car":   return new THREE.CylinderGeometry(0.45, 0.45, 3.5, 8);
-    case "ped":   return new THREE.OctahedronGeometry(1.8);
-    case "donut": return new THREE.SphereGeometry(1.5, 8, 8);
-    case "hq":    return new THREE.IcosahedronGeometry(1.8);
-    case "smart": return new THREE.BoxGeometry(1.4, 3.2, 1.4);
-    case "warez": return new THREE.CylinderGeometry(1.6, 1.6, 1.8, 8);
-    default:      return new THREE.BoxGeometry(1.8, 1.8, 1.8);
-  }
-}
-
-function getCorpKey(node: INetmapBattleNode | INetmapNonBattleNode): string {
-  const orgName = node.nodeStyle.netmapOrgName.toLowerCase();
-  if (orgName.includes("pharmhaus"))       return "ph";
-  if (orgName.includes("lucky monkey"))    return "lmm";
-  if (orgName.includes("cellular"))        return "car";
-  if (orgName.includes("ped") || orgName.includes("parker")) return "ped";
-  if (orgName.includes("donut"))           return "donut";
-  if (orgName.includes("s.m.a.r.t") || orgName.includes("smart")) return "smart";
-  if (orgName.includes("warez"))           return "warez";
-  if (orgName === "")                      return "hq";
-  return "default";
 }
 
 export default function NetmapNode({
@@ -111,8 +117,6 @@ export default function NetmapNode({
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const corpKey = useMemo(() => getCorpKey(node), [node.id]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const geometry = useMemo(() => getGeometry(corpKey), [corpKey]);
 
   return (
     <>
@@ -123,7 +127,7 @@ export default function NetmapNode({
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
       >
-        <mesh geometry={geometry} material={material} />
+        <NodeModel corpKey={corpKey} material={material} />
 
         {hovered && (
           <Html center distanceFactor={30} style={{ pointerEvents: "none" }}>
@@ -139,7 +143,7 @@ export default function NetmapNode({
       {isSelected && (
         <group ref={platformRef} position={[position[0], NODE_Y + PLATFORM_Y_OFFSET, position[2]]}>
           {TILE_OFFSETS.map(([ox, oz], i) => (
-            <mesh key={i} position={[ox, 0, oz]} geometry={FLOOR_TILE_GEO} material={FLOOR_TILE_MAT} />
+            <mesh key={i} position={[ox, 0, oz]} geometry={FLOOR_COLUMN_GEO} material={FLOOR_TILE_MAT} />
           ))}
           <lineSegments geometry={platformEdgeGeo} material={FLOOR_EDGE_MAT} />
         </group>
