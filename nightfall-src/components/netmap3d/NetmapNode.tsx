@@ -110,13 +110,13 @@ export default function NetmapNode({
     if (platformRef.current) platformRef.current.position.y = NODE_Y + yRef.current + PLATFORM_Y_OFFSET;
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const corpKey = useMemo(() => getCorpKey(node), [node.id]);
+
   if (status === undefined || status === NodeStatus.INVISIBLE) return null;
 
   const cleared = matchFlag(status, NodeStatus.WON);
   const material = isNightfallDimmed ? dimmedMat : cleared ? clearedMat : unclearedMat;
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const corpKey = useMemo(() => getCorpKey(node), [node.id]);
 
   return (
     <>
