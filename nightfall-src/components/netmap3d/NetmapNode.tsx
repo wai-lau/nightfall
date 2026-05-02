@@ -1,6 +1,7 @@
 import React, { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
+import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 import {
   INetmapBattleNode,
@@ -88,11 +89,10 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     const box = new THREE.Box3().setFromObject(scene);
     const center = new THREE.Vector3();
     box.getCenter(center);
-    const c = scene.clone(true);
+    const c = SkeletonUtils.clone(scene) as THREE.Object3D;
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
     });
-    // center XZ, sit bottom on y=0
     return { clone: c, offset: new THREE.Vector3(-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE) };
   }, [scene, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
