@@ -94,7 +94,8 @@ export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEd
       // Option 1: go Z first → corner at (fx, tz)
       const segs1: Seg[] = [[fx, fz, fx, tz], [fx, tz, tx, tz]];
 
-      const useOpt0 = crossCount(segs0, routed) <= crossCount(segs1, routed);
+      // Z-first preferred (matches netmap.png trunk pattern); fall back to X-first if fewer crossings
+      const useOpt0 = crossCount(segs1, routed) < crossCount(segs0, routed);
       const chosen = useOpt0 ? segs0 : segs1;
       const corner: [number, number, number] = useOpt0 ? [tx, EDGE_Y, fz] : [fx, EDGE_Y, tz];
 

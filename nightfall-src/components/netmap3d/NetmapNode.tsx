@@ -16,10 +16,11 @@ const COLOR_CLEARED = 0x6a8a9e;
 const EMISSIVE_CLEARED = 0x2a4a5e;
 const COLOR_DIMMED = 0x334455;
 
-const RISE_AMOUNT = 2.5;
+const NODE_Y = 0;
+const RISE_AMOUNT = 1.5;
 const LERP = 0.12;
 const LERP_EPSILON = 0.001;
-const PLATFORM_Y_OFFSET = -1.5;
+const PLATFORM_Y_OFFSET = -0.4;
 
 const unclearedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_UNCLEARED });
 const clearedMat = new THREE.MeshStandardMaterial({ color: COLOR_CLEARED, emissive: EMISSIVE_CLEARED, emissiveIntensity: 0.4 });
@@ -99,8 +100,8 @@ export default function NetmapNode({
   useFrame(() => {
     if (Math.abs(targetY - yRef.current) < LERP_EPSILON) return;
     yRef.current += (targetY - yRef.current) * LERP;
-    if (groupRef.current) groupRef.current.position.y = position[1] + yRef.current;
-    if (platformRef.current) platformRef.current.position.y = position[1] + yRef.current + PLATFORM_Y_OFFSET;
+    if (groupRef.current) groupRef.current.position.y = NODE_Y + yRef.current;
+    if (platformRef.current) platformRef.current.position.y = NODE_Y + yRef.current + PLATFORM_Y_OFFSET;
   });
 
   if (status === undefined || status === NodeStatus.INVISIBLE) return null;
@@ -117,7 +118,7 @@ export default function NetmapNode({
     <>
       <group
         ref={groupRef}
-        position={[position[0], position[1], position[2]]}
+        position={[position[0], NODE_Y, position[2]]}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
@@ -136,7 +137,7 @@ export default function NetmapNode({
       </group>
 
       {isSelected && (
-        <group ref={platformRef} position={[position[0], position[1] + PLATFORM_Y_OFFSET, position[2]]}>
+        <group ref={platformRef} position={[position[0], NODE_Y + PLATFORM_Y_OFFSET, position[2]]}>
           {TILE_OFFSETS.map(([ox, oz], i) => (
             <mesh key={i} position={[ox, 0, oz]} geometry={FLOOR_TILE_GEO} material={FLOOR_TILE_MAT} />
           ))}
