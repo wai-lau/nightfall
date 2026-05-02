@@ -6,7 +6,6 @@ export const OFFSET_Z = 71;
 export const DEPTH_SCALE = 1.5;
 
 export const TILE_SIZE = 2.5;
-export const TILE_GAP = 0.15;
 
 export function toWorld(pos: NetmapPosition, secLevel: number): [number, number, number] {
   return [

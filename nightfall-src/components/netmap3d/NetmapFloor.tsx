@@ -1,41 +1,39 @@
-import React, { useMemo } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { SCALE, OFFSET_X, OFFSET_Z } from "../../util/netmap3d";
+import { TILE_SIZE, SCALE, OFFSET_X, OFFSET_Z } from "../../util/netmap3d";
 
 const MAP_PX_W = 1958;
 const MAP_PX_H = 1412;
-const FLOOR_Y = -0.5;
-const FLOOR_TILE = 1.0;
+export const FLOOR_Y = -0.5;
 
 const worldW = MAP_PX_W / SCALE;
 const worldH = MAP_PX_H / SCALE;
-const cols = Math.ceil(worldW / FLOOR_TILE);
-const rows = Math.ceil(worldH / FLOOR_TILE);
-const startX = -OFFSET_X;
-const startZ = -OFFSET_Z;
-const endX = startX + cols * FLOOR_TILE;
-const endZ = startZ + rows * FLOOR_TILE;
-const centerX = (startX + endX) / 2;
-const centerZ = (startZ + endZ) / 2;
+const COLS = Math.ceil(worldW / TILE_SIZE);
+const ROWS = Math.ceil(worldH / TILE_SIZE);
+const START_X = -OFFSET_X;
+const START_Z = -OFFSET_Z;
+const END_X = START_X + COLS * TILE_SIZE;
+const END_Z = START_Z + ROWS * TILE_SIZE;
+const COUNT = COLS * ROWS;
 
-const fillMat = new THREE.MeshStandardMaterial({
+export const FLOOR_TILE_MAT = new THREE.MeshStandardMaterial({
   color: 0x555555,
   polygonOffset: true,
   polygonOffsetFactor: 1,
   polygonOffsetUnits: 1,
 });
+export const FLOOR_EDGE_MAT = new THREE.LineBasicMaterial({ color: 0x111111 });
+export const FLOOR_TILE_GEO = new THREE.BoxGeometry(TILE_SIZE, 0.05, TILE_SIZE);
 
-const gridMat = new THREE.LineBasicMaterial({ color: 0x111111 });
-
-function buildGridGeometry(): THREE.BufferGeometry {
+function buildGridLines(): THREE.BufferGeometry {
   const pts: number[] = [];
-  for (let row = 0; row <= rows; row++) {
-    const z = startZ + row * FLOOR_TILE;
-    pts.push(startX, 0, z, endX, 0, z);
+  for (let row = 0; row <= ROWS; row++) {
+    const z = START_Z + row * TILE_SIZE;
+    pts.push(START_X, 0, z, END_X, 0, z);
   }
-  for (let col = 0; col <= cols; col++) {
-    const x = startX + col * FLOOR_TILE;
-    pts.push(x, 0, startZ, x, 0, endZ);
+  for (let col = 0; col <= COLS; col++) {
+    const x = START_X + col * TILE_SIZE;
+    pts.push(x, 0, START_Z, x, 0, END_Z);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
@@ -43,15 +41,32 @@ function buildGridGeometry(): THREE.BufferGeometry {
 }
 
 export default function NetmapFloor() {
-  const gridGeo = useMemo(buildGridGeometry, []);
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const gridGeo = useMemo(buildGridLines, []);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    let i = 0;
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        dummy.position.set(
+          START_X + col * TILE_SIZE + TILE_SIZE / 2,
+          0,
+          START_Z + row * TILE_SIZE + TILE_SIZE / 2
+        );
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i++, dummy.matrix);
+      }
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [dummy]);
 
   return (
     <group position={[0, FLOOR_Y, 0]}>
-      <mesh position={[centerX, 0, centerZ]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[cols * FLOOR_TILE, rows * FLOOR_TILE]} />
-        <primitive object={fillMat} attach="material" />
-      </mesh>
-      <lineSegments geometry={gridGeo} material={gridMat} />
+      <instancedMesh ref={meshRef} args={[FLOOR_TILE_GEO, FLOOR_TILE_MAT, COUNT]} />
+      <lineSegments geometry={gridGeo} material={FLOOR_EDGE_MAT} />
     </group>
   );
 }

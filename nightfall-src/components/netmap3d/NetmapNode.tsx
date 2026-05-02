@@ -8,7 +8,8 @@ import {
   NodeStatus,
 } from "../../types";
 import { matchFlag } from "../../util/util";
-import { TILE_SIZE, TILE_GAP } from "../../util/netmap3d";
+import { TILE_SIZE } from "../../util/netmap3d";
+import { FLOOR_TILE_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT } from "./NetmapFloor";
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -23,15 +24,26 @@ const PLATFORM_Y_OFFSET = -1.5;
 const unclearedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_UNCLEARED });
 const clearedMat = new THREE.MeshStandardMaterial({ color: COLOR_CLEARED, emissive: EMISSIVE_CLEARED, emissiveIntensity: 0.4 });
 const dimmedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
-const platformMat = new THREE.MeshStandardMaterial({ color: COLOR_UNCLEARED, transparent: true, opacity: 0.5 });
 
 const TILE_OFFSETS: [number, number][] = [];
-const cell = TILE_SIZE + TILE_GAP;
 for (let row = -1; row <= 1; row++) {
   for (let col = -1; col <= 1; col++) {
-    TILE_OFFSETS.push([col * cell, row * cell]);
+    TILE_OFFSETS.push([col * TILE_SIZE, row * TILE_SIZE]);
   }
 }
+
+const PLATFORM_HALF = 1.5 * TILE_SIZE;
+const platformEdgeGeo = (() => {
+  const pts: number[] = [];
+  for (let i = 0; i <= 3; i++) {
+    const v = -PLATFORM_HALF + i * TILE_SIZE;
+    pts.push(-PLATFORM_HALF, 0, v, PLATFORM_HALF, 0, v);
+    pts.push(v, 0, -PLATFORM_HALF, v, 0, PLATFORM_HALF);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  return geo;
+})();
 
 interface NetmapNodeProps {
   node: INetmapBattleNode | INetmapNonBattleNode;
@@ -126,10 +138,9 @@ export default function NetmapNode({
       {isSelected && (
         <group ref={platformRef} position={[position[0], position[1] + PLATFORM_Y_OFFSET, position[2]]}>
           {TILE_OFFSETS.map(([ox, oz], i) => (
-            <mesh key={i} position={[ox, 0, oz]} material={platformMat}>
-              <boxGeometry args={[TILE_SIZE, 0.05, TILE_SIZE]} />
-            </mesh>
+            <mesh key={i} position={[ox, 0, oz]} geometry={FLOOR_TILE_GEO} material={FLOOR_TILE_MAT} />
           ))}
+          <lineSegments geometry={platformEdgeGeo} material={FLOOR_EDGE_MAT} />
         </group>
       )}
     </>
