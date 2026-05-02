@@ -15,6 +15,7 @@ import CurrentPrograms from "./CurrentPrograms";
 import Button from "./Button";
 import CameraController, { ArrowScrollAPI } from "./netmap3d/CameraController";
 import NetmapEdges from "./netmap3d/NetmapEdges";
+import NetmapFloor from "./netmap3d/NetmapFloor";
 import NetmapNode from "./netmap3d/NetmapNode";
 import { pixelToWorldXZ, toWorld } from "../util/netmap3d";
 
@@ -86,6 +87,7 @@ export default function Netmap3D(props: Netmap3DProps) {
           bindArrowScroll={bindArrowScroll}
         />
 
+        <NetmapFloor />
         <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} />
 
         {nodes.map((node) => {
