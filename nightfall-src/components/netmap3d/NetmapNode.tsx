@@ -31,8 +31,8 @@ const COLOR_DIMMED = 0x334455;
 
 const MODEL_BASE_ROTATION_Y = -Math.PI / 2;
 const MODEL_ROTATION_Y: Partial<Record<string, number>> = {
-  warez: -Math.PI / 2,
-  car:   -Math.PI / 2,
+  warez: Math.PI / 2,
+  car:   Math.PI / 2,
 };
 
 const NODE_Y = 0;
