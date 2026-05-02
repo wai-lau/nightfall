@@ -22,7 +22,7 @@ const GLB_URLS: Record<string, string> = {
   warez: require("../../img/nodes/3d/warez.glb"),
 };
 
-const MODEL_SCALE = 0.04; // uniform scale for all models — tune this one value
+const MODEL_SCALE = 100;
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
