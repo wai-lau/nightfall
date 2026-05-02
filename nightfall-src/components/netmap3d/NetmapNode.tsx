@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -22,7 +22,7 @@ const GLB_URLS: Record<string, string> = {
   warez: require("../../img/nodes/3d/warez.glb"),
 };
 
-const MODEL_SCALE = 0.05; // TinkerCAD exports mm → world units; tune to fit tile size
+const MODEL_SCALE = 0.02;
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -79,16 +79,25 @@ interface NodeModelProps {
 
 function NodeModel({ corpKey, material }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
-  const cloned = useMemo(() => {
-    const c = scene.clone(true);
-    c.traverse((child) => {
+
+  useEffect(() => {
+    scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         (child as THREE.Mesh).material = material;
       }
     });
-    return c;
   }, [scene, material]);
-  return <primitive object={cloned} scale={MODEL_SCALE} />;
+
+  return (
+    <>
+      <primitive object={scene} scale={MODEL_SCALE} />
+      {/* debug: remove once models confirmed visible */}
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color="red" wireframe />
+      </mesh>
+    </>
+  );
 }
 
 interface NetmapNodeProps {
