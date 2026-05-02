@@ -22,7 +22,7 @@ const GLB_URLS: Record<string, string> = {
   warez: require("../../img/nodes/3d/warez.glb"),
 };
 
-const MODEL_FIT_SIZE = 2.0; // target max dimension in world units
+const MODEL_FIT_SIZE = 40.0; // target max dimension in world units
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
