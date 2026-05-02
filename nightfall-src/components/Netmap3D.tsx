@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   INetmap,
@@ -90,6 +90,7 @@ export default function Netmap3D(props: Netmap3DProps) {
         <NetmapFloor />
         <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} />
 
+        <Suspense fallback={null}>
         {nodes.map((node) => {
           const pos2d = positions[node.id];
           if (!pos2d) return null;
@@ -109,6 +110,7 @@ export default function Netmap3D(props: Netmap3DProps) {
             />
           );
         })}
+        </Suspense>
       </Canvas>
 
       <div className="top-right-controls">
