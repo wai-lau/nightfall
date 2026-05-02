@@ -25,6 +25,10 @@ export const FLOOR_TILE_MAT = new THREE.MeshStandardMaterial({
 export const FLOOR_EDGE_MAT = new THREE.LineBasicMaterial({ color: 0x111111 });
 export const FLOOR_TILE_GEO = new THREE.BoxGeometry(TILE_SIZE, 0.05, TILE_SIZE);
 
+const COLUMN_HEIGHT = 30;
+const columnGeo = new THREE.BoxGeometry(TILE_SIZE, COLUMN_HEIGHT, TILE_SIZE);
+columnGeo.translate(0, -COLUMN_HEIGHT / 2, 0); // top face at y=0, extends downward
+
 function buildGridLines(): THREE.BufferGeometry {
   const pts: number[] = [];
   for (let row = 0; row <= ROWS; row++) {
@@ -65,7 +69,7 @@ export default function NetmapFloor() {
 
   return (
     <group position={[0, FLOOR_Y, 0]}>
-      <instancedMesh ref={meshRef} args={[FLOOR_TILE_GEO, FLOOR_TILE_MAT, COUNT]} />
+      <instancedMesh ref={meshRef} args={[columnGeo, FLOOR_TILE_MAT, COUNT]} />
       <lineSegments geometry={gridGeo} material={FLOOR_EDGE_MAT} />
     </group>
   );
