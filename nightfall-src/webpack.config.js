@@ -35,6 +35,14 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, { loader: "css-loader", options: { url: false } }],
       },
       {
+        test: /\.(gltf|glb)$/,
+        type: "asset/resource",
+        generator: {
+          filename: "media/[name].[contenthash:8][ext]",
+          publicPath: staticPublicPath,
+        },
+      },
+      {
         test: /\.(png|jpg|jpeg|gif|svg|ttf|woff|woff2|eot)$/,
         type: "asset/resource",
         generator: {
@@ -45,9 +53,10 @@ module.exports = {
     ],
   },
   performance: {
-    maxAssetSize: 512 * 1024,
-    maxEntrypointSize: 512 * 1024,
+    maxAssetSize: 2 * 1024 * 1024,
+    maxEntrypointSize: 2 * 1024 * 1024,
   },
+  ignoreWarnings: [{ module: /node_modules/ }],
   plugins: [
     new webpack.DefinePlugin({
       AUDIO_BASE_URL: JSON.stringify(

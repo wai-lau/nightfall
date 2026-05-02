@@ -3,7 +3,7 @@ import "./App.css";
 
 import PComponent from "../util/PComponent";
 import Battle from "./Battle";
-import Netmap from "./Netmap";
+import Netmap from "./Netmap3D";
 import WarezMenu from "./WarezMenu";
 import Dialogue from "./Dialogue";
 import Popup, { PopupConfig } from "./Popup";
@@ -76,7 +76,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
 
   audioContext: IAudioContext;
   endDialogueCB: ((didComplete: boolean) => void) | null;
-  netmapScrollFunction: Netmap["scrollToPosition"] | null;
+  netmapScrollFunction: ((pos: NetmapPosition, duration?: number) => Promise<NetmapPosition>) | null;
   onFirstClearLock: boolean = false;
   popupWaitCallbacks: (() => void)[];
 
@@ -176,7 +176,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       {this.state.popup && <Popup {...this.state.popup} dismiss={this.dismissPopup} />}
     </>
   );
-  bindNetmapScrollFunction = (fn: Netmap["scrollToPosition"]) => {
+  bindNetmapScrollFunction = (fn: (pos: NetmapPosition, duration?: number) => Promise<NetmapPosition>) => {
     this.netmapScrollFunction = fn;
   };
   onCloseWarez = () => {
