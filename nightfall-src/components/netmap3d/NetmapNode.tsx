@@ -11,6 +11,19 @@ import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
 import { FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT, FLOOR_Y } from "./NetmapFloor";
 
+const GLB_URLS: Record<string, string> = {
+  ph:    require("../../img/nodes/3d/ph.glb"),
+  lmm:   require("../../img/nodes/3d/lmm.glb"),
+  car:   require("../../img/nodes/3d/car.glb"),
+  ped:   require("../../img/nodes/3d/ped.glb"),
+  donut: require("../../img/nodes/3d/donut.glb"),
+  hq:    require("../../img/nodes/3d/hq.glb"),
+  smart: require("../../img/nodes/3d/smart.glb"),
+  warez: require("../../img/nodes/3d/warez.glb"),
+};
+
+const MODEL_SCALE = 0.05; // TinkerCAD exports mm → world units; tune to fit tile size
+
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
 const EMISSIVE_CLEARED = 0x2a4a5e;
@@ -65,8 +78,7 @@ interface NodeModelProps {
 }
 
 function NodeModel({ corpKey, material }: NodeModelProps) {
-  const url: string = require(`../../img/nodes/3d/${corpKey}.glb`);
-  const { scene } = useGLTF(url);
+  const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
   const cloned = useMemo(() => {
     const c = scene.clone(true);
     c.traverse((child) => {
@@ -76,7 +88,7 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     });
     return c;
   }, [scene, material]);
-  return <primitive object={cloned} />;
+  return <primitive object={cloned} scale={MODEL_SCALE} />;
 }
 
 interface NetmapNodeProps {
