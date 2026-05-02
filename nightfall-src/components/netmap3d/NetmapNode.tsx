@@ -9,7 +9,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_TILE_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT } from "./NetmapFloor";
+import { FLOOR_TILE_GEO, FLOOR_TILE_MAT, FLOOR_EDGE_MAT, FLOOR_Y } from "./NetmapFloor";
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -20,7 +20,7 @@ const NODE_Y = 0;
 const RISE_AMOUNT = 1.5;
 const LERP = 0.12;
 const LERP_EPSILON = 0.001;
-const PLATFORM_Y_OFFSET = -0.4;
+const PLATFORM_Y_OFFSET = FLOOR_Y; // platform rests at floor level, rises with node on select
 
 const unclearedMat = new THREE.MeshBasicMaterial({ wireframe: true, color: COLOR_UNCLEARED });
 const clearedMat = new THREE.MeshStandardMaterial({ color: COLOR_CLEARED, emissive: EMISSIVE_CLEARED, emissiveIntensity: 0.4 });
