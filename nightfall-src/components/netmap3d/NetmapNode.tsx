@@ -22,7 +22,7 @@ const GLB_URLS: Record<string, string> = {
   warez: require("../../img/nodes/3d/warez.glb"),
 };
 
-const MODEL_FIT_SIZE = 40.0; // target max dimension in world units
+const MODEL_FIT_SIZE = 8.0; // target max dimension in world units
 
 const COLOR_UNCLEARED = 0x8faabb;
 const COLOR_CLEARED = 0x6a8a9e;
@@ -88,7 +88,8 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z);
     const s = maxDim > 0 ? MODEL_FIT_SIZE / maxDim : 1;
-    return { scale: s, offset: center.multiplyScalar(-s) };
+    // center X/Z, sit bottom on y=0
+    return { scale: s, offset: new THREE.Vector3(-center.x * s, -box.min.y * s, -center.z * s) };
   }, [scene]);
 
   useEffect(() => {
