@@ -203,14 +203,14 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     if (!node) {
       throw new Error("No node with id " + id);
     }
+    await this.setStateP(() => ({ selection: node, level: null }));
     const level = (await import("../campaign/levels/" + id)).default;
     const offsetPosition = addCoordinates(this.props.netmap.positions[node.id], [40, 40]);
     const endPosition = this.netmapScrollFunction
       ? await this.netmapScrollFunction(offsetPosition)
       : this.props.netmap.initialSave.scrollPosition;
-    await this.setStateP((state) => ({
+    await this.setStateP(() => ({
       level,
-      selection: node,
       scrollPosition: endPosition,
     }));
   };
