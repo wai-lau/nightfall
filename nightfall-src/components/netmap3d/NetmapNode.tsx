@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -84,24 +84,13 @@ interface NodeModelProps {
 function NodeModel({ corpKey, material }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
 
-  const offset = useMemo(() => {
-    const box = new THREE.Box3().setFromObject(scene);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    return new THREE.Vector3(-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE);
-  }, [scene]);
+  useEffect(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
+    });
+  }, [scene, material]);
 
-  // material applied directly — no clone needed while all corps are unique per node
-  scene.traverse((child) => {
-    if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).material = material;
-  });
-
-  const rotY = MODEL_ROTATION_Y[corpKey] ?? 0;
-  return (
-    <group rotation={[0, rotY, 0]}>
-      <primitive object={scene} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} />
-    </group>
-  );
+  return <primitive object={scene} scale={MODEL_SCALE} />;
 }
 
 interface NetmapNodeProps {
