@@ -56,7 +56,7 @@ export default function CameraController({ initialTarget, bindScrollFunction, bi
     camera.position.x += (ntx - camera.position.x) * LERP_FACTOR;
     camera.position.y = CAM_HEIGHT;
     camera.position.z += (ntz + CAM_DISTANCE - camera.position.z) * LERP_FACTOR;
-    camera.lookAt(ntx, 0, ntz);
+    camera.lookAt(camera.position.x, 0, camera.position.z - CAM_DISTANCE);
   });
 
   useEffect(() => {
