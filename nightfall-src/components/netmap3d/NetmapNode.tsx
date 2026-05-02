@@ -29,6 +29,10 @@ const COLOR_CLEARED = 0x6a8a9e;
 const EMISSIVE_CLEARED = 0x2a4a5e;
 const COLOR_DIMMED = 0x334455;
 
+const MODEL_ROTATION_Y: Partial<Record<string, number>> = {
+  warez: -Math.PI / 2,
+};
+
 const NODE_Y = 0;
 const RISE_AMOUNT = 1.5;
 const LERP = 0.12;
@@ -92,7 +96,8 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
     return { clone: c, offset: new THREE.Vector3(-center.x * MODEL_SCALE, -box.min.y * MODEL_SCALE, -center.z * MODEL_SCALE) };
   }, [scene, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <primitive object={clone} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} />;
+  const rotY = MODEL_ROTATION_Y[corpKey] ?? 0;
+  return <primitive object={clone} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} rotation={[0, rotY, 0]} />;
 }
 
 interface NetmapNodeProps {
