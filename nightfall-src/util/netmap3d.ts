@@ -8,10 +8,12 @@ export const DEPTH_SCALE = 1.5;
 export const TILE_SIZE = 2.5;
 
 export function toWorld(pos: NetmapPosition, secLevel: number): [number, number, number] {
+  const x = pos[0] / SCALE - OFFSET_X;
+  const z = pos[1] / SCALE - OFFSET_Z;
   return [
-    pos[0] / SCALE - OFFSET_X,
+    Math.round(x / TILE_SIZE) * TILE_SIZE,
     secLevel * DEPTH_SCALE,
-    pos[1] / SCALE - OFFSET_Z,
+    Math.round(z / TILE_SIZE) * TILE_SIZE,
   ];
 }
 
