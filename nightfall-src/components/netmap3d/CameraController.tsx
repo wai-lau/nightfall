@@ -5,6 +5,9 @@ import { pixelToWorldXZ } from "../../util/netmap3d";
 
 const CAM_HEIGHT = 45;
 const CAM_DISTANCE = 35;
+const CAM_ANGLE = Math.PI / 4;
+const CAM_OFFSET_X = -CAM_DISTANCE * Math.sin(CAM_ANGLE);
+const CAM_OFFSET_Z = CAM_DISTANCE * Math.cos(CAM_ANGLE);
 const VELOCITY = 20;
 const LERP_FACTOR = 0.1;
 
@@ -27,7 +30,7 @@ export default function CameraController({ initialTarget, bindScrollFunction, bi
 
   useEffect(() => {
     const [x, z] = initialTarget;
-    camera.position.set(x, CAM_HEIGHT, z + CAM_DISTANCE);
+    camera.position.set(x + CAM_OFFSET_X, CAM_HEIGHT, z + CAM_OFFSET_Z);
     camera.lookAt(x, 0, z);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -53,10 +56,10 @@ export default function CameraController({ initialTarget, bindScrollFunction, bi
     }
 
     const [ntx, ntz] = targetRef.current;
-    camera.position.x += (ntx - camera.position.x) * LERP_FACTOR;
+    camera.position.x += (ntx + CAM_OFFSET_X - camera.position.x) * LERP_FACTOR;
     camera.position.y = CAM_HEIGHT;
-    camera.position.z += (ntz + CAM_DISTANCE - camera.position.z) * LERP_FACTOR;
-    camera.lookAt(camera.position.x, 0, camera.position.z - CAM_DISTANCE);
+    camera.position.z += (ntz + CAM_OFFSET_Z - camera.position.z) * LERP_FACTOR;
+    camera.lookAt(camera.position.x - CAM_OFFSET_X, 0, camera.position.z - CAM_OFFSET_Z);
   });
 
   useEffect(() => {
