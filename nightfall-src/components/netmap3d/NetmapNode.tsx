@@ -97,7 +97,11 @@ function NodeModel({ corpKey, material }: NodeModelProps) {
   }, [scene, material]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rotY = MODEL_ROTATION_Y[corpKey] ?? 0;
-  return <primitive object={clone} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} rotation={[0, rotY, 0]} />;
+  return (
+    <group rotation={[0, rotY, 0]}>
+      <primitive object={clone} scale={MODEL_SCALE} position={[offset.x, offset.y, offset.z]} />
+    </group>
+  );
 }
 
 interface NetmapNodeProps {
