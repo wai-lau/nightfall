@@ -4,6 +4,8 @@ import PComponent from "../util/PComponent";
 import clone from "clone";
 import "./Battle.css";
 
+declare const process: { env: { NODE_ENV?: string } };
+
 import GridProgram from "./GridProgram";
 
 import {
@@ -68,6 +70,7 @@ export interface BattleProps extends ILevel {
   availablePrograms: IProgram[];
   onFinishBattle: (result: IBattleResult) => void;
   noModals?: boolean;
+  completedTutorial: boolean;
 }
 
 export interface BattleState {
@@ -1086,6 +1089,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
 
     if (!started) {
+      if (!this.props.completedTutorial) return;
       await this.onKeyDownUpload(e);
       return;
     }
@@ -1101,6 +1105,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       if (!isPlayerTurn) return;
       this.cycleToNextProgram(delta as 1 | -1);
     } else {
+      if (!this.props.completedTutorial) return;
       const entries = this.getUploadMenuEntries();
       const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
       this.setStateP(() => ({ keyboardUploadIndex: next }));
@@ -1639,9 +1644,14 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       onClick: this.logOut,
     };
 
+    const isDev = process.env.NODE_ENV !== "production";
+    const devButtons = isDev
+      ? [{ text: "WIN DATABATTLE", onClick: () => this.gameOver("P1") }]
+      : undefined;
+
     return (
       <div className="battle-bg" style={bgStyle}>
-        <HeaderBox title="databattle in progress" rightButton={headerButtonProps}>
+        <HeaderBox title="databattle in progress" rightButton={headerButtonProps} extraRightButtons={devButtons}>
           <div className="battle-container">
             <div className="upload-list">{uploadList}</div>
             <div className="program-menu">{menuEl}</div>
