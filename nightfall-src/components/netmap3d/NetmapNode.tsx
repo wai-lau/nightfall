@@ -16,6 +16,7 @@ import {
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
 import { FLOOR_COLUMN_GEO, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_LOW_Y } from "./RevealContext";
 
 const GLB_URLS: Record<string, string> = {
   ph:    require("../../img/nodes/3d/ph.glb"),
@@ -270,6 +271,24 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
       toAdd.forEach(({ parent, lines }) => parent.add(lines));
     }
 
+    // Clone all materials so per-node opacity (reveal fade) doesn't mutate shared cache.
+    c.traverse((child) => {
+      const o = child as THREE.Mesh & THREE.LineSegments;
+      const mat = (o as unknown as { material?: THREE.Material | THREE.Material[] }).material;
+      if (!mat) return;
+      const cloneOne = (m: THREE.Material): THREE.Material => {
+        const cl = m.clone();
+        cl.transparent = true;
+        cl.userData.__baseOpacity = (m as unknown as { opacity?: number }).opacity ?? 1;
+        return cl;
+      };
+      if (Array.isArray(mat)) {
+        (o as unknown as { material: THREE.Material[] }).material = mat.map(cloneOne);
+      } else {
+        (o as unknown as { material: THREE.Material }).material = cloneOne(mat);
+      }
+    });
+
     const xzMul = MODEL_XZ_SCALE[corpKey] ?? 1;
     const sx = MODEL_SCALE * xzMul;
     if (corpKey === "donut") {
@@ -332,11 +351,53 @@ export default function NetmapNode({
   }, [node.id, platformYMap]);
   const targetY = (isSelected || hovered) ? RISE_AMOUNT : 0;
 
+  const reveal = useContext(RevealContext);
+  const revealActiveRef = useRef(false);
+
   useFrame(() => {
-    if (Math.abs(targetY - yRef.current) < LERP_EPSILON) return;
-    yRef.current += (targetY - yRef.current) * LERP;
-    if (meshGroupRef.current) meshGroupRef.current.position.y = yRef.current;
-    if (platformRef.current) platformRef.current.position.y = NODE_Y + yRef.current + PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP;
+    if (Math.abs(targetY - yRef.current) >= LERP_EPSILON) {
+      yRef.current += (targetY - yRef.current) * LERP;
+    }
+
+    const startTime = reveal.startTimeMs.get(node.id);
+    let revealYOffset = 0;
+    let revealOpacity = 1;
+    let active = false;
+    if (startTime !== undefined) {
+      const elapsed = performance.now() - startTime;
+      if (elapsed < REVEAL_HOLD_MS) {
+        revealYOffset = REVEAL_LOW_Y;
+        revealOpacity = 0;
+        active = true;
+      } else if (elapsed < REVEAL_HOLD_MS + REVEAL_RISE_MS) {
+        const r = (elapsed - REVEAL_HOLD_MS) / REVEAL_RISE_MS;
+        const eased = 1 - Math.pow(1 - r, 3);
+        revealYOffset = REVEAL_LOW_Y * (1 - eased);
+        revealOpacity = Math.min(1, r * 1.6);
+        active = true;
+      }
+    }
+
+    if (meshGroupRef.current) {
+      meshGroupRef.current.position.y = yRef.current + revealYOffset;
+      meshGroupRef.current.visible = !(active && revealOpacity <= 0);
+      if (active || revealActiveRef.current) {
+        meshGroupRef.current.traverse((child) => {
+          const mat = (child as unknown as { material?: THREE.Material | THREE.Material[] }).material;
+          if (!mat) return;
+          const apply = (m: THREE.Material) => {
+            const base = (m.userData?.__baseOpacity as number | undefined) ?? 1;
+            (m as unknown as { opacity: number }).opacity = base * revealOpacity;
+          };
+          if (Array.isArray(mat)) mat.forEach(apply); else apply(mat);
+        });
+      }
+    }
+    if (platformRef.current) {
+      platformRef.current.position.y = NODE_Y + yRef.current + PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP + revealYOffset;
+      platformRef.current.visible = !(active && revealOpacity <= 0);
+    }
+    revealActiveRef.current = active;
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

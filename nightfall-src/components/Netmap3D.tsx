@@ -18,6 +18,7 @@ import CameraController, { ArrowScrollAPI } from "./netmap3d/CameraController";
 import NetmapEdges, { computeEdgeRoutes } from "./netmap3d/NetmapEdges";
 import NetmapFloor, { secColor, FLOOR_Y } from "./netmap3d/NetmapFloor";
 import NetmapNode from "./netmap3d/NetmapNode";
+import { RevealContext } from "./netmap3d/RevealContext";
 import { pixelToWorldXZ, toWorld, TILE_SIZE, OFFSET_X, OFFSET_Z, buildSecMap } from "../util/netmap3d";
 import { leadDebounce } from "../util/util";
 
@@ -109,6 +110,31 @@ export default function Netmap3D(props: Netmap3DProps) {
   const bindArrowScroll = useCallback((api: ArrowScrollAPI) => {
     arrowApiRef.current = api;
   }, []);
+
+  const revealStartRef = useRef<Map<string, number>>(new Map());
+  const prevStatusRef = useRef<{ [id: string]: NodeStatus | undefined }>({});
+  const initRef = useRef(false);
+  React.useEffect(() => {
+    if (!initRef.current) {
+      prevStatusRef.current = { ...netmapStatus };
+      initRef.current = true;
+      return;
+    }
+    const now = performance.now();
+    const allIds = new Set([
+      ...Object.keys(netmapStatus),
+      ...Object.keys(prevStatusRef.current),
+    ]);
+    allIds.forEach((id) => {
+      const cur = netmapStatus[id];
+      const prev = prevStatusRef.current[id];
+      const wasInvisible = prev === undefined || prev === NodeStatus.INVISIBLE;
+      const isVisible = cur !== undefined && cur !== NodeStatus.INVISIBLE;
+      if (wasInvisible && isVisible) revealStartRef.current.set(id, now);
+    });
+    prevStatusRef.current = { ...netmapStatus };
+  }, [netmapStatus]);
+  const revealCtx = useMemo(() => ({ startTimeMs: revealStartRef.current }), []);
 
   const initialTarget = pixelToWorldXZ(initialScrollX + viewWidth / 2, initialScrollY + viewHeight / 2);
 
@@ -221,6 +247,7 @@ export default function Netmap3D(props: Netmap3DProps) {
           bounds={scrollBounds}
         />
 
+        <RevealContext.Provider value={revealCtx}>
         <NetmapFloor nodePositions={nodeFloorPositions} nodeSecurityLevels={nodeFloorSecurityLevels} extraTiles={pathTiles} />
         <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} playerSecurityLevel={playerSecurityLevel} />
 
@@ -247,6 +274,7 @@ export default function Netmap3D(props: Netmap3DProps) {
           );
         })}
         </Suspense>
+        </RevealContext.Provider>
       </Canvas>
 
       <div className="top-right-controls">

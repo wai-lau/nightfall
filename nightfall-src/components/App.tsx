@@ -205,12 +205,12 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     await this.setStateP(() => ({ selection: node, level: null }));
     const level = (await import("../campaign/levels/" + id)).default;
     const offsetPosition = addCoordinates(this.props.netmap.positions[node.id], [40, 40]);
-    const endPosition = this.netmapScrollFunction
-      ? await this.netmapScrollFunction(offsetPosition)
-      : this.props.netmap.initialSave.scrollPosition;
+    if (this.netmapScrollFunction) {
+      await this.netmapScrollFunction(offsetPosition);
+    }
     await this.setStateP(() => ({
       level,
-      scrollPosition: endPosition,
+      scrollPosition: offsetPosition,
     }));
   };
   onNodeInfoCancel = () => {
@@ -339,6 +339,10 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     const childrenStatus = children
       .map((n) => ({ [n.id]: NodeStatus.UNCLEARED_UNATTEMPTED }))
       .reduce((val, next) => ({ ...val, ...next }), {});
+    const newlyRevealedChildren = children.filter((n) => {
+      const s = this.state.netmapStatus[n.id];
+      return s === undefined || s === NodeStatus.INVISIBLE;
+    });
     await this.setStateP((state) => ({
       numCredits: state.numCredits + (state.firstClearCredits || 0),
       firstClearCredits: null,
@@ -347,6 +351,9 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
         ...state.netmapStatus,
       },
     }));
+    if (newlyRevealedChildren.length > 0) {
+      this.scrollToNode(newlyRevealedChildren[0].id);
+    }
     if (!node.onFirstClear) {
       return;
     }
@@ -509,6 +516,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
           audioConfig={this.state.audioConfig}
           availablePrograms={availablePrograms}
           onFinishBattle={this.onFinishBattle}
+          completedTutorial={this.state.completedTutorial}
           {...level}
         />
       );

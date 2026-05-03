@@ -12,6 +12,7 @@ const Line = DreiLine as unknown as React.ForwardRefExoticComponent<
 import { INetmap, NodeStatus } from "../../types";
 import { TILE_SIZE, OFFSET_X, OFFSET_Z, buildSecMap } from "../../util/netmap3d";
 import { FLOOR_Y, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { RevealContext, REVEAL_HOLD_MS, REVEAL_FLOW_MS } from "./RevealContext";
 
 export const PlatformYContext = createContext<Map<string, { current: number }>>(new Map());
 export const NodeFootprintContext = createContext<Map<string, { current: { halfX: number; halfZ: number } }>>(new Map());
@@ -461,7 +462,10 @@ function AnimatedEdge({
   if (!render) return null;
   const map = useContext(PlatformYContext);
   const fpMap = useContext(NodeFootprintContext);
+  const reveal = useContext(RevealContext);
   const lineRef = useRef<{ geometry: { setPositions: (a: number[] | Float32Array) => void } }>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pulseRef = useRef<any>(null);
   const arrRef = useRef(verts);
   const points = useMemo(() => {
     const out: [number, number, number][] = [];
@@ -469,7 +473,12 @@ function AnimatedEdge({
     return out;
   }, [verts]);
 
-  useFrame(() => {
+  const fromStart = reveal.startTimeMs.get(from);
+  const toStart = reveal.startTimeMs.get(to);
+  const pulseStart = toStart ?? fromStart;
+  const pulseDir = toStart !== undefined ? 1 : -1;
+
+  useFrame((_, delta) => {
     const arr = arrRef.current;
     const line = lineRef.current;
     if (!line) return;
@@ -491,14 +500,45 @@ function AnimatedEdge({
     arr[toCapIdx * 3] = toCenterX + toR * toUnitX;
     arr[toCapIdx * 3 + 2] = toCenterZ + toR * toUnitZ;
     line.geometry.setPositions(arr);
+
+    if (pulseRef.current && pulseStart !== undefined) {
+      pulseRef.current.geometry.setPositions(arr);
+      const elapsed = performance.now() - pulseStart;
+      const visible = elapsed >= 0 && elapsed < REVEAL_HOLD_MS + REVEAL_FLOW_MS;
+      pulseRef.current.visible = visible;
+      const mat = pulseRef.current.material;
+      if (mat && visible) {
+        mat.dashOffset = (mat.dashOffset ?? 0) - delta * 18 * pulseDir;
+        const fadeIn = Math.min(1, elapsed / 200);
+        const fadeOut = elapsed > REVEAL_HOLD_MS
+          ? Math.max(0, 1 - (elapsed - REVEAL_HOLD_MS) / REVEAL_FLOW_MS)
+          : 1;
+        mat.opacity = fadeIn * fadeOut;
+        mat.transparent = true;
+        mat.needsUpdate = true;
+      }
+    }
   });
 
   return (
-    <Line
-      ref={lineRef}
-      points={points}
-      color={blocked ? "#ffb0b0" : (accessible ? "#aaaaaa" : "#333333")}
-      lineWidth={bothCleared ? 4.5 : (accessible ? 1.5 : 1)}
-    />
+    <>
+      <Line
+        ref={lineRef}
+        points={points}
+        color={blocked ? "#ffb0b0" : (accessible ? "#aaaaaa" : "#333333")}
+        lineWidth={bothCleared ? 4.5 : (accessible ? 1.5 : 1)}
+      />
+      {pulseStart !== undefined && (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <Line
+          ref={pulseRef as any}
+          points={points}
+          color="#ffffff"
+          lineWidth={3}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ dashed: true, dashSize: 2, gapSize: 4, transparent: true } as any)}
+        />
+      )}
+    </>
   );
 }
