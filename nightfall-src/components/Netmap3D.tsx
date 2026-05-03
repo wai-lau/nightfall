@@ -147,12 +147,16 @@ export default function Netmap3D(props: Netmap3DProps) {
         el.style.setProperty("left", "0", "important");
         el.style.setProperty("width", window.innerHeight + "px", "important");
         el.style.setProperty("height", window.innerWidth + "px", "important");
+        el.style.setProperty("outline", "4px solid red", "important");
+        // eslint-disable-next-line no-console
+        console.log("[netmap-fs] applied", { w: window.innerHeight, h: window.innerWidth, body: document.body.classList.toString() });
       } else {
         el.style.removeProperty("position");
         el.style.removeProperty("top");
         el.style.removeProperty("left");
         el.style.removeProperty("width");
         el.style.removeProperty("height");
+        el.style.removeProperty("outline");
       }
     };
     apply();
