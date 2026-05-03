@@ -1181,8 +1181,8 @@ h3 {
 }
 
 :root {
-  --arrow-size: 10em;
-  --arrow-margin: -1.5em;
+  --arrow-size: 5em;
+  --arrow-margin: 0.5em;
 }
 
 .netmap-container {
@@ -1249,13 +1249,14 @@ h3 {
   left: 30%;
   color: #fff;
   text-transform: uppercase;
-  font-size: 0.66em;
+  font-size: 1.32em;
   padding: 0.5em;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   line-height: 1.2em;
+  text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000;
 }
 
 .netmap-node.selected,
