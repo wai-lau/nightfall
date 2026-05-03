@@ -129,6 +129,44 @@ export default function Netmap3D(props: Netmap3DProps) {
     return () => ro.disconnect();
   }, []);
 
+  // In FS portrait on mobile, escape .container's em-bound box: pin .netmap-container
+  // to fill #root via inline position:fixed (CSS spec: fixed CB = transformed ancestor).
+  // Watch body.wai-fs class + window resize so the styles persist across FS toggles
+  // even if Netmap3D mounts after FS was already on.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const apply = () => {
+      const isMobile =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      const fs = document.body.classList.contains("wai-fs");
+      if (fs && isMobile && isPortrait) {
+        el.style.setProperty("position", "fixed", "important");
+        el.style.setProperty("top", "0", "important");
+        el.style.setProperty("left", "0", "important");
+        el.style.setProperty("width", window.innerHeight + "px", "important");
+        el.style.setProperty("height", window.innerWidth + "px", "important");
+      } else {
+        el.style.removeProperty("position");
+        el.style.removeProperty("top");
+        el.style.removeProperty("left");
+        el.style.removeProperty("width");
+        el.style.removeProperty("height");
+      }
+    };
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", apply);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener("resize", apply);
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, []);
+
   const revealStartRef = useRef<Map<string, number>>(new Map());
   const prevStatusRef = useRef<{ [id: string]: NodeStatus | undefined }>({});
   const initRef = useRef(false);

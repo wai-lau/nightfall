@@ -84,14 +84,7 @@ function _applyFsLayout() {
       root.style.setProperty('z-index', '9998', 'important');
     }
     s.textContent = '.App{position:absolute!important;top:0!important;left:0!important;width:100%!important;height:100%!important}.container{' + _FS_PORTRAIT_VARS + '!important}';
-    var nc = document.querySelector('.netmap-container');
-    if (nc) {
-      nc.style.setProperty('position', 'fixed', 'important');
-      nc.style.setProperty('top', '0', 'important');
-      nc.style.setProperty('left', '0', 'important');
-      nc.style.setProperty('width', vh + 'px', 'important');
-      nc.style.setProperty('height', vw + 'px', 'important');
-    }
+    // Netmap3D React effect handles inline-styling .netmap-container based on body.wai-fs.
   } else {
     document.documentElement.style.cssText = 'overflow:hidden;';
     document.body.style.cssText = 'margin:0;width:100%;height:100%;overflow:hidden;';
@@ -106,8 +99,7 @@ function _clearFsLayout() {
   document.body.style.cssText = '';
   var root = document.getElementById('root');
   if (root) { root.style.cssText = ''; root.style.removeProperty('position'); root.style.removeProperty('top'); root.style.removeProperty('left'); root.style.removeProperty('width'); root.style.removeProperty('height'); root.style.removeProperty('transform'); root.style.removeProperty('transform-origin'); root.style.removeProperty('overflow'); root.style.removeProperty('z-index'); }
-  var nc = document.querySelector('.netmap-container');
-  if (nc) { nc.style.removeProperty('position'); nc.style.removeProperty('top'); nc.style.removeProperty('left'); nc.style.removeProperty('width'); nc.style.removeProperty('height'); }
+  // Netmap3D React effect clears its own inline styles when body.wai-fs is removed.
   var s = document.getElementById('wai-fs-vars');
   if (s) s.remove();
   _showNav();
