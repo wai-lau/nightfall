@@ -64,8 +64,10 @@ function _applyFsLayout() {
   if (!s) { s = document.createElement('style'); s.id = 'wai-fs-vars'; document.head.appendChild(s); }
   if (_isMobile && vh > vw) {
     document.documentElement.style.cssText = 'width:100vw;height:100vh;overflow:hidden;';
-    document.body.style.cssText = 'margin:0;position:absolute;width:' + vh + 'px;height:' + vw + 'px;transform-origin:0 0;transform:rotate(90deg) translate(0,-' + vw + 'px);overflow:hidden;background:#222;';
-    s.textContent = 'body{width:100vh!important;height:100vw!important}.container{' + _FS_PORTRAIT_VARS + '!important}#root{height:100%!important}';
+    document.body.style.cssText = 'margin:0;position:absolute;transform-origin:0 0;transform:rotate(90deg) translate(0,-' + vw + 'px);overflow:hidden;background:#222;';
+    document.body.style.setProperty('width', vh + 'px', 'important');
+    document.body.style.setProperty('height', vw + 'px', 'important');
+    s.textContent = '.container{' + _FS_PORTRAIT_VARS + '!important}#root{height:100%!important}';
   } else {
     document.documentElement.style.cssText = 'overflow:hidden;';
     document.body.style.cssText = 'margin:0;width:100%;height:100%;overflow:hidden;';
