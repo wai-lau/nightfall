@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo, Suspense } from "react";
+import React, { useRef, useCallback, useMemo, useState, useEffect, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -111,6 +111,20 @@ export default function Netmap3D(props: Netmap3DProps) {
     arrowApiRef.current = api;
   }, []);
 
+  // Force Canvas remount on viewport orientation/size change. fiber 7's use-measure
+  // ResizeObserver doesn't pick up the body transform-rotate FS layout swap reliably
+  // on iOS Safari → right half ends up cropped.
+  const [viewportKey, setViewportKey] = useState(() => `${window.innerWidth}x${window.innerHeight}`);
+  useEffect(() => {
+    const onResize = () => setViewportKey(`${window.innerWidth}x${window.innerHeight}`);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
+
   const revealStartRef = useRef<Map<string, number>>(new Map());
   const prevStatusRef = useRef<{ [id: string]: NodeStatus | undefined }>({});
   const initRef = useRef(false);
@@ -214,6 +228,7 @@ export default function Netmap3D(props: Netmap3DProps) {
   return (
     <div className="netmap-container">
       <Canvas
+        key={viewportKey}
         style={{ position: "absolute", inset: 0 }}
         camera={{ fov: 50, near: 0.1, far: 5000 }}
         gl={{ alpha: false }}
