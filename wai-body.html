@@ -7,6 +7,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 body.wai-fs { overflow: hidden; }
+body, #root {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 </style>
 <button id="wai-fs-btn" onclick="waiFsToggle()" title="Fullscreen">⛶</button>
 <script>
