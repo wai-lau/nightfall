@@ -113,7 +113,7 @@ const netmap: INetmap = {
   image: resolveImage("bg/netmap.png"),
   initialSave: {
     firstClearNode: null,
-    scrollPosition: [0, 260],
+    scrollPosition: [474, 693],
     availablePrograms: [Programs.Hack, Programs.Slingshot],
     numCredits: 0,
     netmapStatus: {

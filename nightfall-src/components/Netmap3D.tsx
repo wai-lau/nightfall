@@ -87,8 +87,6 @@ export default function Netmap3D(props: Netmap3DProps) {
     onSelectNode,
     initialScrollX = 0,
     initialScrollY = 0,
-    viewWidth,
-    viewHeight,
     securityLevel: playerSecurityLevel,
   } = props;
 
@@ -156,7 +154,8 @@ export default function Netmap3D(props: Netmap3DProps) {
   }, [netmapStatus]);
   const revealCtx = useMemo(() => ({ startTimeMs: revealStartRef.current }), []);
 
-  const initialTarget = pixelToWorldXZ(initialScrollX + viewWidth / 2, initialScrollY + viewHeight / 2);
+  // initialScroll is camera-center pixel coords (matches scrollFunction's input).
+  const initialTarget = pixelToWorldXZ(initialScrollX, initialScrollY);
 
   const scrollBounds = useMemo(() => {
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
