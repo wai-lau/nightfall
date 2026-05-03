@@ -1,4 +1,4 @@
-import { Coordinate, CoordinateArray, IGridEntity, IGridActiveEntity } from ".";
+import { Coordinate, IGridEntity, IGridActiveEntity } from ".";
 import { IAudioSource } from "./Audio";
 
 export interface IActionCoordinator {

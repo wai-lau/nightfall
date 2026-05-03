@@ -1,5 +1,4 @@
 import React from "react";
-import { resolveImage } from "../util/util";
 
 import "./DataPack.css";
 import { Coordinate } from "../types";
@@ -10,7 +9,7 @@ interface DataPack {
 }
 
 export default function DataPack(props: DataPack) {
-  const { position, onClick } = props;
+  const { position } = props;
   const style = {
     gridRow: position[1] + 1,
     gridColumn: position[0] + 1,

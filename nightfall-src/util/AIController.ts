@@ -3,7 +3,6 @@ import { CoordinateArray, Coordinate } from "../types";
 import {
   getPathToArea,
   getRangeFromArea,
-  getGreedyPath,
   getNearest,
   getPathToClosest,
 } from "./path";

@@ -30,7 +30,6 @@ import {
   deleteFromArray,
   cloneCoordinateMap,
   matchFlag,
-  coordinateArrayUniq,
   coordinatesEqual,
   isInBounds,
   delay,
@@ -361,7 +360,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   // 5. No two programs occupy the same tile
   validate = () => {
     let hasError = false;
-    const { width, height } = this.props;
     const { programs } = this.state;
 
     // Check for duplicate IDs
@@ -828,7 +826,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // End an attack animation (controlled by AttackAnimation's internal timeout)
   endAttackAnimation = async () => {
-    this.setStateP((state) => ({
+    this.setStateP(() => ({
       attackAnimation: null,
     }));
   };
@@ -871,8 +869,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Start next team's turn, allowing the next team's programs to act
   nextTurn = async () => {
-    const { teams } = this.props;
-    await this.setStateP((state) => {
+    await this.setStateP(() => {
       const { programs, teamIndex } = this.state;
       const nextTeamIndex = (teamIndex + 1) % this.props.teams.length;
       const refreshedPrograms = programs.map((p) => ({
@@ -1442,7 +1439,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       const isActive = selection?.type === SelectionType.UPLOAD_ZONE && selection.id === id;
       if (programIndex !== null) {
         const program = this.props.availablePrograms[programIndex];
-        const { id: _, ...programWithoutID } = program;
+        const { id: _id, ...programWithoutID } = program;
         return (
           <GridProgram
             hasActed={false}
@@ -1559,7 +1556,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   // Render everything
   render() {
     const { width, battleStyle } = this.props;
-    const { teamIndex } = this.state;
 
     const bgStyle = {
       backgroundImage: `url(${battleStyle?.bgImage})`,

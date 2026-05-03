@@ -36,7 +36,7 @@ export default class CurrentPrograms extends React.Component<
       selectedAction: null,
     };
   }
-  componentDidUpdate = (prevProps: CurrentProgramsProps, prevState: CurrentProgramsState) => {
+  componentDidUpdate = (prevProps: CurrentProgramsProps, _prevState: CurrentProgramsState) => {
     if (!prevProps.forceOn && this.props.forceOn) {
       this.setState(() => ({
         viewState: ViewState.PropsVisible,

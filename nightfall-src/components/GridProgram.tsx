@@ -9,9 +9,7 @@ import { Coordinate, IGridActiveProgram } from "../types";
 import {
   coordinatesEqual,
   coordinateKey,
-  resolveImage,
   coordinateInArray,
-  coordinateArrayUniq,
 } from "../util/util";
 
 interface GridProgramProps extends IGridActiveProgram {

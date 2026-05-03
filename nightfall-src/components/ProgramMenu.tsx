@@ -2,7 +2,6 @@ import React from "react";
 
 import "./ProgramMenu.css";
 import { IGridActiveProgram, ProgramAction } from "../types";
-import { resolveImage } from "../util/util";
 import Button, { ButtonColor } from "./Button";
 
 interface ProgramMenuProps {

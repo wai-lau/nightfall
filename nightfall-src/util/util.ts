@@ -14,7 +14,7 @@ export const coordinateArrayUniq = (arr: CoordinateArray) =>
 export const deleteFromArray = (c: Coordinate, arr: CoordinateArray) =>
   arr.filter((x) => !coordinatesEqual(x, c));
 export const coordinateKey = (c: Coordinate, name: string = "coord") => `${name}:${c[0]},${c[1]}`;
-export const create2DArray = (d1: number, d2: number, getValue: (i: number, j: number) => any) => {
+export const create2DArray = <T>(d1: number, d2: number, getValue: (i: number, j: number) => T) => {
   const arr = [];
   for (let i = 0; i < d1; i++) {
     const row = [];
@@ -73,7 +73,7 @@ export function getDistance(dims: number, c1: Coordinate, c2: Coordinate) {
 export const manhattanDistance = getDistance.bind(null, 1);
 export const birdDistance = getDistance.bind(null, 2);
 
-export const tailDebounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+export const tailDebounce = <F extends (...args: unknown[]) => unknown>(func: F, waitFor: number) => {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
   const debounced = (...args: Parameters<F>) => {
@@ -87,7 +87,7 @@ export const tailDebounce = <F extends (...args: any[]) => any>(func: F, waitFor
   return debounced as (...args: Parameters<F>) => ReturnType<F>;
 };
 
-export const leadDebounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+export const leadDebounce = <F extends (...args: unknown[]) => unknown>(func: F, waitFor: number) => {
   let canRun: boolean = true;
   const debounced = (...args: Parameters<F>) => {
     if (canRun) {

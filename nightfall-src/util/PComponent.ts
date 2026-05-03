@@ -1,7 +1,7 @@
 import React from "react";
 
 class PComponent<P, S> extends React.Component<P, S> {
-  setState<K extends keyof S>(...args: any) {
+  setState(..._args: unknown[]) {
     throw new Error("PComponent can only run functional setStateP");
   }
   setStateP<K extends keyof S>(

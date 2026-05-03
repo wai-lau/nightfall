@@ -110,7 +110,7 @@ class SerializableGameStatus implements ISerializableGameStatus {
       ...this,
       availablePrograms,
     };
-    const { programIDs, ...asIGameStatus } = withPrograms;
+    const { programIDs: _programIDs, ...asIGameStatus } = withPrograms;
     return asIGameStatus as IGameStatus;
   };
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AudioContext, IAudioContext } from "../util/AudioContext";
+import { AudioContext } from "../util/AudioContext";
 import * as AudioSources from "../audio/audioSources";
 
 interface AudioLoaderProps {

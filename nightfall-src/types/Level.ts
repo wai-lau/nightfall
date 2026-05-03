@@ -1,4 +1,4 @@
-import { Coordinate, CoordinateArray, CoordinateFill } from "./Coordinate";
+import { Coordinate, CoordinateFill } from "./Coordinate";
 import { IGridInitialProgram } from "./Program";
 
 export interface IUploadZone {

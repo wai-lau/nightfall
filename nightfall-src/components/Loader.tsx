@@ -165,7 +165,7 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
   };
 
   getContents = () => {
-    const { saves, selectedSave, allAudioLoaded, showLanding, showCredits } = this.state;
+    const { saves, selectedSave, allAudioLoaded, showLanding } = this.state;
     if (saves === null || !allAudioLoaded) {
       return null;
     }

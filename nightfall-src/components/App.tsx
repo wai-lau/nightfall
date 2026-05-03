@@ -11,7 +11,6 @@ import Popup, { PopupConfig } from "./Popup";
 import * as Programs from "../programs";
 
 import {
-  IAudioPlayer,
   IProgram,
   NodeType,
   ILevel,
@@ -215,7 +214,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     }));
   };
   onNodeInfoCancel = () => {
-    this.setStateP((state) => ({ selection: null, level: null }));
+    this.setStateP(() => ({ selection: null, level: null }));
   };
   onNodeInfoEnter = async () => {
     const { selection } = this.state;
@@ -265,7 +264,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       }));
     } else if (selection.type === NodeType.SmartHQ) {
       const smartHQ = (await import("../campaign/levels/" + id)).default;
-      await this.setStateP((state) => ({
+      await this.setStateP(() => ({
         smartHQ,
         currentUI: CurrentUI.SMARTHQ,
       }));

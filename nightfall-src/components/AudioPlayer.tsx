@@ -13,7 +13,7 @@ interface AudioPlayerState {
 const AudioContext = (window as Window & { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext || window.AudioContext;
 
 // Should be the type of AudioBufferSourceNode.buffer
-type DecodedBuffer = any;
+type DecodedBuffer = AudioBuffer;
 
 class AudioPlayer extends PComponent<AudioPlayerProps, AudioPlayerState> implements IAudioPlayer {
   audioCtx = new AudioContext();
@@ -45,7 +45,7 @@ class AudioPlayer extends PComponent<AudioPlayerProps, AudioPlayerState> impleme
     const data = await new Promise((resolve, reject) => {
       this.audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
     });
-    this.buffers[name] = data;
+    this.buffers[name] = data as AudioBuffer;
     return true;
   };
 
@@ -67,7 +67,7 @@ class AudioPlayer extends PComponent<AudioPlayerProps, AudioPlayerState> impleme
             delete this.gainNodes[audio.id];
           }
           audio.node.stop();
-        } catch (e) {
+        } catch {
           // TODO: figure out how to check if stop will actually work - then won't need to catch
         }
       });

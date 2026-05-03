@@ -24,7 +24,7 @@ interface ButtonProps {
   onClick: React.DOMAttributes<HTMLButtonElement>["onClick"];
   isBold?: boolean;
   unclickable?: boolean;
-  bgColor?: CSS.BackgroundProperty<any>; // TODO: What is TLength???
+  bgColor?: ButtonColor;
   border?: ButtonBorder;
   playSound?: boolean;
 }

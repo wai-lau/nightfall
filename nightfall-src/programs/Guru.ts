@@ -1,4 +1,4 @@
-import { IProgram, ValidTarget as VT, TargetColor as TC } from "../types";
+import { IProgram, TargetColor as TC } from "../types";
 import { Clog } from "../audio/audioSources";
 import { resolveImage } from "../util/util";
 
