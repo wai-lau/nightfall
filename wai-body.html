@@ -53,7 +53,7 @@ function _applyFsLayout() {
     document.body.style.cssText = 'margin:0;position:absolute;width:' + vh + 'px;height:' + vw + 'px;transform-origin:0 0;transform:rotate(90deg) translate(0,-' + vw + 'px);overflow:hidden;background:#222;';
     var s = document.getElementById('wai-fs-vars');
     if (!s) { s = document.createElement('style'); s.id = 'wai-fs-vars'; document.head.appendChild(s); }
-    s.textContent = '.container{' + _FS_PORTRAIT_VARS + '!important}';
+    s.textContent = '.container{' + _FS_PORTRAIT_VARS + '!important}#root{height:100%!important}';
   } else {
     document.documentElement.style.cssText = 'overflow:hidden;';
     document.body.style.cssText = 'margin:0;width:100%;height:100%;overflow:hidden;';
@@ -61,7 +61,7 @@ function _applyFsLayout() {
     if (root) root.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;';
     var s = document.getElementById('wai-fs-vars');
     if (!s) { s = document.createElement('style'); s.id = 'wai-fs-vars'; document.head.appendChild(s); }
-    s.textContent = '.container{--pct:var(--pct-raw)!important}';
+    s.textContent = '.container{--pct:var(--pct-raw)!important}#root{height:100%!important}';
   }
 }
 
