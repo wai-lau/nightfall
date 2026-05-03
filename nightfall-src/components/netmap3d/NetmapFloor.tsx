@@ -30,6 +30,33 @@ FLOOR_COLUMN_GEO.translate(0, -COLUMN_HEIGHT / 2, 0);
 export const FLOOR_TOP_GEO = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE);
 FLOOR_TOP_GEO.rotateX(-Math.PI / 2);
 
+const TILE_GAP_FRAC = 0.02;
+const FRAME_INSET = TILE_SIZE * (1 - TILE_GAP_FRAC);
+const _frameOuter = new THREE.Shape();
+_frameOuter.moveTo(-TILE_SIZE / 2, -TILE_SIZE / 2);
+_frameOuter.lineTo(TILE_SIZE / 2, -TILE_SIZE / 2);
+_frameOuter.lineTo(TILE_SIZE / 2, TILE_SIZE / 2);
+_frameOuter.lineTo(-TILE_SIZE / 2, TILE_SIZE / 2);
+_frameOuter.lineTo(-TILE_SIZE / 2, -TILE_SIZE / 2);
+const _frameHole = new THREE.Path();
+_frameHole.moveTo(-FRAME_INSET / 2, -FRAME_INSET / 2);
+_frameHole.lineTo(FRAME_INSET / 2, -FRAME_INSET / 2);
+_frameHole.lineTo(FRAME_INSET / 2, FRAME_INSET / 2);
+_frameHole.lineTo(-FRAME_INSET / 2, FRAME_INSET / 2);
+_frameHole.lineTo(-FRAME_INSET / 2, -FRAME_INSET / 2);
+_frameOuter.holes.push(_frameHole);
+export const FLOOR_FRAME_GEO = new THREE.ShapeGeometry(_frameOuter);
+FLOOR_FRAME_GEO.rotateX(-Math.PI / 2);
+export const FLOOR_FRAME_MAT = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  transparent: true,
+  opacity: 0.55,
+  depthWrite: false,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -1,
+});
+
 const NODE_FLOOR_RADIUS = 3;
 
 function convexHull(pts: [number, number][]): [number, number][] {
@@ -111,6 +138,7 @@ export function secColor(level: number): number {
 
 export default function NetmapFloor({ nodePositions = [], nodeSecurityLevels = [], extraTiles = [] }: NetmapFloorProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const frameRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const zero = useMemo(() => {
     const o = new THREE.Object3D();
@@ -305,6 +333,7 @@ export default function NetmapFloor({ nodePositions = [], nodeSecurityLevels = [
   const tmpColor = useMemo(() => new THREE.Color(), []);
   useEffect(() => {
     const mesh = meshRef.current;
+    const frame = frameRef.current;
     if (!mesh) return;
     let i = 0;
     for (let dr = 0; dr < rows; dr++) {
@@ -315,31 +344,37 @@ export default function NetmapFloor({ nodePositions = [], nodeSecurityLevels = [
         if (!allowed.has(k) || skip.has(k) || !tileVisible(col, row)) {
           mesh.setMatrixAt(i, zero);
           mesh.setColorAt(i, tmpColor.set(SEC_COLOR_DEFAULT));
+          if (frame) frame.setMatrixAt(i, zero);
           i++;
           continue;
         }
-        const scale = 0.98;
-        dummy.position.set(
-          START_X + col * TILE_SIZE + TILE_SIZE / 2,
-          tileY(col, row),
-          START_Z + row * TILE_SIZE + TILE_SIZE / 2
-        );
-        dummy.scale.set(scale, 1, scale);
+        const px = START_X + col * TILE_SIZE + TILE_SIZE / 2;
+        const py = tileY(col, row);
+        const pz = START_Z + row * TILE_SIZE + TILE_SIZE / 2;
+        dummy.position.set(px, py, pz);
+        dummy.scale.set(1, 1, 1);
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
         const secNearest = tileSec(col, row);
         const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, secNearest - 1))] ?? SEC_COLOR_DEFAULT;
         mesh.setColorAt(i, tmpColor.set(hex));
+        if (frame) {
+          dummy.position.set(px, py + 0.001, pz);
+          dummy.updateMatrix();
+          frame.setMatrixAt(i, dummy.matrix);
+        }
         i++;
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    if (frame) frame.instanceMatrix.needsUpdate = true;
   }, [dummy, allowed, skip, zero, minCol, minRow, cols, rows, tileY, nodeTiles, nodeSec, tmpColor, tileVisible, tileSec]);
 
   return (
     <group position={[0, FLOOR_Y, 0]}>
       <instancedMesh ref={meshRef} args={[FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, cols * rows]} key={`col-${cols}x${rows}`} receiveShadow />
+      <instancedMesh ref={frameRef} args={[FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, cols * rows]} key={`frame-${cols}x${rows}`} renderOrder={1} />
     </group>
   );
 }

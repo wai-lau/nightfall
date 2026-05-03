@@ -15,7 +15,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_COLUMN_GEO, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { FLOOR_COLUMN_GEO, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
 
 const GLB_URLS: Record<string, string> = {
   ph:    require("../../img/nodes/3d/ph.glb"),
@@ -72,6 +72,7 @@ const glowMat = new THREE.ShaderMaterial({
 });
 
 const unclearedLineMat = new THREE.LineBasicMaterial({ color: COLOR_UNCLEARED });
+const blockedLineMat = new THREE.LineBasicMaterial({ color: 0xffb0b0 });
 const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
 const dimmedSurfaceMat = new THREE.MeshBasicMaterial({ color: 0x4a525a, transparent: true, opacity: 0.1, depthWrite: false });
 
@@ -110,7 +111,10 @@ interface NodeModelProps {
   dimmed: boolean;
   selected: boolean;
   securityLevel: number;
+  blocked: boolean;
 }
+
+const PASTEL_RED = 0xffb0b0;
 
 const surfaceMatCache = new Map<number, THREE.MeshBasicMaterial>();
 function getSurfaceMat(color: number, opacity: number): THREE.MeshBasicMaterial {
@@ -132,7 +136,7 @@ function getClearedMat(color: number): THREE.MeshStandardMaterial {
   return m;
 }
 
-function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel }: NodeModelProps) {
+function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
   const fpMap = useContext(NodeFootprintContext);
   const fpRef = useRef<{ halfX: number; halfZ: number }>({ halfX: 0, halfZ: 0 });
@@ -177,11 +181,15 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel }
       box.getCenter(center);
     }
 
-    const baseColor = new THREE.Color(secColor(securityLevel)).multiplyScalar(0.85).getHex();
+    const baseColor = blocked
+      ? PASTEL_RED
+      : new THREE.Color(secColor(securityLevel)).multiplyScalar(0.85).getHex();
     const brightTopMultiplier: Partial<Record<string, number>> = { warez: 1.15, ped: 1.4 };
     const brightTopMul = brightTopMultiplier[corpKey];
     const brightTopCorp = brightTopMul !== undefined;
-    const brightColor = new THREE.Color(secColor(securityLevel)).multiplyScalar(brightTopMul ?? 1).getHex();
+    const brightColor = blocked
+      ? PASTEL_RED
+      : new THREE.Color(secColor(securityLevel)).multiplyScalar(brightTopMul ?? 1).getHex();
     const wantOverlay = !(cleared && !dimmed);
 
     const splitMeshByUpFaces = (mesh: THREE.Mesh) => {
@@ -231,8 +239,9 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel }
         m.castShadow = true;
       });
     } else {
-      const surfMat = dimmed ? dimmedSurfaceMat : getSurfaceMat(0xaaaaaa, 0.45);
-      const surfMatBright = dimmed ? dimmedSurfaceMat : getSurfaceMat(0xaaaaaa, 0.65);
+      const surfBase = blocked ? PASTEL_RED : 0xaaaaaa;
+      const surfMat = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, 0.45);
+      const surfMatBright = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, 0.65);
       c.traverse((child) => {
         const mesh = child as THREE.Mesh;
         if (!mesh.isMesh) return;
@@ -245,7 +254,7 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel }
       });
     }
     if (wantOverlay) {
-      const lineMat = dimmed ? dimmedLineMat : unclearedLineMat;
+      const lineMat = dimmed ? dimmedLineMat : (blocked ? blockedLineMat : unclearedLineMat);
       const threshold = EDGES_THRESHOLD[corpKey] ?? EDGES_THRESHOLD_DEFAULT;
       const toAdd: { parent: THREE.Object3D; lines: THREE.LineSegments }[] = [];
       c.traverse((child) => {
@@ -274,7 +283,7 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel }
       pos: [-center.x * sx, -box.min.y * MODEL_SCALE + FLOOR_Y + (securityLevel - 1) * SEC_HEIGHT_STEP + (NODE_ID_Y_OFFSET[nodeId] ?? 0), -center.z * sx + (NODE_ID_Z_OFFSET[nodeId] ?? 0)] as [number, number, number],
       scale: [sx, MODEL_SCALE, sx] as [number, number, number],
     };
-  }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <primitive object={obj} scale={scale} position={pos} />;
 }
@@ -285,6 +294,7 @@ interface NetmapNodeProps {
   status: NodeStatus | undefined;
   isSelected: boolean;
   isNightfallDimmed: boolean;
+  playerSecurityLevel: number;
   onClick: () => void;
   onHover?: () => void;
 }
@@ -295,6 +305,7 @@ export default function NetmapNode({
   status,
   isSelected,
   isNightfallDimmed,
+  playerSecurityLevel,
   onClick,
   onHover,
 }: NetmapNodeProps) {
@@ -334,6 +345,7 @@ export default function NetmapNode({
   if (status === undefined || status === NodeStatus.INVISIBLE) return null;
 
   const cleared = matchFlag(status, NodeStatus.WON);
+  const blocked = !cleared && node.securityLevel > playerSecurityLevel;
 
   return (
     <>
@@ -348,7 +360,7 @@ export default function NetmapNode({
           <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
         </mesh>
         <group ref={meshGroupRef}>
-          <NodeModel nodeId={node.id} corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} selected={isSelected} securityLevel={node.securityLevel} />
+          <NodeModel nodeId={node.id} corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} selected={isSelected} securityLevel={node.securityLevel} blocked={blocked} />
         </group>
 
         {hovered && (
@@ -366,7 +378,8 @@ export default function NetmapNode({
       <group ref={platformRef} position={[position[0], NODE_Y + PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP, position[2]]}>
         {TILE_OFFSETS.map(([ox, oz], i) => (
           <React.Fragment key={i}>
-            <mesh position={[ox, 0, oz]} scale={[0.98, 1, 0.98]} geometry={FLOOR_COLUMN_GEO} material={platformMat} receiveShadow />
+            <mesh position={[ox, 0, oz]} geometry={FLOOR_COLUMN_GEO} material={platformMat} receiveShadow />
+            <mesh position={[ox, 0.001, oz]} geometry={FLOOR_FRAME_GEO} material={FLOOR_FRAME_MAT} renderOrder={1} />
           </React.Fragment>
         ))}
         <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]} material={glowMat}>

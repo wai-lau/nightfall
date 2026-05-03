@@ -15,10 +15,10 @@ import { CreditDisplay } from "./CreditDisplay";
 import CurrentPrograms from "./CurrentPrograms";
 import Button from "./Button";
 import CameraController, { ArrowScrollAPI } from "./netmap3d/CameraController";
-import NetmapEdges, { CORNER, EXTRA_EDGES } from "./netmap3d/NetmapEdges";
+import NetmapEdges, { computeEdgeRoutes } from "./netmap3d/NetmapEdges";
 import NetmapFloor, { secColor, FLOOR_Y } from "./netmap3d/NetmapFloor";
 import NetmapNode from "./netmap3d/NetmapNode";
-import { pixelToWorldXZ, toWorld, TILE_SIZE, OFFSET_X, OFFSET_Z } from "../util/netmap3d";
+import { pixelToWorldXZ, toWorld, TILE_SIZE, OFFSET_X, OFFSET_Z, buildSecMap } from "../util/netmap3d";
 import { leadDebounce } from "../util/util";
 
 const HOVER_SOUNDS = [AudioSources.HoverC, AudioSources.HoverEb, AudioSources.HoverF];
@@ -88,6 +88,7 @@ export default function Netmap3D(props: Netmap3DProps) {
     initialScrollY = 0,
     viewWidth,
     viewHeight,
+    securityLevel: playerSecurityLevel,
   } = props;
 
   const audioContext = React.useContext(AudioContext) as IAudioContext;
@@ -146,44 +147,31 @@ export default function Netmap3D(props: Netmap3DProps) {
 
   const pathTiles = useMemo<([number, number] | [number, number, number])[]>(() => {
     const out: ([number, number] | [number, number, number])[] = [];
-    const visible = (id: string) => {
-      const st = netmapStatus[id];
-      return st !== undefined && st !== NodeStatus.INVISIBLE;
-    };
-    const tileOf = (id: string): [number, number] | null => {
-      const p = positions[id];
-      if (!p) return null;
-      const node = nodes.find(n => n.id === id);
-      if (!node) return null;
+    const routes = computeEdgeRoutes(nodes, positions, netmapStatus);
+    // Sec map matches NetmapFloor's smoothing so forced edge tiles use natural Voronoi sec.
+    const nodeTiles: [number, number][] = [];
+    const nodeSec: number[] = [];
+    for (const node of nodes) {
+      const p = positions[node.id];
+      if (!p) continue;
       const w = toWorld(p, node.securityLevel);
-      return [
+      nodeTiles.push([
         Math.floor((w[0] + OFFSET_X) / TILE_SIZE),
         Math.floor((w[2] + OFFSET_Z) / TILE_SIZE),
-      ];
-    };
-    const prereqEdges = nodes.filter(n => !!n.prereq).map(n => ({ from: n.prereq!, to: n.id }));
-    const allEdges = [...EXTRA_EDGES, ...prereqEdges];
-    for (const { from, to } of allEdges) {
-      if (!visible(from) || !visible(to)) continue;
-      const a = tileOf(from);
-      const b = tileOf(to);
-      if (!a || !b) continue;
-      const key = `${from}->${to}`;
-      const dir = CORNER[key] ?? "z";
-      const corner: [number, number] = dir === "x" ? [b[0], a[1]] : [a[0], b[1]];
-      const fill = (p1: [number, number], p2: [number, number]) => {
-        if (p1[0] === p2[0]) {
-          const c = p1[0];
-          const [r0, r1] = p1[1] < p2[1] ? [p1[1], p2[1]] : [p2[1], p1[1]];
-          for (let r = r0; r <= r1; r++) out.push([c, r]);
-        } else if (p1[1] === p2[1]) {
-          const r = p1[1];
-          const [c0, c1] = p1[0] < p2[0] ? [p1[0], p2[0]] : [p2[0], p1[0]];
-          for (let c = c0; c <= c1; c++) out.push([c, r]);
-        }
-      };
-      fill(a, corner);
-      fill(corner, b);
+      ]);
+      nodeSec.push(node.securityLevel);
+    }
+    const secMap = buildSecMap(nodeTiles, nodeSec);
+    const seen = new Set<string>();
+    for (const r of routes) {
+      if (!r.render) continue;
+      for (const [c, row] of r.path) {
+        const k = `${c},${row}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        const sec = secMap.get(k) ?? 1;
+        out.push([c, row, sec]);
+      }
     }
     const agora = nodes.find(n => n.id === "warez-4");
     const ap = agora && positions[agora.id];
@@ -234,7 +222,7 @@ export default function Netmap3D(props: Netmap3DProps) {
         />
 
         <NetmapFloor nodePositions={nodeFloorPositions} nodeSecurityLevels={nodeFloorSecurityLevels} extraTiles={pathTiles} />
-        <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} />
+        <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} playerSecurityLevel={playerSecurityLevel} />
 
         <Suspense fallback={null}>
         {nodes.map((node) => {
@@ -252,6 +240,7 @@ export default function Netmap3D(props: Netmap3DProps) {
               status={netmapStatus[node.id]}
               isSelected={node.id === selectedID}
               isNightfallDimmed={isNightfallDimmed}
+              playerSecurityLevel={playerSecurityLevel}
               onClick={() => onSelectNode(node.id)}
               onHover={onHover}
             />

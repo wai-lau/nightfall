@@ -22,6 +22,7 @@ interface NetmapEdgesProps {
   nodes: INetmap["nodes"];
   positions: INetmap["positions"];
   netmapStatus: { [id: string]: NodeStatus };
+  playerSecurityLevel: number;
 }
 
 const EDGE_Y_OFFSET = 0.03;
@@ -178,97 +179,135 @@ function compressPath(path: Cell[]): Cell[] {
   return out;
 }
 
-export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEdgesProps) {
+export interface EdgeRoute {
+  from: string;
+  to: string;
+  path: Cell[];
+  fromCenter: Cell;
+  toCenter: Cell;
+  render: boolean;
+}
+
+export function computeEdgeRoutes(
+  nodes: INetmap["nodes"],
+  positions: INetmap["positions"],
+  netmapStatus: { [id: string]: NodeStatus }
+): EdgeRoute[] {
+  const prereqEdges: VisualEdge[] = nodes
+    .filter(n => !!n.prereq)
+    .map(n => ({ from: n.prereq!, to: n.id }));
+
+  const allEdges = [...EXTRA_EDGES, ...prereqEdges];
+
+  const nodeTile: Record<string, Cell> = {};
+  for (const id of Object.keys(positions)) {
+    nodeTile[id] = tileForPos(positions[id]);
+  }
+
+  const blocked = new Set<string>();
+  for (const id of Object.keys(nodeTile)) {
+    const [cc, cr] = nodeTile[id];
+    for (let dr = -PLATFORM_HALF; dr <= PLATFORM_HALF; dr++) {
+      for (let dc = -PLATFORM_HALF; dc <= PLATFORM_HALF; dc++) {
+        blocked.add(cellKey(cc + dc, cr + dr));
+      }
+    }
+  }
+
+  const ordered = allEdges
+    .filter(e => positions[e.from] && positions[e.to])
+    .map(e => {
+      const [ac, ar] = nodeTile[e.from];
+      const [bc, br] = nodeTile[e.to];
+      return { ...e, dist: Math.abs(bc - ac) + Math.abs(br - ar) };
+    })
+    .sort((a, b) => a.dist - b.dist);
+
+  const used = new Set<string>();
+  const out: EdgeRoute[] = [];
+
+  for (const edge of ordered) {
+    const [ac, ar] = nodeTile[edge.from];
+    const [bc, br] = nodeTile[edge.to];
+    let best: { full: Cell[]; compressed: Cell[]; cost: number; fp: Port; tp: Port } | null = null;
+    for (const fp of ALL_PORTS) {
+      const [foc, forr] = PORT_OFFSETS[fp];
+      const start: Cell = [ac + foc, ar + forr];
+      for (const tp of ALL_PORTS) {
+        const [toc, torr] = PORT_OFFSETS[tp];
+        const end: Cell = [bc + toc, br + torr];
+        const sk = cellKey(start[0], start[1]);
+        const ek = cellKey(end[0], end[1]);
+        const sBlocked = blocked.has(sk);
+        const eBlocked = blocked.has(ek);
+        if (sBlocked) blocked.delete(sk);
+        if (eBlocked) blocked.delete(ek);
+        const path = aStar(start, end, blocked, used);
+        if (sBlocked) blocked.add(sk);
+        if (eBlocked) blocked.add(ek);
+        if (!path) continue;
+        const compressed = compressPath(path);
+        const cost = path.length + compressed.length * 3;
+        if (!best || cost < best.cost) {
+          best = { full: path, compressed, cost, fp, tp };
+        }
+      }
+    }
+    if (!best) continue;
+    for (let i = 1; i < best.full.length - 1; i++) {
+      const [c, r] = best.full[i];
+      used.add(cellKey(c, r));
+    }
+    const halfOff = (p: Port): Cell => {
+      const [oc, or] = PORT_OFFSETS[p];
+      return [oc / 2, or / 2];
+    };
+    const [foc, forr] = halfOff(best.fp);
+    const [toc, torr] = halfOff(best.tp);
+    const startCap: Cell = [ac + foc, ar + forr];
+    const endCap: Cell = [bc + toc, br + torr];
+    const fullPath: Cell[] = [startCap, ...best.full, endCap];
+    out.push({ from: edge.from, to: edge.to, path: fullPath, fromCenter: [ac, ar], toCenter: [bc, br], render: false });
+  }
+
+  const visibleSet = new Set<string>();
+  for (const id of Object.keys(positions)) {
+    if (netmapStatus[id] !== undefined && netmapStatus[id] !== NodeStatus.INVISIBLE) visibleSet.add(id);
+  }
+  const adj: Record<string, string[]> = {};
+  for (const e of allEdges) {
+    if (!visibleSet.has(e.from) || !visibleSet.has(e.to)) continue;
+    (adj[e.from] ||= []).push(e.to);
+    (adj[e.to] ||= []).push(e.from);
+  }
+  const mainSet = new Set<string>();
+  if (visibleSet.has("smart-hq")) {
+    const queue = ["smart-hq"];
+    mainSet.add("smart-hq");
+    while (queue.length) {
+      const n = queue.shift()!;
+      for (const m of adj[n] || []) if (!mainSet.has(m)) { mainSet.add(m); queue.push(m); }
+    }
+  }
+  for (const r of out) {
+    const fromVis = visibleSet.has(r.from);
+    const toVis = visibleSet.has(r.to);
+    r.render = fromVis && toVis && mainSet.has(r.from) && mainSet.has(r.to);
+  }
+  return out;
+}
+
+export default function NetmapEdges({ nodes, positions, netmapStatus, playerSecurityLevel }: NetmapEdgesProps) {
   const edges = useMemo(() => {
-    const prereqEdges: VisualEdge[] = nodes
-      .filter(n => !!n.prereq)
-      .map(n => ({ from: n.prereq!, to: n.id }));
-
-    const allEdges = [...EXTRA_EDGES, ...prereqEdges];
-
     const nodeSec: Record<string, number> = {};
     for (const n of nodes) nodeSec[n.id] = n.securityLevel;
 
-    // Map node id -> tile cell.
     const nodeTile: Record<string, Cell> = {};
     for (const id of Object.keys(positions)) {
       nodeTile[id] = tileForPos(positions[id]);
     }
 
-    // Platform-blocked cells (3x3 around each node).
-    const blocked = new Set<string>();
-    for (const id of Object.keys(nodeTile)) {
-      const [cc, cr] = nodeTile[id];
-      for (let dr = -PLATFORM_HALF; dr <= PLATFORM_HALF; dr++) {
-        for (let dc = -PLATFORM_HALF; dc <= PLATFORM_HALF; dc++) {
-          blocked.add(cellKey(cc + dc, cr + dr));
-        }
-      }
-    }
-
-    // Sort edges by Manhattan distance ascending — short ones first.
-    const ordered = allEdges
-      .filter(e => positions[e.from] && positions[e.to])
-      .map(e => {
-        const [ac, ar] = nodeTile[e.from];
-        const [bc, br] = nodeTile[e.to];
-        return { ...e, dist: Math.abs(bc - ac) + Math.abs(br - ar) };
-      })
-      .sort((a, b) => a.dist - b.dist);
-
-    const used = new Set<string>();
-
-    const results: { from: string; to: string; path: Cell[]; fromCenter: Cell; toCenter: Cell }[] = [];
-    for (const edge of ordered) {
-      const [ac, ar] = nodeTile[edge.from];
-      const [bc, br] = nodeTile[edge.to];
-
-      // Try every (fromPort, toPort) combination, pick best. Port reuse allowed.
-      let best: { full: Cell[]; compressed: Cell[]; cost: number; fp: Port; tp: Port } | null = null;
-      for (const fp of ALL_PORTS) {
-        const [foc, forr] = PORT_OFFSETS[fp];
-        const start: Cell = [ac + foc, ar + forr];
-        for (const tp of ALL_PORTS) {
-          const [toc, torr] = PORT_OFFSETS[tp];
-          const end: Cell = [bc + toc, br + torr];
-          const sk = cellKey(start[0], start[1]);
-          const ek = cellKey(end[0], end[1]);
-          const sBlocked = blocked.has(sk);
-          const eBlocked = blocked.has(ek);
-          if (sBlocked) blocked.delete(sk);
-          if (eBlocked) blocked.delete(ek);
-          const path = aStar(start, end, blocked, used);
-          if (sBlocked) blocked.add(sk);
-          if (eBlocked) blocked.add(ek);
-          if (!path) continue;
-          const compressed = compressPath(path);
-          const cost = path.length + compressed.length * 3;
-          if (!best || cost < best.cost) {
-            best = { full: path, compressed, cost, fp, tp };
-          }
-        }
-      }
-
-      if (!best) continue;
-
-      // Mark every interior path cell used (block overlap). Endpoints (ports) excluded
-      // so they may be shared by other edges.
-      for (let i = 1; i < best.full.length - 1; i++) {
-        const [c, r] = best.full[i];
-        used.add(cellKey(c, r));
-      }
-      // Extend path tips inward onto platform (1 cell from node center) so caps land on platform.
-      const halfOff = (p: Port): Cell => {
-        const [oc, or] = PORT_OFFSETS[p];
-        return [oc / 2, or / 2];
-      };
-      const [foc, forr] = halfOff(best.fp);
-      const [toc, torr] = halfOff(best.tp);
-      const startCap: Cell = [ac + foc, ar + forr];
-      const endCap: Cell = [bc + toc, br + torr];
-      const fullPath: Cell[] = [startCap, ...best.full, endCap];
-      results.push({ from: edge.from, to: edge.to, path: fullPath, fromCenter: [ac, ar], toCenter: [bc, br] });
-    }
+    const results = computeEdgeRoutes(nodes, positions, netmapStatus);
 
     // Per-cell tile Y matches NetmapFloor's smoothed sec map (Voronoi + 3 majority iters).
     const nodeIds = Object.keys(nodeTile);
@@ -280,9 +319,16 @@ export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEd
       return FLOOR_Y + (sec - 1) * SEC_HEIGHT_STEP + EDGE_Y_OFFSET;
     };
 
-    return results.map(({ from, to, path, fromCenter, toCenter }) => {
+    return results.map(({ from, to, path, fromCenter, toCenter, render }) => {
+      const fromStatus = netmapStatus[from];
       const toStatus = netmapStatus[to];
-      const accessible = toStatus !== undefined && toStatus !== NodeStatus.INVISIBLE;
+      const toVisible = toStatus !== undefined && toStatus !== NodeStatus.INVISIBLE;
+      const fromCleared = fromStatus === NodeStatus.CLEARED;
+      const toCleared = toStatus === NodeStatus.CLEARED;
+      const bothCleared = fromCleared && toCleared;
+      const accessible = toVisible;
+      const toSec = nodeSec[to] ?? 1;
+      const blocked = !toCleared && toSec > playerSecurityLevel;
       const fromTopBaseY = FLOOR_Y + ((nodeSec[from] ?? 1) - 1) * SEC_HEIGHT_STEP + EDGE_Y_OFFSET;
       const toTopBaseY = FLOOR_Y + ((nodeSec[to] ?? 1) - 1) * SEC_HEIGHT_STEP + EDGE_Y_OFFSET;
       const N = path.length;
@@ -363,7 +409,7 @@ export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEd
       return {
         from, to,
         verts: new Float32Array(verts),
-        accessible, fromTopBaseY, toTopBaseY,
+        accessible, render, bothCleared, blocked, fromTopBaseY, toTopBaseY,
         fromRiseIdx: new Uint16Array(fromRiseIdx),
         toRiseIdx: new Uint16Array(toRiseIdx),
         fromCapIdx, toCapIdx,
@@ -372,7 +418,7 @@ export default function NetmapEdges({ nodes, positions, netmapStatus }: NetmapEd
         fromUnitX, fromUnitZ, toUnitX, toUnitZ,
       };
     });
-  }, [nodes, positions, netmapStatus]);
+  }, [nodes, positions, netmapStatus, playerSecurityLevel]);
 
   return (
     <>
@@ -388,6 +434,9 @@ interface AnimatedEdgeProps {
   to: string;
   verts: Float32Array;
   accessible: boolean;
+  render: boolean;
+  bothCleared: boolean;
+  blocked: boolean;
   fromTopBaseY: number;
   toTopBaseY: number;
   fromRiseIdx: Uint16Array;
@@ -405,10 +454,11 @@ interface AnimatedEdgeProps {
 }
 
 function AnimatedEdge({
-  from, to, verts, accessible, fromTopBaseY, toTopBaseY, fromRiseIdx, toRiseIdx,
+  from, to, verts, accessible, render, bothCleared, blocked, fromTopBaseY, toTopBaseY, fromRiseIdx, toRiseIdx,
   fromCapIdx, toCapIdx, fromCenterX, fromCenterZ, toCenterX, toCenterZ,
   fromUnitX, fromUnitZ, toUnitX, toUnitZ,
 }: AnimatedEdgeProps) {
+  if (!render) return null;
   const map = useContext(PlatformYContext);
   const fpMap = useContext(NodeFootprintContext);
   const lineRef = useRef<{ geometry: { setPositions: (a: number[] | Float32Array) => void } }>(null);
@@ -447,8 +497,8 @@ function AnimatedEdge({
     <Line
       ref={lineRef}
       points={points}
-      color={accessible ? "#aaaaaa" : "#333333"}
-      lineWidth={accessible ? 1.5 : 1}
+      color={blocked ? "#ffb0b0" : (accessible ? "#aaaaaa" : "#333333")}
+      lineWidth={bothCleared ? 4.5 : (accessible ? 1.5 : 1)}
     />
   );
 }

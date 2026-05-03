@@ -232,6 +232,23 @@ h3 {
   transform: rotate(-270deg);
 }
 
+.move::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: jhtitles;
+  font-size: 1.1em;
+  color: #fff;
+  pointer-events: none;
+}
+
+.move-up::after    { content: "W"; transform: rotate(90deg); }
+.move-left::after  { content: "A"; transform: rotate(180deg); }
+.move-down::after  { content: "S"; transform: rotate(270deg); }
+.move-right::after { content: "D"; }
+
 .upload-list {
   grid-row: 1;
   grid-column: 1;
@@ -1304,6 +1321,23 @@ h3 {
   background-repeat: no-repeat;
   background-position: 50%;
 }
+
+.arrow::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: jhtitles;
+  font-size: calc(var(--arrow-size) * 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.arrow-up::after    { content: "W"; transform: rotate(90deg); }
+.arrow-left::after  { content: "A"; transform: rotate(180deg); }
+.arrow-down::after  { content: "S"; transform: rotate(-90deg); }
+.arrow-right::after { content: "D"; }
 
 .arrow-left {
   left: -1.5em;
