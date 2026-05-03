@@ -3,6 +3,14 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import * as serviceWorker from "./serviceWorker";
 
+// Suppress THREE.Clock deprecation warning emitted by @react-three/fiber 7 internals.
+// Upgrading fiber/drei is major surgery; three 0.184 still ships Clock so warning is purely cosmetic.
+const __origWarn = console.warn;
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === "string" && args[0].includes("THREE.Clock: This module has been deprecated")) return;
+  __origWarn.apply(console, args as []);
+};
+
 const Loader = require("./components/Loader").default;
 
 ReactDOM.render(
