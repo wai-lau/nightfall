@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Direction, NetmapPosition } from "../../types";
 import { pixelToWorldXZ } from "../../util/netmap3d";
 
-const CAM_HEIGHT = 30;
+const CAM_HEIGHT = 39.15;
 const CAM_DISTANCE = 50;
 const CAM_ANGLE = Math.PI / 4;
 const CAM_OFFSET_X = -CAM_DISTANCE * Math.sin(CAM_ANGLE);
@@ -21,9 +21,10 @@ interface CameraControllerProps {
   initialTarget: [number, number];
   bindScrollFunction: (f: (pos: NetmapPosition, duration?: number) => Promise<NetmapPosition>) => void;
   bindArrowScroll?: (api: ArrowScrollAPI) => void;
+  bounds?: { minX: number; maxX: number; minZ: number; maxZ: number };
 }
 
-export default function CameraController({ initialTarget, bindScrollFunction, bindArrowScroll }: CameraControllerProps) {
+export default function CameraController({ initialTarget, bindScrollFunction, bindArrowScroll, bounds }: CameraControllerProps) {
   const { camera } = useThree();
   const targetRef = useRef<[number, number]>([...initialTarget]);
   const keysRef = useRef<Set<string>>(new Set());
@@ -57,6 +58,10 @@ export default function CameraController({ initialTarget, bindScrollFunction, bi
       if (keys.has("d") || keys.has("arrowright")) { targetRef.current[0] += DIAG * v; targetRef.current[1] += DIAG * v; }
     }
 
+    if (bounds) {
+      targetRef.current[0] = Math.max(bounds.minX, Math.min(bounds.maxX, targetRef.current[0]));
+      targetRef.current[1] = Math.max(bounds.minZ, Math.min(bounds.maxZ, targetRef.current[1]));
+    }
     const [ntx, ntz] = targetRef.current;
     camera.position.x += (ntx + CAM_OFFSET_X - camera.position.x) * LERP_FACTOR;
     camera.position.y = CAM_HEIGHT;
