@@ -111,18 +111,24 @@ export default function Netmap3D(props: Netmap3DProps) {
     arrowApiRef.current = api;
   }, []);
 
-  // Force Canvas remount on viewport orientation/size change. fiber 7's use-measure
-  // ResizeObserver doesn't pick up the body transform-rotate FS layout swap reliably
-  // on iOS Safari → right half ends up cropped.
-  const [viewportKey, setViewportKey] = useState(() => `${window.innerWidth}x${window.innerHeight}`);
+  // Force Canvas remount when the netmap-container's box size changes. fiber 7's
+  // use-measure doesn't pick up FS layout swaps reliably on iOS Safari → right half
+  // crops. ResizeObserver on the wrapper catches both physical rotation and inline
+  // !important style swaps from wai-body.html FS toggle.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewportKey, setViewportKey] = useState("0x0");
   useEffect(() => {
-    const onResize = () => setViewportKey(`${window.innerWidth}x${window.innerHeight}`);
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-    };
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const e = entries[0];
+      if (!e) return;
+      const w = Math.round(e.contentRect.width);
+      const h = Math.round(e.contentRect.height);
+      setViewportKey(`${w}x${h}`);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   const revealStartRef = useRef<Map<string, number>>(new Map());
@@ -226,7 +232,7 @@ export default function Netmap3D(props: Netmap3DProps) {
   }, [nodes, positions, netmapStatus]);
 
   return (
-    <div className="netmap-container">
+    <div className="netmap-container" ref={containerRef}>
       <Canvas
         key={viewportKey}
         style={{ position: "absolute", inset: 0 }}
