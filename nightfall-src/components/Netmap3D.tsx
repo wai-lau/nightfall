@@ -256,7 +256,19 @@ export default function Netmap3D(props: Netmap3DProps) {
     <div className="netmap-container" ref={containerRef}>
       <Canvas
         key={viewportKey}
-        style={{ position: "absolute", inset: 0 }}
+        style={(() => {
+          const fs = document.body.classList.contains("wai-fs-rotated");
+          if (fs) {
+            return {
+              position: "absolute" as const,
+              top: 0,
+              left: 0,
+              width: window.innerHeight + "px",
+              height: window.innerWidth + "px",
+            };
+          }
+          return { position: "absolute" as const, inset: 0 };
+        })()}
         camera={{ fov: 50, near: 0.1, far: 5000 }}
         gl={{ alpha: false }}
         shadows={{ type: THREE.VSMShadowMap }}
