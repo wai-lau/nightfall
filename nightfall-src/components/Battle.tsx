@@ -1265,8 +1265,15 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
   };
 
-  // Undo all state changes since the currently selected program was selected
+  // Esc/Undo: if an action is selected, cancel just the action.
+  // Otherwise, revert all state changes since the currently selected program
+  // was selected (movement, etc).
   undo = async () => {
+    if (this.state.actionIndex !== null) {
+      await this.setStateP(() => ({ actionIndex: null }));
+      return;
+    }
+    if (!this.undoState) return;
     await this.setStateP(() => this.undoState);
   };
 
