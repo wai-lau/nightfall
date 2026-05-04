@@ -21,10 +21,13 @@ body.wai-fs-rotated .netmap-container {
   width: 100vh !important;
   height: 100vw !important;
 }
-/* Push top-right-controls past Safari's bottom toolbar (which becomes the
-   right side of rotated content). 100vh - 100svh = toolbar height on iOS. */
+/* Push top-right-controls + right arrow past Safari's bottom toolbar (which
+   becomes the right side of rotated content). 100vh - 100svh = toolbar height. */
 body.wai-fs-rotated .top-right-controls {
   right: calc(100vh - 100svh + 1em) !important;
+}
+body.wai-fs-rotated .arrow-right {
+  right: calc(100vh - 100svh + var(--arrow-margin, 0.5em)) !important;
 }
 </style>
 <button id="wai-fs-btn" onclick="waiFsToggle()" title="Fullscreen">⛶</button>
