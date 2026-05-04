@@ -150,6 +150,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   componentDidMount() {
     this.audioContext = this.context;
     window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
     window.addEventListener("wheel", this.onWheel, { passive: true });
   }
 
@@ -1074,14 +1075,23 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   componentWillUnmount() {
     window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
     window.removeEventListener("wheel", this.onWheel);
   }
+
+  shiftPure = false;
 
   onKeyDown = async (e: KeyboardEvent) => {
     if (this.state.modal) return;
 
     const key = e.key;
     const started = this.isDatabattleStarted();
+
+    if (key === "Shift") {
+      if (!e.repeat) this.shiftPure = true;
+      return;
+    }
+    this.shiftPure = false;
 
     if (key === "Escape") {
       await this.undo();
@@ -1095,6 +1105,24 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
 
     await this.onKeyDownBattle(e);
+  };
+
+  onKeyUp = async (e: KeyboardEvent) => {
+    if (e.key !== "Shift") return;
+    if (!this.shiftPure) return;
+    this.shiftPure = false;
+    if (this.state.modal) return;
+    if (!this.isDatabattleStarted()) return;
+    const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
+    await this.tryNoAction(isPlayerTurn);
+  };
+
+  tryNoAction = async (isPlayerTurn: boolean) => {
+    const { selection } = this.state;
+    if (selection?.type !== SelectionType.PROGRAM) return;
+    if (this.getProgramByID(selection.id).team !== "P1") return;
+    if (!isPlayerTurn) return;
+    await this.onSelectNoAction();
   };
 
   onWheel = (e: WheelEvent) => {
@@ -1145,11 +1173,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     if (key === " ") {
       e.preventDefault();
-      const { selection } = this.state;
-      if (selection?.type !== SelectionType.PROGRAM) return;
-      if (this.getProgramByID(selection.id).team !== "P1") return;
-      if (!isPlayerTurn) return;
-      await this.onSelectNoAction();
+      await this.tryNoAction(isPlayerTurn);
       return;
     }
 
