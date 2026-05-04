@@ -139,7 +139,6 @@ export default function Netmap3D(props: Netmap3DProps) {
   // !important style swaps from wai-body.html FS toggle.
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewportKey, setViewportKey] = useState("0x0");
-  const [debugInfo, setDebugInfo] = useState("");
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -149,25 +148,6 @@ export default function Netmap3D(props: Netmap3DProps) {
       const w = fs ? window.innerHeight : Math.round(r.width);
       const h = fs ? window.innerWidth : Math.round(r.height);
       setViewportKey(`${w}x${h}`);
-      const root = document.getElementById("root");
-      const rr = root?.getBoundingClientRect();
-      setTimeout(() => {
-        const canvas = el.querySelector("canvas");
-        const cr = canvas?.getBoundingClientRect();
-        const wrap = canvas?.parentElement;
-        const wr = wrap?.getBoundingClientRect();
-        setDebugInfo(
-          `cls=${document.body.className}\n` +
-          `iw=${innerWidth} ih=${innerHeight}\n` +
-          `nc.r=${Math.round(r.width)}x${Math.round(r.height)}\n` +
-          `root.r=${rr ? Math.round(rr.width) + "x" + Math.round(rr.height) : "?"}\n` +
-          `wrap.r=${wr ? Math.round(wr.width) + "x" + Math.round(wr.height) : "?"}\n` +
-          `cnv.r=${cr ? Math.round(cr.width) + "x" + Math.round(cr.height) : "?"}\n` +
-          `cnv.attr=${canvas ? canvas.width + "x" + canvas.height : "?"}\n` +
-          `cnv.style=${canvas ? canvas.style.width + "x" + canvas.style.height : "?"}\n` +
-          `key=${w}x${h}`
-        );
-      }, 100);
     };
     compute();
     const ro = new ResizeObserver(compute);
@@ -372,8 +352,6 @@ export default function Netmap3D(props: Netmap3DProps) {
           Menu
         </Button>
       </div>
-
-      <div style={{ position: "absolute", top: 0, left: 0, padding: 4, background: "black", color: "white", font: "10px monospace", whiteSpace: "pre", zIndex: 99999, pointerEvents: "none" }}>{debugInfo}</div>
 
       {showArrows &&
         ALL_DIRECTIONS.map((dir) => (
