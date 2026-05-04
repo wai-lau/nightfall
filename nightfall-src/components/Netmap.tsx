@@ -279,11 +279,16 @@ export default class Netmap extends React.Component<NetmapProps, NetmapState> {
     s: Direction.Down,
     a: Direction.Left,
     d: Direction.Right,
+    ArrowUp: Direction.Up,
+    ArrowDown: Direction.Down,
+    ArrowLeft: Direction.Left,
+    ArrowRight: Direction.Right,
   };
 
   onKeyDown = (e: KeyboardEvent) => {
     const dir = this.keyToDirection[e.key];
     if (!dir) return;
+    if (e.key.startsWith("Arrow")) e.preventDefault();
     if (this.state.scrollDirection === dir) return;
     this.startScroll(dir);
   };

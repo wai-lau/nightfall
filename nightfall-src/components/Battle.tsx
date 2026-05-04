@@ -1115,9 +1115,12 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   onKeyDownUpload = async (e: KeyboardEvent) => {
     const key = e.key;
 
-    if (key === "w" || key === "W" || key === "s" || key === "S") {
+    const isUp = key === "w" || key === "W" || key === "ArrowUp";
+    const isDown = key === "s" || key === "S" || key === "ArrowDown";
+    if (isUp || isDown) {
+      if (key === "ArrowUp" || key === "ArrowDown") e.preventDefault();
       const entries = this.getUploadMenuEntries();
-      const delta = key === "w" || key === "W" ? -1 : 1;
+      const delta = isUp ? -1 : 1;
       const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
       this.setStateP(() => ({ keyboardUploadIndex: next }));
       return;
@@ -1171,9 +1174,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     const wasdDelta: Record<string, Coordinate> = {
       w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0],
+      ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
     };
     const delta = wasdDelta[key];
     if (!delta) return;
+    if (key.startsWith("Arrow")) e.preventDefault();
     if (!isPlayerTurn) return;
 
     const { selection, actionIndex } = this.state;
