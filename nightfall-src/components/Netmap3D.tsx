@@ -279,15 +279,16 @@ export default function Netmap3D(props: Netmap3DProps) {
           ev.compute = (event: PointerEvent, state: { pointer: { set: (x: number, y: number) => void }; raycaster: { setFromCamera: (p: unknown, c: unknown) => void }; camera: unknown }) => {
             const fs = document.body.classList.contains("wai-fs-rotated");
             if (!fs) return origCompute?.(event, state);
-            // Rotated 90deg cw: visual offsetX/Y in canvas DOM (innerWidth × innerHeight)
-            // → scene coords (innerHeight × innerWidth). Inverse of the rotate(90)+translate.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const e = event as any;
-            const sx = e.offsetY;
-            const sy = window.innerWidth - e.offsetX;
-            const W = window.innerHeight;
-            const H = window.innerWidth;
-            state.pointer.set((sx / W) * 2 - 1, -(sy / H) * 2 + 1);
+            // Use clientX/Y in viewport coords; offsetX/Y semantics on transformed
+            // ancestors vary by browser. Inverse the #root rotate(90cw)+translate to
+            // map visual click → scene buffer coords (sceneW = innerHeight, sceneH = innerWidth).
+            const vx = event.clientX;
+            const vy = event.clientY;
+            const sceneW = window.innerHeight;
+            const sceneH = window.innerWidth;
+            const bx = vy;
+            const by = sceneH - vx;
+            state.pointer.set((bx / sceneW) * 2 - 1, -(by / sceneH) * 2 + 1);
             state.raycaster.setFromCamera(state.pointer, state.camera);
           };
           return ev;
