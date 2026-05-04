@@ -127,13 +127,23 @@ export default function Netmap3D(props: Netmap3DProps) {
       setViewportKey(`${w}x${h}`);
       const root = document.getElementById("root");
       const rr = root?.getBoundingClientRect();
-      setDebugInfo(
-        `cls=${document.body.className}\n` +
-        `iw=${innerWidth} ih=${innerHeight}\n` +
-        `nc.r=${Math.round(r.width)}x${Math.round(r.height)} @${Math.round(r.left)},${Math.round(r.top)}\n` +
-        `root.r=${rr ? Math.round(rr.width) + "x" + Math.round(rr.height) : "?"}\n` +
-        `key=${w}x${h}`
-      );
+      setTimeout(() => {
+        const canvas = el.querySelector("canvas");
+        const cr = canvas?.getBoundingClientRect();
+        const wrap = canvas?.parentElement;
+        const wr = wrap?.getBoundingClientRect();
+        setDebugInfo(
+          `cls=${document.body.className}\n` +
+          `iw=${innerWidth} ih=${innerHeight}\n` +
+          `nc.r=${Math.round(r.width)}x${Math.round(r.height)}\n` +
+          `root.r=${rr ? Math.round(rr.width) + "x" + Math.round(rr.height) : "?"}\n` +
+          `wrap.r=${wr ? Math.round(wr.width) + "x" + Math.round(wr.height) : "?"}\n` +
+          `cnv.r=${cr ? Math.round(cr.width) + "x" + Math.round(cr.height) : "?"}\n` +
+          `cnv.attr=${canvas ? canvas.width + "x" + canvas.height : "?"}\n` +
+          `cnv.style=${canvas ? canvas.style.width + "x" + canvas.style.height : "?"}\n` +
+          `key=${w}x${h}`
+        );
+      }, 100);
     };
     compute();
     const ro = new ResizeObserver(compute);
