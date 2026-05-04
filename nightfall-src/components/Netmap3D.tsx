@@ -118,15 +118,28 @@ export default function Netmap3D(props: Netmap3DProps) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const e = entries[0];
-      if (!e) return;
-      const w = Math.round(e.contentRect.width);
-      const h = Math.round(e.contentRect.height);
+    const compute = () => {
+      const r = el.getBoundingClientRect();
+      const fs = document.body.classList.contains("wai-fs-rotated");
+      // In FS rotated, the visible Canvas dims are the ROTATED ones — phone vh × vw.
+      // Otherwise use the wrapper's actual content rect.
+      const w = fs ? window.innerHeight : Math.round(r.width);
+      const h = fs ? window.innerWidth : Math.round(r.height);
       setViewportKey(`${w}x${h}`);
-    });
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
     ro.observe(el);
-    return () => ro.disconnect();
+    const mo = new MutationObserver(compute);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", compute);
+    window.addEventListener("orientationchange", compute);
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("orientationchange", compute);
+    };
   }, []);
 
 
