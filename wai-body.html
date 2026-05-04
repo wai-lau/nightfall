@@ -130,8 +130,12 @@ function waiFsToggle() {
   document.getElementById('wai-fs-btn').textContent = _waiFs ? '✕' : '⛶';
   if (_waiFs) {
     try { var el = document.documentElement;
-      if (el.requestFullscreen)            el.requestFullscreen().catch(function(){});
-      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      var fsP = el.requestFullscreen ? el.requestFullscreen() : (el.webkitRequestFullscreen && el.webkitRequestFullscreen());
+      // Capture Escape so it doesn't exit fullscreen (Chrome Keyboard Lock API).
+      if (fsP && fsP.then) fsP.then(function(){
+        try { if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(function(){}); } catch(e) {}
+      }).catch(function(){});
+      else { try { if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(function(){}); } catch(e) {} }
     } catch(e) {}
     try {
       if (screen.orientation && screen.orientation.lock)
@@ -140,6 +144,7 @@ function waiFsToggle() {
     _applyFsLayout();
   } else {
     try {
+      if (navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
       if (document.exitFullscreen)            document.exitFullscreen().catch(function(){});
       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
       if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
