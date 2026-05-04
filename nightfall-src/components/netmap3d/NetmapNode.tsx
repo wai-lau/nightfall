@@ -355,16 +355,18 @@ export default function NetmapNode({
   const revealActiveRef = useRef(false);
 
   useFrame(() => {
-    if (Math.abs(targetY - yRef.current) >= LERP_EPSILON) {
-      yRef.current += (targetY - yRef.current) * LERP;
-    }
-
+    const hovering = Math.abs(targetY - yRef.current) >= LERP_EPSILON;
     const startTime = reveal.startTimeMs.get(node.id);
+    const elapsed = startTime !== undefined ? performance.now() - startTime : Infinity;
+    const inReveal = elapsed < REVEAL_HOLD_MS + REVEAL_RISE_MS;
+    if (!hovering && !inReveal && !revealActiveRef.current) return;
+
+    if (hovering) yRef.current += (targetY - yRef.current) * LERP;
+
     let revealYOffset = 0;
     let revealOpacity = 1;
     let active = false;
     if (startTime !== undefined) {
-      const elapsed = performance.now() - startTime;
       if (elapsed < REVEAL_HOLD_MS) {
         revealYOffset = REVEAL_LOW_Y;
         revealOpacity = 0;

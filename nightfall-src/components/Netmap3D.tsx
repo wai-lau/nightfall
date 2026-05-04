@@ -24,6 +24,8 @@ import { leadDebounce } from "../util/util";
 
 const HOVER_SOUNDS = [AudioSources.HoverC, AudioSources.HoverEb, AudioSources.HoverF];
 
+const IS_MOBILE = typeof window !== "undefined" && (("ontouchstart" in window) || navigator.maxTouchPoints > 0);
+
 // Workaround: iOS Safari ResizeObserver inside a transformed ancestor reports
 // the visual (post-rotation) rect to fiber 7's use-measure → canvas ends up
 // portrait-shaped inside a landscape wrapper, clipped to a square. Persistently
@@ -304,7 +306,8 @@ export default function Netmap3D(props: Netmap3DProps) {
           return { position: "absolute" as const, inset: 0 };
         })()}
         camera={{ fov: 50, near: 0.1, far: 5000 }}
-        gl={{ alpha: false }}
+        gl={{ alpha: false, antialias: false, powerPreference: "high-performance" }}
+        dpr={[1, IS_MOBILE ? 1.25 : 2]}
         shadows={{ type: THREE.VSMShadowMap }}
       >
         <color attach="background" args={[secColor(3)]} />
@@ -315,8 +318,8 @@ export default function Netmap3D(props: Netmap3DProps) {
           position={[-20, 30, -20]}
           intensity={1.1}
           castShadow
-          shadow-mapSize-width={4096}
-          shadow-mapSize-height={4096}
+          shadow-mapSize-width={IS_MOBILE ? 1024 : 4096}
+          shadow-mapSize-height={IS_MOBILE ? 1024 : 4096}
           shadow-camera-left={-200}
           shadow-camera-right={200}
           shadow-camera-top={200}
@@ -324,8 +327,8 @@ export default function Netmap3D(props: Netmap3DProps) {
           shadow-camera-near={1}
           shadow-camera-far={200}
           shadow-intensity={0.5}
-          shadow-radius={14}
-          shadow-blurSamples={32}
+          shadow-radius={IS_MOBILE ? 6 : 14}
+          shadow-blurSamples={IS_MOBILE ? 8 : 32}
         />
 
         <FsCanvasSize />

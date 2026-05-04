@@ -478,12 +478,21 @@ function AnimatedEdge({
   const pulseStart = toStart ?? fromStart;
   const pulseDir = toStart !== undefined ? 1 : -1;
 
+  const prevRef = useRef({ f: NaN, t: NaN, fpFR: NaN, fpTR: NaN });
   useFrame((_, delta) => {
     const arr = arrRef.current;
     const line = lineRef.current;
     if (!line) return;
     const fromRise = map.get(from)?.current ?? 0;
     const toRise = map.get(to)?.current ?? 0;
+    const fromFpRef = fpMap.get(from)?.current;
+    const fromR_ = fromFpRef ? (fromUnitX !== 0 ? fromFpRef.halfX : fromFpRef.halfZ) : FOOTPRINT_DEFAULT;
+    const toFpRef = fpMap.get(to)?.current;
+    const toR_ = toFpRef ? (toUnitX !== 0 ? toFpRef.halfX : toFpRef.halfZ) : FOOTPRINT_DEFAULT;
+    const pulseActive = pulseStart !== undefined && performance.now() - pulseStart < REVEAL_HOLD_MS + REVEAL_FLOW_MS;
+    const p = prevRef.current;
+    if (!pulseActive && p.f === fromRise && p.t === toRise && p.fpFR === fromR_ && p.fpTR === toR_) return;
+    prevRef.current = { f: fromRise, t: toRise, fpFR: fromR_, fpTR: toR_ };
     for (let i = 0; i < fromRiseIdx.length; i++) {
       arr[fromRiseIdx[i] * 3 + 1] = fromTopBaseY + fromRise;
     }
@@ -491,14 +500,10 @@ function AnimatedEdge({
       arr[toRiseIdx[i] * 3 + 1] = toTopBaseY + toRise;
     }
     // Clip caps to node model footprint along the cap axis (X if unit X != 0, else Z).
-    const fromFp = fpMap.get(from)?.current;
-    const fromR = fromFp ? (fromUnitX !== 0 ? fromFp.halfX : fromFp.halfZ) : FOOTPRINT_DEFAULT;
-    arr[fromCapIdx * 3] = fromCenterX + fromR * fromUnitX;
-    arr[fromCapIdx * 3 + 2] = fromCenterZ + fromR * fromUnitZ;
-    const toFp = fpMap.get(to)?.current;
-    const toR = toFp ? (toUnitX !== 0 ? toFp.halfX : toFp.halfZ) : FOOTPRINT_DEFAULT;
-    arr[toCapIdx * 3] = toCenterX + toR * toUnitX;
-    arr[toCapIdx * 3 + 2] = toCenterZ + toR * toUnitZ;
+    arr[fromCapIdx * 3] = fromCenterX + fromR_ * fromUnitX;
+    arr[fromCapIdx * 3 + 2] = fromCenterZ + fromR_ * fromUnitZ;
+    arr[toCapIdx * 3] = toCenterX + toR_ * toUnitX;
+    arr[toCapIdx * 3 + 2] = toCenterZ + toR_ * toUnitZ;
     line.geometry.setPositions(arr);
 
     if (pulseRef.current && pulseStart !== undefined) {
