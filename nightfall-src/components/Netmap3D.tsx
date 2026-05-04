@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   INetmap,
@@ -26,26 +26,25 @@ const HOVER_SOUNDS = [AudioSources.HoverC, AudioSources.HoverEb, AudioSources.Ho
 
 // Workaround: iOS Safari ResizeObserver inside a transformed ancestor reports
 // the visual (post-rotation) rect to fiber 7's use-measure → canvas ends up
-// portrait-shaped inside a landscape wrapper, clipped to a square. Force the
-// renderer to the layout dims via useThree.setSize whenever wai-fs-rotated.
+// portrait-shaped inside a landscape wrapper, clipped to a square. Persistently
+// override fiber's setSize each frame whenever wai-fs-rotated is active.
 function FsCanvasSize() {
-  const setSize = useThree((s) => s.setSize);
-  useEffect(() => {
-    const apply = () => {
-      const fs = document.body.classList.contains("wai-fs-rotated");
-      if (fs) setSize(window.innerHeight, window.innerWidth);
-    };
-    apply();
-    const mo = new MutationObserver(apply);
-    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    window.addEventListener("resize", apply);
-    window.addEventListener("orientationchange", apply);
-    return () => {
-      mo.disconnect();
-      window.removeEventListener("resize", apply);
-      window.removeEventListener("orientationchange", apply);
-    };
-  }, [setSize]);
+  const gl = useThree((s) => s.gl);
+  const camera = useThree((s) => s.camera);
+  useFrame(() => {
+    if (!document.body.classList.contains("wai-fs-rotated")) return;
+    const w = window.innerHeight;
+    const h = window.innerWidth;
+    const sz = gl.domElement;
+    if (sz.width !== w || sz.height !== h) {
+      gl.setSize(w, h, true);
+      const cam = camera as THREE.PerspectiveCamera;
+      if (cam.isPerspectiveCamera) {
+        cam.aspect = w / h;
+        cam.updateProjectionMatrix();
+      }
+    }
+  });
   return null;
 }
 

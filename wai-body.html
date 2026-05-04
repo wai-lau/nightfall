@@ -23,6 +23,12 @@ body.wai-fs-rotated .netmap-container {
   background: red !important;
   box-shadow: inset 0 0 0 8px yellow !important;
 }
+/* Push top-right-controls away from rotated bottom edge so Safari toolbar
+   doesn't overlap the menu button. env(safe-area-inset-bottom) reflects
+   physical bottom (= rotated content's right). */
+body.wai-fs-rotated .top-right-controls {
+  right: calc(env(safe-area-inset-bottom, 0px) + 2em) !important;
+}
 </style>
 <button id="wai-fs-btn" onclick="waiFsToggle()" title="Fullscreen">⛶</button>
 <script>
