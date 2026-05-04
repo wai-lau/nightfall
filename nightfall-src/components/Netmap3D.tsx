@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   INetmap,
@@ -23,6 +23,31 @@ import { pixelToWorldXZ, toWorld, TILE_SIZE, OFFSET_X, OFFSET_Z, buildSecMap } f
 import { leadDebounce } from "../util/util";
 
 const HOVER_SOUNDS = [AudioSources.HoverC, AudioSources.HoverEb, AudioSources.HoverF];
+
+// Workaround: iOS Safari ResizeObserver inside a transformed ancestor reports
+// the visual (post-rotation) rect to fiber 7's use-measure → canvas ends up
+// portrait-shaped inside a landscape wrapper, clipped to a square. Force the
+// renderer to the layout dims via useThree.setSize whenever wai-fs-rotated.
+function FsCanvasSize() {
+  const setSize = useThree((s) => s.setSize);
+  useEffect(() => {
+    const apply = () => {
+      const fs = document.body.classList.contains("wai-fs-rotated");
+      if (fs) setSize(window.innerHeight, window.innerWidth);
+    };
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", apply);
+    window.addEventListener("orientationchange", apply);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener("resize", apply);
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, [setSize]);
+  return null;
+}
 
 // Ground fog: patch three.js fog shader chunks to be y-based instead of distance-based.
 // Columns below GROUND_FOG_BOTTOM_Y fully fogged; above GROUND_FOG_TOP_Y unfogged.
@@ -304,6 +329,7 @@ export default function Netmap3D(props: Netmap3DProps) {
           shadow-blurSamples={32}
         />
 
+        <FsCanvasSize />
         <CameraController
           initialTarget={initialTarget}
           bindScrollFunction={bindScrollFunction}
