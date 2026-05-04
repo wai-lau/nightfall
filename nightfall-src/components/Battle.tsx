@@ -98,6 +98,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   audioContext: IAudioContext;
   modalWaitCallbacks: (() => void)[];
   undoState: BattleState | null = null;
+  lastP1ProgramID: string | null = null;
 
   guideTextCheckTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -502,6 +503,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     await this.audioContext.player.playAudio(AudioSources.ProgramReady);
     const selectedProgram = this.getProgramByID(id);
+    if (selectedProgram.team === "P1") {
+      this.lastP1ProgramID = id;
+    }
     const actionIndex =
       selectedProgram.movesRemaining === 0 ? selectedProgram.defaultActionIndex || 0 : null;
     await this.setStateP(() => ({
@@ -1265,16 +1269,33 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
   };
 
-  // Esc/Undo: if an action is selected, cancel just the action.
-  // Otherwise, revert all state changes since the currently selected program
-  // was selected (movement, etc).
+  // Esc/Undo:
+  // - Viewing an enemy program → re-select last P1 program (Back).
+  // - An action is selected → cancel just the action.
+  // - Otherwise → revert state to the moment the current program was selected.
   undo = async () => {
+    const sel = this.state.selection;
+    if (sel?.type === SelectionType.PROGRAM) {
+      let viewingEnemy = false;
+      try { viewingEnemy = this.getProgramByID(sel.id).team !== "P1"; } catch {}
+      if (viewingEnemy && this.lastP1ProgramID
+          && this.state.programs.some((p) => p.id === this.lastP1ProgramID)) {
+        await this.selectLastP1Program();
+        return;
+      }
+    }
     if (this.state.actionIndex !== null) {
       await this.setStateP(() => ({ actionIndex: null }));
       return;
     }
     if (!this.undoState) return;
     await this.setStateP(() => this.undoState);
+  };
+
+  selectLastP1Program = async () => {
+    if (!this.lastP1ProgramID) return;
+    if (!this.state.programs.some((p) => p.id === this.lastP1ProgramID)) return;
+    await this.createOnSelectProgram(this.lastP1ProgramID)();
   };
 
   // Display a given modal
@@ -1655,17 +1676,42 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       </div>
     );
 
-    const undoButton = databattleStarted && this.props.teams[this.state.teamIndex] === "P1" && (
-      <div className="undo">
-        <Button
-          bgColor={ButtonColor.RedGradient}
-          isBold={true}
-          onClick={this.undo}
-          playSound={false}
-        >
-          <span className="pm-key-hint">[Esc]</span>Undo
-        </Button>
-      </div>
+    const isP1Turn = databattleStarted && this.props.teams[this.state.teamIndex] === "P1";
+    const viewingEnemy = (() => {
+      const sel = this.state.selection;
+      if (sel?.type !== SelectionType.PROGRAM) return false;
+      try {
+        return this.getProgramByID(sel.id).team !== "P1";
+      } catch {
+        return false;
+      }
+    })();
+    const canBack = viewingEnemy && this.lastP1ProgramID !== null
+      && this.state.programs.some((p) => p.id === this.lastP1ProgramID);
+    const undoButton = isP1Turn && (
+      canBack ? (
+        <div className="undo">
+          <Button
+            bgColor={ButtonColor.RedGradient}
+            isBold={true}
+            onClick={this.selectLastP1Program}
+            playSound={false}
+          >
+            <span className="pm-key-hint">[Esc]</span>Back
+          </Button>
+        </div>
+      ) : (
+        <div className="undo">
+          <Button
+            bgColor={ButtonColor.RedGradient}
+            isBold={true}
+            onClick={this.undo}
+            playSound={false}
+          >
+            <span className="pm-key-hint">[Esc]</span>Undo
+          </Button>
+        </div>
+      )
     );
 
     const attackAnimationEl = this.state.attackAnimation && (
