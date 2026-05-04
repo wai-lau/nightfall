@@ -35,7 +35,10 @@
   function loadScript(src) {
     return new Promise(function (res) {
       var s = document.createElement('script');
-      s.src = src; s.onload = res; s.onerror = res;
+      // Cache-bust: forces re-fetch each load. Bundle is small, deploy churn high.
+      var sep = src.indexOf('?') === -1 ? '?' : '&';
+      s.src = src + sep + 'v=' + Date.now();
+      s.onload = res; s.onerror = res;
       document.head.appendChild(s);
     });
   }
