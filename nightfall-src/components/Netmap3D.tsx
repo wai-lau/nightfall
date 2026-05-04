@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { Canvas, useThree, useFrame, events as defaultPointerEvents } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   INetmap,
@@ -270,6 +270,26 @@ export default function Netmap3D(props: Netmap3DProps) {
     <div className="netmap-container" ref={containerRef}>
       <Canvas
         key={viewportKey}
+        events={(store) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ev = defaultPointerEvents(store) as any;
+          const origCompute = ev.compute;
+          ev.compute = (event: PointerEvent, state: { pointer: { set: (x: number, y: number) => void }; raycaster: { setFromCamera: (p: unknown, c: unknown) => void }; camera: unknown }) => {
+            const fs = document.body.classList.contains("wai-fs-rotated");
+            if (!fs) return origCompute?.(event, state);
+            // Rotated 90deg cw: visual offsetX/Y in canvas DOM (innerWidth × innerHeight)
+            // → scene coords (innerHeight × innerWidth). Inverse of the rotate(90)+translate.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const e = event as any;
+            const sx = e.offsetY;
+            const sy = window.innerWidth - e.offsetX;
+            const W = window.innerHeight;
+            const H = window.innerWidth;
+            state.pointer.set((sx / W) * 2 - 1, -(sy / H) * 2 + 1);
+            state.raycaster.setFromCamera(state.pointer, state.camera);
+          };
+          return ev;
+        }}
         style={(() => {
           const fs = document.body.classList.contains("wai-fs-rotated");
           if (fs) {
