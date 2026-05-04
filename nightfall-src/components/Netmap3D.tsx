@@ -115,17 +115,25 @@ export default function Netmap3D(props: Netmap3DProps) {
   // !important style swaps from wai-body.html FS toggle.
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewportKey, setViewportKey] = useState("0x0");
+  const [debugInfo, setDebugInfo] = useState("");
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const compute = () => {
       const r = el.getBoundingClientRect();
       const fs = document.body.classList.contains("wai-fs-rotated");
-      // In FS rotated, the visible Canvas dims are the ROTATED ones — phone vh × vw.
-      // Otherwise use the wrapper's actual content rect.
       const w = fs ? window.innerHeight : Math.round(r.width);
       const h = fs ? window.innerWidth : Math.round(r.height);
       setViewportKey(`${w}x${h}`);
+      const root = document.getElementById("root");
+      const rr = root?.getBoundingClientRect();
+      setDebugInfo(
+        `cls=${document.body.className}\n` +
+        `iw=${innerWidth} ih=${innerHeight}\n` +
+        `nc.r=${Math.round(r.width)}x${Math.round(r.height)} @${Math.round(r.left)},${Math.round(r.top)}\n` +
+        `root.r=${rr ? Math.round(rr.width) + "x" + Math.round(rr.height) : "?"}\n` +
+        `key=${w}x${h}`
+      );
     };
     compute();
     const ro = new ResizeObserver(compute);
@@ -317,6 +325,8 @@ export default function Netmap3D(props: Netmap3DProps) {
           Menu
         </Button>
       </div>
+
+      <div style={{ position: "absolute", top: 0, left: 0, padding: 4, background: "black", color: "white", font: "10px monospace", whiteSpace: "pre", zIndex: 99999, pointerEvents: "none" }}>{debugInfo}</div>
 
       {showArrows &&
         ALL_DIRECTIONS.map((dir) => (
