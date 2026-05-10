@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useMemo, useState, useEffect, Suspense } from "react";
-import { Canvas, useThree, useFrame, events as defaultPointerEvents } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   INetmap,
@@ -272,26 +272,22 @@ export default function Netmap3D(props: Netmap3DProps) {
     <div className="netmap-container" ref={containerRef}>
       <Canvas
         key={viewportKey}
-        events={(store) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const ev = defaultPointerEvents(store) as any;
-          const origCompute = ev.compute;
-          ev.compute = (event: PointerEvent, state: { pointer: { set: (x: number, y: number) => void }; raycaster: { setFromCamera: (p: unknown, c: unknown) => void }; camera: unknown }) => {
-            const fs = document.body.classList.contains("wai-fs-rotated");
-            if (!fs) return origCompute?.(event, state);
-            // Use clientX/Y in viewport coords; offsetX/Y semantics on transformed
-            // ancestors vary by browser. Inverse the #root rotate(90cw)+translate to
-            // map visual click → scene buffer coords (sceneW = innerHeight, sceneH = innerWidth).
-            const vx = event.clientX;
-            const vy = event.clientY;
+        raycaster={{
+          // Fiber v7 prepareRay reads raycaster.computeOffsets — events.compute is
+          // ignored. In wai-fs-rotated mode the canvas is visually rotated 90cw via
+          // a CSS transform on #root, so event.offsetX/Y don't map to scene buffer
+          // pixels. Return rotated offsets + sceneW/H = innerHeight × innerWidth.
+          computeOffsets: (event: PointerEvent) => {
+            if (!document.body.classList.contains("wai-fs-rotated")) return undefined;
             const sceneW = window.innerHeight;
             const sceneH = window.innerWidth;
-            const bx = vy;
-            const by = sceneH - vx;
-            state.pointer.set((bx / sceneW) * 2 - 1, -(by / sceneH) * 2 + 1);
-            state.raycaster.setFromCamera(state.pointer, state.camera);
-          };
-          return ev;
+            return {
+              offsetX: event.clientY,
+              offsetY: sceneH - event.clientX,
+              width: sceneW,
+              height: sceneH,
+            };
+          },
         }}
         style={(() => {
           const fs = document.body.classList.contains("wai-fs-rotated");
