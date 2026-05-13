@@ -11,7 +11,7 @@ disarray:f4:100-700
 >300 I don't know, what is it?
 >300 Sure.
 
-#300 S.M.A.R.T has a special program that would really help with the crashing and all. To get it running I need a couple of files that are hidden in the corporate nodes around here, two nodes to be exact.
+#300 SmA-RT has a special program that would really help with the crashing and all. To get it running I need a couple of files that are hidden in the corporate nodes around here, two nodes to be exact.
 >400 What's the program?
 >401 How do I fit in?
 

@@ -7,7 +7,7 @@ joana:c4:100-600
 >200 All in a day's work.
 >200 You're welcome.
 
-#200 Good to see that S.M.A.R.T is fulfilling its professioal responsibilities. Along those lines, I have a task for you to perform.
+#200 Good to see that SmA-RT is fulfilling its professioal responsibilities. Along those lines, I have a task for you to perform.
 >400 Sure. What's the task?
 >300 What are you offering?
 

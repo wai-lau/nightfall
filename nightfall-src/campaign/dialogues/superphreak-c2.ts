@@ -10,14 +10,14 @@ superphreak:c2:100-900
 >300 So what's up?
 >300 Why did you get cut off before?
 
-#300 Someone's been screwing around with S.M.A.R.T. Some kind of corrupt program got loose in our network and I got cut off. For a second, I thought it was 12AM out here.
+#300 Someone's been screwing around with SmA-RT. Some kind of corrupt program got loose in our network and I got cut off. For a second, I thought it was 12AM out here.
 >400 12AM?
 >400 What was going on?
 
 #400 12AM = Midnight. That's what we call a total network blackout. No access for anybody. It happened once a while ago during the worldwide power crisis. You wouldn't believe how bad it got before the network came back online.
 >500 Got it.
 
-#500 Anyway, someone directly sabotaged S.M.A.R.T and it's crippling our agents. But it's not affecting you because we haven't put your info into the S.M.A.R.T system yet.
+#500 Anyway, someone directly sabotaged SmA-RT and it's crippling our agents. But it's not affecting you because we haven't put your info into the SmA-RT system yet.
 >600 Who's responsible for this?
 >601 What can I do to help?
 

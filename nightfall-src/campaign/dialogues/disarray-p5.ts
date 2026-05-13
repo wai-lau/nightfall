@@ -3,11 +3,11 @@ import parseDialogue from "../../util/parseDialogue";
 export const DisarrayP5 = parseDialogue(`
 disarray:p5:100-800
 
-#100 Hello there, S.M.A.R.T amateur.
+#100 Hello there, SmA-RT amateur.
 >200 What do you want?
 
-#200 What's the matter? No time to chat with an old S.M.A.R.T buddy?
->300 S.M.A.R.T kicked you out.
+#200 What's the matter? No time to chat with an old SmA-RT buddy?
+>300 SmA-RT kicked you out.
 
 #300 Clearly their loss. So I guess by now you know the whole nightfall story, huh?
 >400 Why are you trying to crash the net?

@@ -3,7 +3,7 @@ import parseDialogue from "../../util/parseDialogue";
 export const SuperphreakC3 = parseDialogue(`
 superphreak:c3:100-400
 
-#100 Hey, newbie. Still working on getting S.M.A.R.T on its feet. What are you up to?
+#100 Hey, newbie. Still working on getting SmA-RT on its feet. What are you up to?
 >200 Gonna hit this warez node.
 >201 Do you know Wintermutant?
 

@@ -131,7 +131,7 @@ const netmap: INetmap = {
     {
       ...NodeStyle.smart,
       id: Nodes.S1,
-      name: "S.M.A.R.T HQ",
+      name: "SmA-RT HQ",
       description: Descriptions.S1,
       securityLevel: 1,
       type: SmartHQ,

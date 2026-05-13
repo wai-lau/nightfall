@@ -22,6 +22,6 @@ wintermutant:l4:100-600
 >600 Appreciate it.
 >500 Do that.
 
-#500 Always. Happy to help S.M.A.R.T. Catch you later.
+#500 Always. Happy to help SmA-RT. Catch you later.
 >600 Later.
 `);

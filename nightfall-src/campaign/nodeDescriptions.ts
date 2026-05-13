@@ -11,7 +11,7 @@ const Descriptions: Record<string, string> = {
   F2:
     "This node is infected with an unknown corrupted program. Destroy all the corrupted software to proceed.",
   L1:
-    "S.M.A.R.T uses this node's security as a test mission. Defeat all the security software to proceed.",
+    "SmA-RT uses this node's security as a test mission. Defeat all the security software to proceed.",
   L2:
     "This node has reported a security bug that has locked down its internal network. Defeat the security software to proceed.",
   C4:
@@ -71,7 +71,7 @@ const Descriptions: Record<string, string> = {
   F8: "This node contains the Level 5 access codes. Capture the code to access Level 5 nodes.",
   Q1:
     "Disarray's Headquarters. Defeat all of his security to disable the Nightfall software and prevent midnight.",
-  S1: "Center for Information about S.M.A.R.T. and its operations",
+  S1: "Center for Information about SmA-RT and its operations",
 };
 
 export default Descriptions;

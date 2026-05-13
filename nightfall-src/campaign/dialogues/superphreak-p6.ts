@@ -19,6 +19,6 @@ superphreak:p6:100-700
 >200 Go over that again.
 >600 I'm ready.
 
-#600 Alright, I'll be off-line for a while. Good luck ~~~~~~~ ~~~ codes, and be sure ~~ show Disarray what it means to mess with S.M.A.R.T.
+#600 Alright, I'll be off-line for a while. Good luck ~~~~~~~ ~~~ codes, and be sure ~~ show Disarray what it means to mess with SmA-RT.
 >700 I'll do my best.
 `);

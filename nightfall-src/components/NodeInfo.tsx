@@ -46,7 +46,7 @@ const NodeInfo: React.FunctionComponent<NodeInfoProps> = (props: NodeInfoProps) 
     enterString = "Warez Node";
     title = "Warez Node";
   } else if (type === NodeType.SmartHQ) {
-    enterString = "S.M.A.R.T HQ";
+    enterString = "SmA-RT HQ";
     title = "SMART Node";
   }
 

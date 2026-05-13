@@ -3,14 +3,14 @@ import parseDialogue from "../../util/parseDialogue";
 export const SuperphreakIntro = parseDialogue(`
 superphreak:intro:100-700
 
-#100 Hey. Welcome to S.M.A.R.T. You must be the newbie I'm supposed to train.
+#100 Hey. Welcome to SmA-RT. You must be the newbie I'm supposed to train.
 >200 Newbie?
 >200 Yeah.
 
 #200 I hope you're a fast learner, cause I have more important things to do than to hold your hand all day.
 >300 Go on.
 
-#300 As a S.M.A.R.T agent, you're here to fix problems and battle infocrime. You can find out more at the S.M.A.R.T. HQ node.
+#300 As a SmA-RT agent, you're here to fix problems and handle network anomalies. You can find out more at the SmA-RT HQ node.
 >400 What's a node?
 >400 I'll be sure to check that out.
 

@@ -14,7 +14,7 @@ const SMART: React.FunctionComponent<SMARTProps> = (props) => {
   return (
     <div className="SMART-container">
       <div className="SMART">
-        <HeaderBox title="S.M.A.R.T HQ">
+        <HeaderBox title="SmA-RT HQ">
           <div className="SMART-body">
             {props.data.text.map((x, i) => (
               <p key={i}>{x}</p>

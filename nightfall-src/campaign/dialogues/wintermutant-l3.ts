@@ -11,7 +11,7 @@ wintermutant:l3:100-600
 >300 What Dr. Donut situation?
 >301 Where did you hear about that?
 
-#201 I noticed S.M.A.R.T was down but you're still out here grinding. Lowkey respect. You here about the Dr. Donut thing?
+#201 I noticed SmA-RT was down but you're still out here grinding. Lowkey respect. You here about the Dr. Donut thing?
 >300 What Dr. Donut situation?
 >301 Where did you hear about that?
 
@@ -19,7 +19,7 @@ wintermutant:l3:100-600
 >400 Send me the node info.
 >400 Where is it?
 
-#301 S.M.A.R.T crashed so I went full detective mode. Yeah, they got hit and their systems are completely cooked.
+#301 SmA-RT crashed so I went full detective mode. Yeah, they got hit and their systems are completely cooked.
 >400 Send me the node info.
 >400 Where is it?
 

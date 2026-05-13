@@ -5,9 +5,9 @@ spinner:f1:100-600
 
 #100 Hey pal. I see that you've been doing some sweet code slinging. Was wondering if you were interested in some extra business.
 >300 What kind of business?
->200 Do you work for S.M.A.R.T?
+>200 Do you work for SmA-RT?
 
-#200 Not exactly. I'm more of a freelancer. Sometimes corporations get themselves into messes that need cleaning up. Their agents contact me and I contact individual S.M.A.R.T operatives to see if they're interested. What do you think?
+#200 Not exactly. I'm more of a freelancer. Sometimes corporations get themselves into messes that need cleaning up. Their agents contact me and I contact individual SmA-RT operatives to see if they're interested. What do you think?
 >300 What's the job?
 
 #300 A little side business in data policing. It turns out Pharmhaus was testing some new security and it went haywire. They can't even access their network.

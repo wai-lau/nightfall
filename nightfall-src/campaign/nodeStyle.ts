@@ -116,7 +116,7 @@ export const smart: Pick<INetmapNonBattleNode, "nodeStyle"> = {
     unclearedIcon: resolveImage("nodes/trim-smart.png"),
     clearedIcon: resolveImage("nodes/trim-smart.png"),
     infoImage: resolveImage("bg/smart-logo.png"),
-    netmapOrgName: "S.M.A.R.T",
+    netmapOrgName: "SmA-RT",
   },
 };
 export const warez: Pick<INetmapNonBattleNode, "nodeStyle"> = {
