@@ -16,9 +16,9 @@ superphreak:l6:100-500
 #301 We get to work! I'd do it myself, but I can barely stay on-line long enough to research those logs you picked up, let alone fight a databattle.
 >401 So it's up to me.
 
-#400 Work your way across these nodes. Somebody's hiding something from us. See if you can find out what it is. Welcome to the big time, newbie. Send me those logs so I can get started. Ready to receive data.
+#400 Work your way across these nodes. Somebody's hiding something from us. See if you can find out what it is. Welcome to the big leagues, newbie. Send me those logs so I can get started. Ready to receive data.
 >500 Send log data.
 
-#401 Guess so. This is the big time, newbie. Someone's trying to hide something from us. Work your way across these nodes and find out what it is. But first send me those logs. Ready to receive data.
+#401 Guess so. This is the big leagues, newbie. Someone's trying to hide something from us. Work your way across these nodes and find out what it is. But first send me those logs. Ready to receive data.
 >500 Send log data.
 `);
