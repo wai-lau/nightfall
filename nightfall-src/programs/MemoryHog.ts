@@ -7,7 +7,17 @@ export const MemoryHog: IProgram = {
   iconImageFile: resolveImage("programs/MemoryHog.png"),
   name: "Memory Hog",
   description: "Massive Memory-Filling Bloatware",
-  actions: [],
+  actions: [
+    {
+      name: "Hug",
+      description: "Decreases Movement of Target and Self by 1",
+      range: 1,
+      run: (ac, tc, selfID, targetID) => [
+        ac.changeTargetMoves(targetID, -1),
+        ac.changeTargetMoves(selfID, -1),
+      ],
+    },
+  ],
   maxSize: 30,
-  numMoves: 8,
+  numMoves: 6,
 };
