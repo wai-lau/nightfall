@@ -54,3 +54,9 @@ export const Minerva: ICharacter = {
   name: "Minerva",
   image: resolveImage("characters/minerva.png"),
 };
+
+export const ZhangShan: ICharacter = {
+  id: "zhangshan",
+  name: "Zhang Shan",
+  image: resolveImage("characters/zhangshan.png"),
+};

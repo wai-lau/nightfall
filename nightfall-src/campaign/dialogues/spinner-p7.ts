@@ -1,11 +1,17 @@
 import parseDialogue from "../../util/parseDialogue";
 
 export const SpinnerP7 = parseDialogue(`
-spinner:p3:100-300
+spinner:p7:100-500
 
 #100 Great work, agent. P.E.D. thanks you. So, mind letting little old Spinner know what all the big bad news is about?
 >200 Later. I've got to work.
 
-#200 No problem, no problem. Duty first and all. Just don't forget who's been your friend, okay? Here are your credits. Ciao, buddy.
->300 Ready to receive credit transfer.
+#200 No problem, no problem. Duty first and all. Hey, before you bounce — got something for you.
+>300 What?
+
+#300 Cracked the spoofer's keys. Means you can pretend to be them when you hit a TANG node. They won't trace it back to us. Real elite hardpoint they were keeping off-books. Real reward.
+>400 You're not going in?
+
+#400 Me? Nope. I'd rather not poke TANG more than I have to. You go. Just don't forget who's been your friend, okay? Here are your credits. Ciao, buddy.
+>500 Ready to receive credit transfer.
 `);
