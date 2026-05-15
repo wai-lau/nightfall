@@ -9,6 +9,17 @@ import Dialogue from "./Dialogue";
 import Popup, { PopupConfig } from "./Popup";
 
 import * as Programs from "../programs";
+import warez1 from "../campaign/levels/warez-1";
+import warez2 from "../campaign/levels/warez-2";
+import warez3 from "../campaign/levels/warez-3";
+import warez4 from "../campaign/levels/warez-4";
+
+const ALL_WAREZ_PRICES: Record<string, number> = {
+  ...warez1.prices,
+  ...warez2.prices,
+  ...warez3.prices,
+  ...warez4.prices,
+};
 
 import {
   IProgram,
@@ -96,13 +107,21 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       ...props.loadedSave,
     };
     const seen = new Map<string, number>();
+    let refund = 0;
     const prunedPrograms = merged.availablePrograms.filter((p) => {
       const count = seen.get(p.id) || 0;
-      if (count >= 2) return false;
+      if (count >= 2) {
+        refund += ALL_WAREZ_PRICES[p.id] || 0;
+        return false;
+      }
       seen.set(p.id, count + 1);
       return true;
     });
-    this.state = { ...merged, availablePrograms: prunedPrograms };
+    this.state = {
+      ...merged,
+      availablePrograms: prunedPrograms,
+      numCredits: merged.numCredits + refund,
+    };
     this.endDialogueCB = null;
     this.netmapScrollFunction = null;
     this.popupWaitCallbacks = [];
