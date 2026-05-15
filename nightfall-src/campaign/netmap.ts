@@ -360,7 +360,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.F4,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(
         startDialogue(Dialogue.SuperphreakL6),
         displayMessage("transmission", "Logs Sent")
@@ -374,7 +374,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: WarezNode,
       prereq: Nodes.L6,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       preOpen: (gsc) => {
         if (gsc.getNodeStatus(Nodes.W3) === NodeStatus.CLEARED) {
           return gsc.startDialogue(Dialogue.KimoniRevisit);
@@ -391,7 +391,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.L6,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: startDialogue(Dialogue.DisarrayP1),
     },
     {
@@ -402,7 +402,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.P1,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.SuperphreakF5), revealNode(Nodes.Q1)),
     },
     {
@@ -413,7 +413,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.F5,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.SuperphreakF6), setLevel(4), revealNode(Nodes.W4)),
     },
     {
@@ -425,7 +425,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.D2,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.WintermutantD3), revealNode(Nodes.L9), revealNode(Nodes.D4)),
     },
     {
@@ -437,7 +437,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.D3,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.SpinnerD4), revealNode(Nodes.L7), revealNode(Nodes.P7)),
     },
     {
@@ -449,7 +449,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.D3,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: startDialogue(Dialogue.SuperphreakD5),
     },
     {
@@ -461,7 +461,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.D3,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: startDialogue(Dialogue.DisarrayL8),
     },
     {
@@ -483,7 +483,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.P2,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: startDialogue(Dialogue.JoanaC5),
     },
     {
@@ -495,7 +495,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.C5,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.JoanaC6), addProgram(Programs.MemoryHog)),
     },
     {
@@ -506,7 +506,7 @@ const netmap: INetmap = {
       securityLevel: 3,
       type: Battle,
       prereq: Nodes.P2,
-      firstClearCredits: 800,
+      firstClearCredits: 960,
       onFirstClear: chain(startDialogue(Dialogue.SpinnerP3), addCredits(500)),
     },
 
@@ -521,7 +521,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.D4,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: chain(startDialogue(Dialogue.WintermutantL7), revealNode(Nodes.F8)),
     },
     {
@@ -532,7 +532,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: WarezNode,
       prereq: Nodes.L7,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       preOpen: (gsc) => {
         if (gsc.getNodeStatus(Nodes.W4) === NodeStatus.CLEARED) {
           return gsc.startDialogue(Dialogue.MinervaRevisit);
@@ -550,7 +550,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.L7,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: startDialogue(Dialogue.SuperphreakD6),
     },
     {
@@ -562,7 +562,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.D6,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: chain(startDialogue(Dialogue.WintermutantL9), addProgram(Programs.Wizard)),
     },
     {
@@ -573,7 +573,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.D6,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: startDialogue(Dialogue.JoanaP4),
     },
     {
@@ -584,7 +584,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.P4,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: startDialogue(Dialogue.JoanaF7),
     },
     {
@@ -595,7 +595,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.F7,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: startDialogue(Dialogue.DisarrayP5),
     },
     {
@@ -606,7 +606,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.P5,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: startDialogue(Dialogue.SuperphreakP6),
     },
     {
@@ -617,7 +617,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.P6,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: chain(startDialogue(Dialogue.SpinnerP7), addCredits(2000)),
     },
     {
@@ -628,7 +628,7 @@ const netmap: INetmap = {
       securityLevel: 4,
       type: Battle,
       prereq: Nodes.P6,
-      firstClearCredits: 1000,
+      firstClearCredits: 1500,
       onFirstClear: chain(
         startDialogue(Dialogue.DisarrayF8),
         setLevel(5),
