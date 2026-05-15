@@ -19,6 +19,6 @@ superphreak:l6:100-500
 #400 Work your way across these nodes. Somebody's hiding something from us. See if you can find out what it is. Welcome to the big leagues, newbie. Send me those logs so I can get started. Ready to receive data.
 >500 Send log data.
 
-#401 Guess so. This is the big leagues, newbie. Someone's trying to hide something from us. Work your way across these nodes and find out what it is. But first send me those logs. Ready to receive data.
+#401 Guess so. Welcome to the big leagues, newbie. Someone's trying to hide something from us. Work your way across these nodes and find out what it is. But first send me those logs. Ready to receive data.
 >500 Send log data.
 `);

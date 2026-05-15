@@ -27,6 +27,6 @@ wintermutant:l3:100-600
 >500 I'm waiting.
 >500 Take your time.
 
-#500 Found it! Uploading the node to your netmap now. Was bussin talking to you. Laters.
+#500 Found it! Uploading the node to your netmap now. Laters.
 >600 Ready to receive node data.
 `);

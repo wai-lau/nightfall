@@ -9,7 +9,7 @@ spinner:p7:100-500
 #200 No problem, no problem. Duty first and all. Hey, before you bounce — got something for you.
 >300 What?
 
-#300 Cracked the spoofer's keys. Means you can pretend to be them when you hit a TANG node. They won't trace it back to us. Real elite hardpoint they were keeping off-books. Real reward.
+#300 Between you and me, got a side gig. A spoofing program, plus a node you'll want to use it on. Real elite hardpoint, off-books.
 >400 You're not going in?
 
 #400 Me? Nope. I'd rather not poke TANG more than I have to. You go. Just don't forget who's been your friend, okay? Here are your credits. Ciao, buddy.
