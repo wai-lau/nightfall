@@ -81,7 +81,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
 
   constructor(props: AppProps) {
     super(props);
-    this.state = {
+    const merged = {
       currentUI: CurrentUI.NETMAP,
       level: null,
       warez: null,
@@ -95,6 +95,14 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       onProceedAfterVictory: null,
       ...props.loadedSave,
     };
+    const seen = new Map<string, number>();
+    const prunedPrograms = merged.availablePrograms.filter((p) => {
+      const count = seen.get(p.id) || 0;
+      if (count >= 2) return false;
+      seen.set(p.id, count + 1);
+      return true;
+    });
+    this.state = { ...merged, availablePrograms: prunedPrograms };
     this.endDialogueCB = null;
     this.netmapScrollFunction = null;
     this.popupWaitCallbacks = [];
