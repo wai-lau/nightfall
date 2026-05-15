@@ -70,6 +70,15 @@ export default class WarezMenu extends React.Component<WarezProps, WarezState> {
       });
       return;
     }
+    const ownedCount = this.props.currentPrograms.filter((p) => p.id === selection).length;
+    if (ownedCount >= 2) {
+      this.displayPopup({
+        headerBoxTitle: "error",
+        text: "Stack Full",
+        duration: 1200,
+      });
+      return;
+    }
     this.props.onBuyProgram(program, price);
     this.displayPopup({
       headerBoxTitle: "received",
@@ -111,16 +120,18 @@ export default class WarezMenu extends React.Component<WarezProps, WarezState> {
     });
   };
   renderItems = () => {
-    const { programs, prices } = this.props;
+    const { programs, prices, currentPrograms } = this.props;
     return programs.map((p) => {
       const { id, name } = p;
       const price = prices[id];
       if (!price) {
         throw new Error("Missing price for program " + name);
       }
+      const owned = currentPrograms.filter((cp) => cp.id === id).length;
+      const label = owned > 0 ? `${name} (${owned}/2)` : name;
       return (
         <div key={id} className="warez-item" onClick={this.createOnSelectProgram(id)}>
-          <div className="warez-item-name">{name}</div>
+          <div className="warez-item-name">{label}</div>
           <div className="warez-item-price">{price}</div>
         </div>
       );

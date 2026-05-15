@@ -186,9 +186,12 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
   };
   onBuyProgram = async (p: IProgram, price: number) => {
     await this.audioContext.player?.playAudio(Received);
-    const { numCredits } = this.state;
+    const { numCredits, availablePrograms } = this.state;
     if (price > numCredits) {
       throw new Error("Cannot afford");
+    }
+    if (availablePrograms.filter((prog) => prog.id === p.id).length >= 2) {
+      throw new Error("Cannot exceed 2 of " + p.id);
     }
     await this.setStateP(() => ({
       numCredits: numCredits - price,
@@ -381,6 +384,10 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
 
   addProgram = async (p: IProgram) => {
     await this.waitForPopup();
+    if (this.state.availablePrograms.filter((prog) => prog.id === p.id).length >= 2) {
+      await this.displayPopup(this.createStackFullModal(p));
+      return;
+    }
     await this.audioContext.player?.playAudio(Received);
     await this.setStateP((state) => ({
       availablePrograms: [...state.availablePrograms, p],
@@ -491,6 +498,14 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     return {
       headerBoxTitle: "received",
       text: `New Security Level ${level}`,
+      duration: 3000,
+    } as PopupConfig;
+  };
+
+  createStackFullModal = (p: IProgram) => {
+    return {
+      headerBoxTitle: "received",
+      text: `Stack Full — ${p.name} declined`,
       duration: 3000,
     } as PopupConfig;
   };
