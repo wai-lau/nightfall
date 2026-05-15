@@ -19,9 +19,9 @@ export const Clog3: IProgram = {
     },
     {
       name: "Hang",
-      description: "Decreases Move Rate of Target to 0",
+      description: "Decreases Move Rate of Target by 4",
       range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -99999)],
+      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -4)],
       sizeReq: 4,
       audioSource: ClogSound,
       targetColor: TargetColor.Blue,
