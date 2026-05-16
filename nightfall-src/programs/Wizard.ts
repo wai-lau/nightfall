@@ -1,5 +1,5 @@
-import { IProgram, ValidTarget as VT, TargetColor as TC } from "../types";
-import { Grow } from "../audio/audioSources";
+import { IProgram, TargetColor as TC } from "../types";
+import { Clog } from "../audio/audioSources";
 import { resolveImage } from "../util/util";
 
 export const Wizard: IProgram = {
@@ -10,21 +10,20 @@ export const Wizard: IProgram = {
   description: "Pay No Attention to the Man Behind the Curtain",
   actions: [
     {
-      name: "Scorch",
-      description: "Deletes 2 Sectors From Target",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
+      name: "Fire",
+      description: "Deletes 4 Sectors From Target",
+      range: 2,
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
     },
     {
-      name: "Stretch",
-      description: "Increases Max Size of Target By 1",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMaxSize(targetID, 1)],
+      name: "Ice",
+      description: "Decreases Movement of Target by 3",
+      range: 2,
+      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
       targetColor: TC.Blue,
-      validTargetScheme: VT.EmptyFilled | VT.SameTeam,
-      audioSource: Grow,
+      audioSource: Clog,
     },
   ],
-  maxSize: 4,
-  numMoves: 3,
+  maxSize: 3,
+  numMoves: 2,
 };

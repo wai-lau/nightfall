@@ -14,7 +14,7 @@ const warez: IWarezData = {
     [P.LaserSatellite.id]: 5000,
     [P.Catapult.id]: 4000,
     [P.Clog3.id]: 3500,
-    [P.Guru.id]: 4500,
+    [P.Guru.id]: 4000,
   },
   programs: [
     P.GolemStone,
