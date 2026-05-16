@@ -6,13 +6,13 @@ export const Radar: IProgram = {
   color: "rgb(252,241,0)",
   iconImageFile: resolveImage("programs/Radar.png"),
   name: "Radar",
-  description: "Deadly Program Eradicator",
+  description: "Long-Range Program Eradicator",
   actions: [
     {
       name: "Pong",
-      description: "Deletes 2 Sectors From Target",
-      range: 5,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
+      description: "Deletes 1 Sector From Target",
+      range: 8,
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
     },
   ],
   maxSize: 1,

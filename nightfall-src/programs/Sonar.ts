@@ -6,13 +6,13 @@ export const Sonar: IProgram = {
   color: "rgb(252,241,0)",
   iconImageFile: resolveImage("programs/Sonar.png"),
   name: "Sonar",
-  description: "Long-Range Program Eradicator",
+  description: "Deadly Program Eradicator",
   actions: [
     {
       name: "Ping",
-      description: "Deletes 1 Sector From Target",
-      range: 8,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
+      description: "Deletes 2 Sectors From Target",
+      range: 5,
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
   ],
   maxSize: 1,
