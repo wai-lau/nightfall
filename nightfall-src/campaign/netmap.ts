@@ -669,7 +669,6 @@ const netmap: INetmap = {
 
     {
       ...NodeStyle.tang,
-      comingSoon: true,
       id: Nodes.T1,
       description: Descriptions.T1,
       name: "Friendship Bureau",
@@ -706,7 +705,6 @@ const netmap: INetmap = {
     },
     {
       ...NodeStyle.tang,
-      comingSoon: true,
       id: Nodes.T4,
       description: Descriptions.T4,
       name: "Strategic Reserve",
