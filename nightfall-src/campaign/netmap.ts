@@ -680,7 +680,6 @@ const netmap: INetmap = {
     },
     {
       ...NodeStyle.tang,
-      comingSoon: true,
       id: Nodes.T2,
       description: Descriptions.T2,
       name: "Heritage Survey",
@@ -692,7 +691,6 @@ const netmap: INetmap = {
     },
     {
       ...NodeStyle.tang,
-      comingSoon: true,
       id: Nodes.T3,
       description: Descriptions.T3,
       name: "Cultural Restoration",
@@ -716,7 +714,6 @@ const netmap: INetmap = {
     },
     {
       ...NodeStyle.tang,
-      comingSoon: true,
       id: Nodes.T5,
       description: Descriptions.T5,
       name: "Imperial Guard",
