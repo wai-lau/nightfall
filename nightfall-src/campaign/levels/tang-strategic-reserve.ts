@@ -3,13 +3,13 @@ import processMap from "../../util/processMap";
 
 const id = "tang-strategic-reserve";
 const map = `
-@--------AaaaaaJ1
-...------EeeeeeK2
-@--------IiiiiiL3
-...------..C#DFG4
-@--------bbbbbbb5
-...------bbbbbHb6
-@--------Bbbbbbb7
+@------AaaaaaJ1
+...----EeeeeeK2
+@------IiiiiiL3
+...----..C#DFG4
+@------bbbbbbb5
+...----bbbbbHb6
+@------Bbbbbbb7
 `;
 const creditValues: number[] = [500, 500, 500, 500, 500, 500, 500];
 const enemies = [
