@@ -36,6 +36,7 @@ export interface INetmapNode {
   preOpen?: (gameStatus: IGameStatusCoordinator) => Promise<boolean | void>;
   onFirstClear?: (gameStatus: IGameStatusCoordinator) => Promise<boolean | void>;
   onFirstLose?: (gameStatus: IGameStatusCoordinator) => Promise<boolean | void>;
+  comingSoon?: boolean;
 }
 
 export interface INetmapBattleNode extends INetmapNode {

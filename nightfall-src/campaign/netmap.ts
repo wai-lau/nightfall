@@ -61,6 +61,11 @@ export const Nodes = {
   P7: "ped-privileged",
   F8: "ph-proprietary",
   Q1: "disarray-hq",
+  T1: "tang-friendship-bureau",
+  T2: "tang-heritage-survey",
+  T3: "tang-cultural-restoration",
+  T4: "tang-strategic-reserve",
+  T5: "tang-imperial-guard",
 };
 
 const positions: Record<string, NetmapPosition> = {
@@ -106,6 +111,11 @@ const positions: Record<string, NetmapPosition> = {
   [Nodes.P7]: [1194, 1089],
   [Nodes.F8]: [1170, 945],
   [Nodes.Q1]: [1525, 1405],
+  [Nodes.T1]: [450, 1080],
+  [Nodes.T2]: [380, 1200],
+  [Nodes.T3]: [1050, 480],
+  [Nodes.T4]: [1180, 400],
+  [Nodes.T5]: [870, 1850],
 };
 
 const netmap: INetmap = {
@@ -121,6 +131,8 @@ const netmap: INetmap = {
       [Nodes.W1]: NodeStatus.UNCLEARED_UNATTEMPTED,
       [Nodes.F1]: NodeStatus.UNCLEARED_UNATTEMPTED,
       [Nodes.L1]: NodeStatus.UNCLEARED_UNATTEMPTED,
+      [Nodes.T3]: NodeStatus.INVISIBLE,
+      [Nodes.T4]: NodeStatus.INVISIBLE,
     },
     collectedCreditIDs: [],
     securityLevel: 1,
@@ -651,6 +663,71 @@ const netmap: INetmap = {
       firstClearCredits: 1000,
       onFirstLose: chain(startDialogue(Dialogue.SuperphreakQ1Lose), setNightfallNodes()),
       onFirstClear: chain(setNightfallNodes(), startDialogue(Dialogue.SuperphreakQ1Win)),
+    },
+
+    // TANG (mil-subcontractor side arc) — no level files yet, clicking will error
+
+    {
+      ...NodeStyle.tang,
+      comingSoon: true,
+      id: Nodes.T1,
+      description: Descriptions.T1,
+      name: "Friendship Bureau",
+      securityLevel: 2,
+      type: Battle,
+      prereq: Nodes.F2,
+      firstClearCredits: 600,
+      onFirstClear: startDialogue(Dialogue.DisarrayT1),
+    },
+    {
+      ...NodeStyle.tang,
+      comingSoon: true,
+      id: Nodes.T2,
+      description: Descriptions.T2,
+      name: "Heritage Survey",
+      securityLevel: 2,
+      type: Battle,
+      prereq: Nodes.T1,
+      firstClearCredits: 600,
+      onFirstClear: chain(startDialogue(Dialogue.ZhangShanT2), revealNode(Nodes.T3)),
+    },
+    {
+      ...NodeStyle.tang,
+      comingSoon: true,
+      id: Nodes.T3,
+      description: Descriptions.T3,
+      name: "Cultural Restoration",
+      securityLevel: 3,
+      type: Battle,
+      prereq: Nodes.L6,
+      firstClearCredits: 1200,
+      // TODO: flipS1ToBattle hook + reveal T4 on S1 retake (engine work pending)
+      onFirstClear: startDialogue(Dialogue.SuperphreakT3),
+    },
+    {
+      ...NodeStyle.tang,
+      comingSoon: true,
+      id: Nodes.T4,
+      description: Descriptions.T4,
+      name: "Strategic Reserve",
+      securityLevel: 3,
+      type: Battle,
+      prereq: Nodes.T3,
+      firstClearCredits: 1200,
+      onFirstClear: chain(startDialogue(Dialogue.ZhangShanT4), addCredits(5000)),
+    },
+    {
+      ...NodeStyle.tang,
+      comingSoon: true,
+      id: Nodes.T5,
+      description: Descriptions.T5,
+      name: "Imperial Guard",
+      securityLevel: 4,
+      type: Battle,
+      prereq: Nodes.P7,
+      firstClearCredits: 2000,
+      // TODO: addProgram(Kuang12) once Kuang12 program file is implemented
+      onFirstClear: startDialogue(Dialogue.WintermutantT5),
     },
   ],
 };

@@ -14,6 +14,7 @@ export interface NodeInfoProps {
   type: NodeType;
   isConnected: boolean;
   isAuthorized: boolean;
+  comingSoon?: boolean;
   onCancel: () => void;
   onEnter: () => void;
 }
@@ -28,6 +29,7 @@ const NodeInfo: React.FunctionComponent<NodeInfoProps> = (props: NodeInfoProps) 
     description,
     isConnected,
     isAuthorized,
+    comingSoon,
   } = props;
 
   const creditsEl =
@@ -54,14 +56,16 @@ const NodeInfo: React.FunctionComponent<NodeInfoProps> = (props: NodeInfoProps) 
     <span className="node-info-level">Security Level: {securityLevel}</span>
   );
 
-  const descriptionEl = isAuthorized ? (
-    <p className="node-info-description">{description}</p>
-  ) : (
+  const descriptionEl = !isAuthorized ? (
     <p className="node-info-description">Insufficient Clearance - Access Denied</p>
+  ) : comingSoon ? (
+    <p className="node-info-description">{description}<br /><br />[Coming Soon]</p>
+  ) : (
+    <p className="node-info-description">{description}</p>
   );
 
   const buttonsEl =
-    isAuthorized && isConnected ? (
+    isAuthorized && isConnected && !comingSoon ? (
       <>
         <Button
           onClick={props.onCancel}

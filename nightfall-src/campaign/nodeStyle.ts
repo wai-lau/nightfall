@@ -111,6 +111,25 @@ export const hq: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
 };
 
+export const tang: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
+  nodeStyle: {
+    unclearedIcon: resolveImage("nodes/trim-ph-t.png"),
+    clearedIcon: resolveImage("nodes/trim-ph-o.png"),
+    infoImage: resolveImage("bg/ph-logo.png"),
+    netmapOrgName: "TANG",
+  },
+  battleStyle: {
+    warningHeader: "Sovereignty as a Service",
+    warningText: [
+      "The node you are attempting to access is the property of Territorial Ancestry Negotiation Group. Unauthorized access beyond this point is strictly prohibited.",
+      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
+    ],
+    battleLogoImage: resolveImage("bg/ph-logo.png"),
+    bgImage: resolveImage("bg/pharmhaus.jpg"),
+    introAudio: AudioSources.PHIntro,
+  },
+};
+
 export const smart: Pick<INetmapNonBattleNode, "nodeStyle"> = {
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-smart.png"),

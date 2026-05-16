@@ -27,6 +27,7 @@ const GLB_URLS: Record<string, string> = {
   hq:    require("../../img/nodes/3d/hq.glb"),
   smart: require("../../img/nodes/3d/smart.glb"),
   warez: require("../../img/nodes/3d/warez.glb"),
+  tang:  require("../../img/nodes/3d/tang.glb"),
 };
 
 const MODEL_SCALE = 280;

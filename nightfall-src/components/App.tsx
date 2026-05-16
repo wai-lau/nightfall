@@ -259,7 +259,9 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       throw new Error("No node with id " + id);
     }
     await this.setStateP(() => ({ selection: node, level: null }));
-    const level = (await import("../campaign/levels/" + id)).default;
+    const level = node.comingSoon
+      ? null
+      : (await import("../campaign/levels/" + id)).default;
     const offsetPosition = addCoordinates(this.props.netmap.positions[node.id], [40, 40]);
     if (this.netmapScrollFunction) {
       await this.netmapScrollFunction(offsetPosition);
@@ -593,7 +595,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       return (
         <>
           {this.getNetmap()}
-          {!dialogue && selection && level && !onProceedAfterVictory && (
+          {!dialogue && selection && (level || selection.comingSoon) && !onProceedAfterVictory && (
             <NodeInfo
               type={selection.type}
               name={selection.name || selection.id}
@@ -602,12 +604,13 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
               onCancel={this.onNodeInfoCancel}
               onEnter={this.onNodeInfoEnter}
               logoImage={selection.nodeStyle.infoImage}
-              credits={level.credits?.length}
+              credits={level?.credits?.length}
               isAuthorized={selection.securityLevel <= this.state.securityLevel}
               isConnected={
                 !selection.prereq ||
                 this.state.netmapStatus[selection.prereq] === NodeStatus.CLEARED
               }
+              comingSoon={selection.comingSoon}
             />
           )}
           {!dialogue && selection && onProceedAfterVictory && (

@@ -72,6 +72,16 @@ const Descriptions: Record<string, string> = {
   Q1:
     "Disarray's Headquarters. Defeat all of his security to disable the Nightfall software and prevent midnight.",
   S1: "Center for Information about SmA-RT and its operations",
+  T1:
+    "A TANG civilian-traffic proxy. Friendly branding, hard interior.",
+  T2:
+    "TANG asset-mapping payload. Recon infrastructure for an organization that doesn't want to be mapped.",
+  T3:
+    "TANG malware staging depot. Forged signatures here may unravel the network anomalies.",
+  T4:
+    "TANG strategic reserve — Disarray's exploit stockpile. Burn it down.",
+  T5:
+    "TANG imperial guard. Off-books elite hardpoint. Use the spoofed credentials Spinner cracked.",
 };
 
 export default Descriptions;
