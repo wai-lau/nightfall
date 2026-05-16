@@ -117,10 +117,36 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       seen.set(p.id, count + 1);
       return true;
     });
+    const migratedStatus: Record<string, NodeStatus> = { ...merged.netmapStatus };
+    const clearedNode = (id: string) => migratedStatus[id] === NodeStatus.CLEARED;
+    const setIfUnset = (id: string, status: NodeStatus) => {
+      if (migratedStatus[id] === undefined) {
+        migratedStatus[id] = status;
+      }
+    };
+    // TANG node visibility migration. Mirrors onFirstClear chains so existing
+    // saves get the right initial state when TANG nodes ship.
+    const T1 = "tang-friendship-bureau";
+    const T2 = "tang-heritage-survey";
+    const T3 = "tang-cultural-restoration";
+    const T4 = "tang-strategic-reserve";
+    const T5 = "tang-imperial-guard";
+    if (clearedNode("ph-employee")) setIfUnset(T1, NodeStatus.UNCLEARED_UNATTEMPTED);
+    if (clearedNode(T1)) setIfUnset(T2, NodeStatus.UNCLEARED_UNATTEMPTED);
+    if (clearedNode(T2)) {
+      setIfUnset(T3, NodeStatus.UNCLEARED_UNATTEMPTED);
+    } else {
+      setIfUnset(T3, NodeStatus.INVISIBLE);
+    }
+    // T4 stays INVISIBLE until S1 retake mechanic fires (not yet shipped).
+    setIfUnset(T4, NodeStatus.INVISIBLE);
+    if (clearedNode("ped-privileged")) setIfUnset(T5, NodeStatus.UNCLEARED_UNATTEMPTED);
+
     this.state = {
       ...merged,
       availablePrograms: prunedPrograms,
       numCredits: merged.numCredits + refund,
+      netmapStatus: migratedStatus,
     };
     this.endDialogueCB = null;
     this.netmapScrollFunction = null;
