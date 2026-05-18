@@ -95,8 +95,9 @@ const blockedLineMat = new THREE.LineBasicMaterial({ color: 0xffb0b0 });
 const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
 const dimmedSurfaceMat = new THREE.MeshBasicMaterial({ color: 0x4a525a, transparent: true, opacity: 0.1, depthWrite: false });
 
-// 0 = render every triangle edge in the EdgesGeometry pass (no angle filter).
-const EDGES_THRESHOLD_DEFAULT = 0;
+// Face-normal angle threshold (deg) below which adjacent triangle edges merge.
+// 1 drops only coplanar pairs.
+const EDGES_THRESHOLD_DEFAULT = 1;
 const EDGES_THRESHOLD: Partial<Record<string, number>> = {};
 
 const TILE_OFFSETS: [number, number][] = [];
