@@ -30,6 +30,12 @@ const GLB_URLS: Record<string, string> = {
   tang:  require("../../img/nodes/3d/tang.glb"),
 };
 
+// Kick off fetches at module-init so glbs are warm in cache by the time any
+// NodeModel mounts. Without this, each useGLTF call waterfalls on Netmap entry.
+for (const url of Object.values(GLB_URLS)) {
+  useGLTF.preload(url);
+}
+
 const MODEL_SCALE = 280;
 const MODEL_XZ_SCALE: Partial<Record<string, number>> = {
   warez: 0.8,
