@@ -22,7 +22,7 @@ const enemies = [
   Programs.GuardDog,
   Programs.GuardDog,
   Programs.Sonar,
-  Programs.Sentinel3,
+  Programs.WardenPP, // G — northmost sentinel slot
   Programs.GuardDog,
   Programs.Sentinel3,
   Programs.Sentinel3,
