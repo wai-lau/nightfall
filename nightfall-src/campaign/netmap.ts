@@ -158,6 +158,7 @@ const netmap: INetmap = {
       description: Descriptions.W1,
       securityLevel: 1,
       type: WarezNode,
+      prereq: Nodes.S1,
       preOpen: (gsc) => {
         if (gsc.getNodeStatus(Nodes.W1) === NodeStatus.CLEARED) {
           return gsc.startDialogue(Dialogue.LeoRevisit);
@@ -174,6 +175,7 @@ const netmap: INetmap = {
       name: "Tech Support",
       securityLevel: 1,
       type: Battle,
+      prereq: Nodes.S1,
       firstClearCredits: 400,
       onFirstClear: startDialogue(Dialogue.DisarrayL1),
     },
@@ -184,6 +186,7 @@ const netmap: INetmap = {
       name: "PR Database",
       securityLevel: 1,
       type: Battle,
+      prereq: Nodes.S1,
       firstClearCredits: 400,
       onFirstClear: chain(startDialogue(Dialogue.SpinnerF1), revealNode(Nodes.F3)),
     },
