@@ -30,9 +30,20 @@ const GLB_URLS: Record<string, string> = {
   tang:  require("../../img/nodes/3d/tang.glb"),
 };
 
-// Kick off fetches at module-init so glbs are warm in cache by the time any
-// NodeModel mounts. Without this, each useGLTF call waterfalls on Netmap entry.
+// Lo-poly variants (~1.1k tris) used for uncleared / wireframe rendering.
+// Cleared nodes still use the higher-poly hi variant from GLB_URLS.
+const GLB_URLS_LO: Record<string, string> = {
+  lmm:   require("../../img/nodes/3d/lmm.lo.glb"),
+  car:   require("../../img/nodes/3d/car.lo.glb"),
+  donut: require("../../img/nodes/3d/donut.lo.glb"),
+  ph:    require("../../img/nodes/3d/ph.lo.glb"),
+  tang:  require("../../img/nodes/3d/tang.lo.glb"),
+};
+
 for (const url of Object.values(GLB_URLS)) {
+  useGLTF.preload(url);
+}
+for (const url of Object.values(GLB_URLS_LO)) {
   useGLTF.preload(url);
 }
 
@@ -84,7 +95,8 @@ const blockedLineMat = new THREE.LineBasicMaterial({ color: 0xffb0b0 });
 const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
 const dimmedSurfaceMat = new THREE.MeshBasicMaterial({ color: 0x4a525a, transparent: true, opacity: 0.1, depthWrite: false });
 
-const EDGES_THRESHOLD_DEFAULT = 15;
+// 0 = render every triangle edge in the EdgesGeometry pass (no angle filter).
+const EDGES_THRESHOLD_DEFAULT = 0;
 const EDGES_THRESHOLD: Partial<Record<string, number>> = {};
 
 const TILE_OFFSETS: [number, number][] = [];
@@ -146,7 +158,10 @@ function getClearedMat(color: number): THREE.MeshStandardMaterial {
 }
 
 function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked }: NodeModelProps) {
-  const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
+  const useHi = cleared && !dimmed;
+  const hiUrl = GLB_URLS[corpKey] ?? GLB_URLS.hq;
+  const loUrl = GLB_URLS_LO[corpKey] ?? hiUrl;
+  const { scene } = useGLTF(useHi ? hiUrl : loUrl);
   const fpMap = useContext(NodeFootprintContext);
   const fpRef = useRef<{ halfX: number; halfZ: number }>({ halfX: 0, halfZ: 0 });
   useEffect(() => {
