@@ -1,0 +1,644 @@
+#!/usr/bin/env node
+// Bake static netmap geometry: edge paths (A*) + per-tile owner/sec.
+// Run via: npm run bake-netmap (from nightfall-src/).
+// Output: nightfall-src/campaign/netmap.baked.ts
+//
+// Algorithm parity:
+//   - tile visibility = NetmapFloor.tsx tileVisible()
+//   - sec map = util/netmap3d.ts buildSecMap()
+//   - edge routing = NetmapEdges.tsx aStar() + port assignment + ripup
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const ts = require("typescript");
+
+const SRC_DIR = path.resolve(__dirname, "..");
+const NETMAP_PATH = path.join(SRC_DIR, "campaign/netmap.ts");
+const BAKED_PATH = path.join(SRC_DIR, "campaign/netmap.baked.ts");
+
+// Mirrored from util/netmap3d.ts
+const SCALE = 10;
+const OFFSET_X = 98;
+const OFFSET_Z = 71;
+const TILE_SIZE = 2.5;
+const DEPTH_SCALE = 1.5;
+
+// Mirrored from NetmapFloor.tsx tileVisible() constants
+const PLATFORM_R = 2;
+const FALLOFF = 8;
+const NODE_FLOOR_RADIUS = 3;
+const FLOOR_HULL_PAD = 5;
+
+// Mirrored from NetmapEdges.tsx
+const PLATFORM_HALF = 1;
+const PORT_OUT = 2;
+const TURN_PENALTY = 4;
+const STEP_COST = 1;
+
+const PORT_OFFSETS = {
+  N: [0, -PORT_OUT],
+  S: [0, PORT_OUT],
+  W: [-PORT_OUT, 0],
+  E: [PORT_OUT, 0],
+};
+const ALL_PORTS = ["N", "S", "E", "W"];
+
+function readSource(p) {
+  return fs.readFileSync(p, "utf8");
+}
+
+function parseNetmap(src) {
+  const sf = ts.createSourceFile(
+    "netmap.ts",
+    src,
+    ts.ScriptTarget.Latest,
+    true
+  );
+  const NodesMap = {};
+  const positions = {};
+  const nodes = [];
+
+  ts.forEachChild(sf, (stmt) => {
+    if (!ts.isVariableStatement(stmt)) return;
+    for (const decl of stmt.declarationList.declarations) {
+      const name = decl.name.getText();
+      const init = decl.initializer;
+      if (!init) continue;
+
+      if (name === "Nodes" && ts.isObjectLiteralExpression(init)) {
+        for (const p of init.properties) {
+          if (!ts.isPropertyAssignment(p)) continue;
+          const k = p.name.getText();
+          if (ts.isStringLiteral(p.initializer)) {
+            NodesMap[k] = p.initializer.text;
+          }
+        }
+      }
+
+      if (name === "positions" && ts.isObjectLiteralExpression(init)) {
+        for (const p of init.properties) {
+          if (!ts.isPropertyAssignment(p)) continue;
+          const txt = p.name.getText();
+          const m = txt.match(/^\[Nodes\.(\w+)\]$/);
+          if (!m) continue;
+          const id = NodesMap[m[1]];
+          if (!id) continue;
+          if (!ts.isArrayLiteralExpression(p.initializer)) continue;
+          const arr = p.initializer.elements;
+          if (arr.length !== 2) continue;
+          positions[id] = [+arr[0].getText(), +arr[1].getText()];
+        }
+      }
+
+      if (name === "netmap" && ts.isObjectLiteralExpression(init)) {
+        for (const p of init.properties) {
+          if (!ts.isPropertyAssignment(p)) continue;
+          if (p.name.getText() !== "nodes") continue;
+          if (!ts.isArrayLiteralExpression(p.initializer)) continue;
+          for (const e of p.initializer.elements) {
+            if (!ts.isObjectLiteralExpression(e)) continue;
+            let id, securityLevel, prereq;
+            for (const np of e.properties) {
+              if (!ts.isPropertyAssignment(np)) continue;
+              const k = np.name.getText();
+              const tx = np.initializer.getText();
+              if (k === "id") {
+                const mm = tx.match(/^Nodes\.(\w+)$/);
+                if (mm) id = NodesMap[mm[1]];
+              } else if (k === "securityLevel") {
+                securityLevel = +tx;
+              } else if (k === "prereq") {
+                const mm = tx.match(/^Nodes\.(\w+)$/);
+                if (mm) prereq = NodesMap[mm[1]];
+              }
+            }
+            if (id && securityLevel !== undefined) {
+              nodes.push({ id, securityLevel, prereq });
+            }
+          }
+        }
+      }
+    }
+  });
+  return { Nodes: NodesMap, positions, nodes };
+}
+
+function toWorld(pos, secLevel) {
+  const x = pos[0] / SCALE - OFFSET_X;
+  const z = pos[1] / SCALE - OFFSET_Z;
+  const col = Math.floor((x + OFFSET_X) / TILE_SIZE);
+  const row = Math.floor((z + OFFSET_Z) / TILE_SIZE);
+  return [
+    -OFFSET_X + col * TILE_SIZE + TILE_SIZE / 2,
+    secLevel * DEPTH_SCALE,
+    -OFFSET_Z + row * TILE_SIZE + TILE_SIZE / 2,
+  ];
+}
+
+function tileForWorld(wx, wz) {
+  return [
+    Math.floor((wx + OFFSET_X) / TILE_SIZE),
+    Math.floor((wz + OFFSET_Z) / TILE_SIZE),
+  ];
+}
+
+function cellKey(c, r) {
+  return c + "," + r;
+}
+
+function convexHull(pts) {
+  if (pts.length < 3) return pts.slice();
+  const sorted = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) =>
+    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [];
+  for (const p of sorted) {
+    while (
+      lower.length >= 2 &&
+      cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+    )
+      lower.pop();
+    lower.push(p);
+  }
+  const upper = [];
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const p = sorted[i];
+    while (
+      upper.length >= 2 &&
+      cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+    )
+      upper.pop();
+    upper.push(p);
+  }
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
+function pointInPoly(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (
+      yi > py !== yj > py &&
+      px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
+    )
+      inside = !inside;
+  }
+  return inside;
+}
+
+function distToSeg(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1,
+    dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 > 0 ? ((px - x1) * dx + (py - y1) * dy) / len2 : 0;
+  if (t < 0) t = 0;
+  else if (t > 1) t = 1;
+  const cx = x1 + t * dx,
+    cy = y1 + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+function distToPoly(px, py, poly) {
+  if (pointInPoly(px, py, poly)) return 0;
+  let d = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const [x1, y1] = poly[i];
+    const [x2, y2] = poly[(i + 1) % poly.length];
+    const ds = distToSeg(px, py, x1, y1, x2, y2);
+    if (ds < d) d = ds;
+  }
+  return d;
+}
+
+function tileHash(col, row) {
+  let h = (col * 73856093) ^ (row * 19349663);
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = (h * 1274126177) >>> 0;
+  return h / 0xffffffff;
+}
+
+function buildSecMap(nodeTiles, nodeSec) {
+  if (nodeTiles.length === 0) return new Map();
+  let mC = Infinity,
+    MC = -Infinity,
+    mR = Infinity,
+    MR = -Infinity;
+  for (const [c, r] of nodeTiles) {
+    if (c < mC) mC = c;
+    if (c > MC) MC = c;
+    if (r < mR) mR = r;
+    if (r > MR) MR = r;
+  }
+  const PAD = 20;
+  mC -= PAD;
+  MC += PAD;
+  mR -= PAD;
+  MR += PAD;
+  const W = MC - mC + 1,
+    H = MR - mR + 1;
+  let cur = new Int8Array(W * H);
+  let next = new Int8Array(W * H);
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const col = c + mC,
+        row = r + mR;
+      let dMin = Infinity,
+        sec = 1;
+      for (let n = 0; n < nodeTiles.length; n++) {
+        const [nc, nr] = nodeTiles[n];
+        const d = (col - nc) * (col - nc) + (row - nr) * (row - nr);
+        if (d < dMin) {
+          dMin = d;
+          sec = nodeSec[n];
+        }
+      }
+      cur[r * W + c] = sec;
+    }
+  }
+  for (let iter = 0; iter < 3; iter++) {
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const counts = new Map();
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const cc = c + dc,
+              rr = r + dr;
+            if (cc < 0 || cc >= W || rr < 0 || rr >= H) continue;
+            const s = cur[rr * W + cc];
+            counts.set(s, (counts.get(s) ?? 0) + 1);
+          }
+        }
+        let best = cur[r * W + c],
+          bestN = -1;
+        for (const [s, n] of counts) {
+          if (n > bestN || (n === bestN && s === cur[r * W + c])) {
+            best = s;
+            bestN = n;
+          }
+        }
+        next[r * W + c] = best;
+      }
+    }
+    cur.set(next);
+  }
+  const m = new Map();
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      m.set(c + mC + "," + (r + mR), cur[r * W + c]);
+    }
+  }
+  return m;
+}
+
+function aStar(start, end, blocked, used) {
+  const dirs = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+  const open = [];
+  const visited = new Map();
+  const h = (c, r) => Math.abs(c - end[0]) + Math.abs(r - end[1]);
+  const startNode = {
+    c: start[0],
+    r: start[1],
+    dir: -1,
+    g: 0,
+    f: h(start[0], start[1]),
+    parent: null,
+  };
+  open.push(startNode);
+  visited.set(start[0] + "," + start[1] + ",-1", 0);
+  let iters = 0;
+  const MAX_ITERS = 500000;
+  while (open.length) {
+    if (++iters > MAX_ITERS) return null;
+    let bestI = 0;
+    for (let i = 1; i < open.length; i++)
+      if (open[i].f < open[bestI].f) bestI = i;
+    const cur = open.splice(bestI, 1)[0];
+    if (cur.c === end[0] && cur.r === end[1]) {
+      const path = [];
+      let n = cur;
+      while (n) {
+        path.unshift([n.c, n.r]);
+        n = n.parent;
+      }
+      return path;
+    }
+    for (let d = 0; d < 4; d++) {
+      const [dc, dr] = dirs[d];
+      const nc = cur.c + dc,
+        nr = cur.r + dr;
+      const k = cellKey(nc, nr);
+      const isEnd = nc === end[0] && nr === end[1];
+      if (!isEnd && (blocked.has(k) || used.has(k))) continue;
+      const turn = cur.dir !== -1 && cur.dir !== d ? TURN_PENALTY : 0;
+      const ng = cur.g + STEP_COST + turn;
+      const vk = nc + "," + nr + "," + d;
+      const prev = visited.get(vk);
+      if (prev !== undefined && prev <= ng) continue;
+      visited.set(vk, ng);
+      open.push({
+        c: nc,
+        r: nr,
+        dir: d,
+        g: ng,
+        f: ng + h(nc, nr),
+        parent: cur,
+      });
+    }
+  }
+  return null;
+}
+
+function main() {
+  const src = readSource(NETMAP_PATH);
+  const { positions, nodes: nodeMeta } = parseNetmap(src);
+  console.log(
+    `parsed ${nodeMeta.length} nodes, ${Object.keys(positions).length} positions`
+  );
+
+  // 1. World tile for each node
+  const nodeData = nodeMeta.map((n) => {
+    const p = positions[n.id];
+    if (!p) throw new Error(`no position for ${n.id}`);
+    const w = toWorld(p, n.securityLevel);
+    return {
+      id: n.id,
+      sec: n.securityLevel,
+      prereq: n.prereq,
+      tile: tileForWorld(w[0], w[2]),
+    };
+  });
+  const nodeTiles = nodeData.map((n) => n.tile);
+  const nodeSecArr = nodeData.map((n) => n.sec);
+
+  // 2. Convex hull + allowed tiles + skip (3x3 around nodes)
+  const hull = convexHull(nodeTiles);
+  const allowed = new Set();
+  const skip = new Set();
+  let minTileC = Infinity,
+    minTileR = Infinity,
+    maxTileC = -Infinity,
+    maxTileR = -Infinity;
+  for (const [c, r] of nodeTiles) {
+    if (c < minTileC) minTileC = c;
+    if (r < minTileR) minTileR = r;
+    if (c > maxTileC) maxTileC = c;
+    if (r > maxTileR) maxTileR = r;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        skip.add(`${c + dc},${r + dr}`);
+      }
+    }
+  }
+  if (hull.length >= 3) {
+    const r0 = Math.floor(minTileR) - FLOOR_HULL_PAD;
+    const r1 = Math.ceil(maxTileR) + FLOOR_HULL_PAD;
+    const c0 = Math.floor(minTileC) - FLOOR_HULL_PAD;
+    const c1 = Math.ceil(maxTileC) + FLOOR_HULL_PAD;
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        if (distToPoly(c + 0.5, r + 0.5, hull) <= FLOOR_HULL_PAD) {
+          allowed.add(`${c},${r}`);
+        }
+      }
+    }
+  } else {
+    for (const [cc, cr] of nodeTiles) {
+      for (let dr = -NODE_FLOOR_RADIUS; dr <= NODE_FLOOR_RADIUS; dr++) {
+        for (let dc = -NODE_FLOOR_RADIUS; dc <= NODE_FLOOR_RADIUS; dc++) {
+          allowed.add(`${cc + dc},${cr + dr}`);
+        }
+      }
+    }
+  }
+
+  // 3. Probabilistic + hull-falloff visibility (matches NetmapFloor)
+  const visible = new Set();
+  for (const k of allowed) {
+    if (skip.has(k)) continue;
+    const [cs, rs] = k.split(",");
+    const c = +cs,
+      r = +rs;
+    let dPlat = Infinity;
+    for (const [nc, nr] of nodeTiles) {
+      const d = Math.hypot(c - nc, r - nr);
+      if (d < dPlat) dPlat = d;
+    }
+    if (dPlat <= PLATFORM_R) {
+      visible.add(k);
+      continue;
+    }
+    const t = Math.min(1, (dPlat - PLATFORM_R) / FALLOFF);
+    const platProb = Math.pow(t, 1.5);
+    let hullProb = 0;
+    if (hull.length >= 3 && FLOOR_HULL_PAD > 0) {
+      const d = distToPoly(c + 0.5, r + 0.5, hull);
+      if (d > 0) hullProb = d / FLOOR_HULL_PAD;
+    }
+    const drop = Math.max(platProb, hullProb);
+    if (tileHash(c + 9999, r + 9999) >= drop) visible.add(k);
+  }
+  // 1x1 hole fill
+  const fill = [];
+  for (const k of allowed) {
+    if (visible.has(k) || skip.has(k)) continue;
+    const [cs, rs] = k.split(",");
+    const c = +cs,
+      r = +rs;
+    if (
+      visible.has(`${c + 1},${r}`) &&
+      visible.has(`${c - 1},${r}`) &&
+      visible.has(`${c},${r + 1}`) &&
+      visible.has(`${c},${r - 1}`)
+    )
+      fill.push(k);
+  }
+  for (const k of fill) visible.add(k);
+
+  // 4. Voronoi sec map + smoothing
+  const secMap = buildSecMap(nodeTiles, nodeSecArr);
+
+  // 5. Initial owner: Voronoi nearest node
+  const tileOwner = new Map();
+  for (const k of visible) {
+    const [cs, rs] = k.split(",");
+    const c = +cs,
+      r = +rs;
+    let dMin = Infinity,
+      owner = null;
+    for (let n = 0; n < nodeData.length; n++) {
+      const [nc, nr] = nodeData[n].tile;
+      const d = (c - nc) * (c - nc) + (r - nr) * (r - nr);
+      if (d < dMin) {
+        dMin = d;
+        owner = nodeData[n].id;
+      }
+    }
+    if (owner) tileOwner.set(k, owner);
+  }
+
+  // 6. Prereq edges → A* with port assignment + ripup
+  const allEdges = nodeData
+    .filter((n) => !!n.prereq)
+    .map((n) => ({ from: n.prereq, to: n.id }))
+    .filter((e) => {
+      const a = nodeData.find((n) => n.id === e.from);
+      const b = nodeData.find((n) => n.id === e.to);
+      return a && b;
+    });
+  const tileById = {};
+  for (const n of nodeData) tileById[n.id] = n.tile;
+
+  const blocked = new Set();
+  for (const n of nodeData) {
+    const [cc, cr] = n.tile;
+    for (let dr = -PLATFORM_HALF; dr <= PLATFORM_HALF; dr++) {
+      for (let dc = -PLATFORM_HALF; dc <= PLATFORM_HALF; dc++) {
+        blocked.add(`${cc + dc},${cr + dr}`);
+      }
+    }
+  }
+
+  const ordered = allEdges
+    .map((e) => {
+      const [ac, ar] = tileById[e.from];
+      const [bc, br] = tileById[e.to];
+      return { ...e, dist: Math.abs(bc - ac) + Math.abs(br - ar) };
+    })
+    .sort((a, b) => a.dist - b.dist);
+
+  const used = new Set();
+  const usedPorts = {};
+  const baked = [];
+  for (const edge of ordered) {
+    const [ac, ar] = tileById[edge.from];
+    const [bc, br] = tileById[edge.to];
+    const fromUsed = usedPorts[edge.from] || new Set();
+    const toUsed = usedPorts[edge.to] || new Set();
+    let best = null;
+    for (const fp of ALL_PORTS) {
+      if (fromUsed.has(fp)) continue;
+      const [foc, forr] = PORT_OFFSETS[fp];
+      const start = [ac + foc, ar + forr];
+      for (const tp of ALL_PORTS) {
+        if (toUsed.has(tp)) continue;
+        const [toc, torr] = PORT_OFFSETS[tp];
+        const end = [bc + toc, br + torr];
+        const sk = cellKey(start[0], start[1]);
+        const ek = cellKey(end[0], end[1]);
+        const sBlocked = blocked.has(sk);
+        const eBlocked = blocked.has(ek);
+        if (sBlocked) blocked.delete(sk);
+        if (eBlocked) blocked.delete(ek);
+        const path = aStar(start, end, blocked, used);
+        if (sBlocked) blocked.add(sk);
+        if (eBlocked) blocked.add(ek);
+        if (!path) continue;
+        const cost = path.length;
+        if (!best || cost < best.cost) best = { full: path, cost, fp, tp };
+      }
+    }
+    if (!best) {
+      console.warn(`no route: ${edge.from} -> ${edge.to}`);
+      continue;
+    }
+    (usedPorts[edge.from] ||= new Set()).add(best.fp);
+    (usedPorts[edge.to] ||= new Set()).add(best.tp);
+    for (let i = 1; i < best.full.length - 1; i++) {
+      const [c, r] = best.full[i];
+      used.add(cellKey(c, r));
+    }
+    const halfOff = (p) => {
+      const [oc, or] = PORT_OFFSETS[p];
+      return [oc / 2, or / 2];
+    };
+    const [foc, forr] = halfOff(best.fp);
+    const [toc, torr] = halfOff(best.tp);
+    const startCap = [ac + foc, ar + forr];
+    const endCap = [bc + toc, br + torr];
+    const fullPath = [startCap, ...best.full, endCap];
+    // Attach per-cell sec from baked Voronoi+smooth map (needed for edge Y).
+    const pathWithSec = fullPath.map(([c, r]) => [c, r, secMap.get(`${c},${r}`) ?? 1]);
+    baked.push({ from: edge.from, to: edge.to, path: pathWithSec });
+
+    // Edge-path tiles override owner; force visibility (skip overridden)
+    for (const [c, r] of best.full) {
+      const k = `${c},${r}`;
+      tileOwner.set(k, edge.to);
+    }
+  }
+
+  // 7. Emit baked tiles: every tile in tileOwner gets entry
+  const bakedTiles = [];
+  for (const [k, owner] of tileOwner) {
+    const [cs, rs] = k.split(",");
+    const c = +cs,
+      r = +rs;
+    const sec = secMap.get(k) ?? 1;
+    bakedTiles.push({ col: c, row: r, owner, sec });
+  }
+  bakedTiles.sort((a, b) => a.row - b.row || a.col - b.col);
+
+  // 8. Source hash for build-time staleness guard
+  const hash = crypto.createHash("sha256").update(src).digest("hex").slice(0, 16);
+
+  // 9. Emit netmap.baked.ts
+  const out = [
+    "// GENERATED by scripts/bakeNetmap.js — DO NOT EDIT.",
+    "// Re-run via: npm run bake-netmap",
+    `// Source hash: ${hash}`,
+    "",
+    `export const NETMAP_SOURCE_HASH = ${JSON.stringify(hash)};`,
+    "",
+    "export interface BakedEdge {",
+    "  from: string;",
+    "  to: string;",
+    "  // path cells: [col, row, sec] — sec from Voronoi+smooth, for Y lookup.",
+    "  path: ReadonlyArray<readonly [number, number, number]>;",
+    "}",
+    "",
+    "export interface BakedTile {",
+    "  col: number;",
+    "  row: number;",
+    "  owner: string;",
+    "  sec: number;",
+    "}",
+    "",
+    "export const BAKED_EDGES: ReadonlyArray<BakedEdge> = [",
+    ...baked.map(
+      (e) =>
+        `  { from: ${JSON.stringify(e.from)}, to: ${JSON.stringify(
+          e.to
+        )}, path: [${e.path
+          .map((c) => `[${c[0]},${c[1]},${c[2]}]`)
+          .join(",")}] },`
+    ),
+    "];",
+    "",
+    "export const BAKED_TILES: ReadonlyArray<BakedTile> = [",
+    ...bakedTiles.map(
+      (t) =>
+        `  { col: ${t.col}, row: ${t.row}, owner: ${JSON.stringify(
+          t.owner
+        )}, sec: ${t.sec} },`
+    ),
+    "];",
+    "",
+  ].join("\n");
+
+  fs.writeFileSync(BAKED_PATH, out);
+  console.log(
+    `wrote ${path.relative(process.cwd(), BAKED_PATH)}: ${baked.length} edges, ${bakedTiles.length} tiles, hash ${hash}`
+  );
+}
+
+main();
