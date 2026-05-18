@@ -102,8 +102,9 @@ function getCorpKey(node: INetmapBattleNode | INetmapNonBattleNode): string {
   if (orgName.includes("cellular"))                           return "car";
   if (orgName.includes("ped") || orgName.includes("parker"))  return "ped";
   if (orgName.includes("donut"))                              return "donut";
-  if (orgName.includes("s.m.a.r.t") || orgName.includes("smart")) return "smart";
+  if (orgName.includes("s.m.a.r.t") || orgName.includes("smart") || orgName.includes("sma-rt")) return "smart";
   if (orgName.includes("warez"))                              return "warez";
+  if (orgName.includes("tang"))                               return "tang";
   if (orgName === "")                                         return "hq";
   return "hq";
 }
