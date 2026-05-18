@@ -30,20 +30,7 @@ const GLB_URLS: Record<string, string> = {
   tang:  require("../../img/nodes/3d/tang.glb"),
 };
 
-// Lo-poly variants (~1.1k tris) used for uncleared / wireframe rendering.
-// Cleared nodes still use the higher-poly hi variant from GLB_URLS.
-const GLB_URLS_LO: Record<string, string> = {
-  lmm:   require("../../img/nodes/3d/lmm.lo.glb"),
-  car:   require("../../img/nodes/3d/car.lo.glb"),
-  donut: require("../../img/nodes/3d/donut.lo.glb"),
-  ph:    require("../../img/nodes/3d/ph.lo.glb"),
-  tang:  require("../../img/nodes/3d/tang.lo.glb"),
-};
-
 for (const url of Object.values(GLB_URLS)) {
-  useGLTF.preload(url);
-}
-for (const url of Object.values(GLB_URLS_LO)) {
   useGLTF.preload(url);
 }
 
@@ -158,10 +145,7 @@ function getClearedMat(color: number): THREE.MeshStandardMaterial {
 }
 
 function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked }: NodeModelProps) {
-  const useHi = cleared && !dimmed;
-  const hiUrl = GLB_URLS[corpKey] ?? GLB_URLS.hq;
-  const loUrl = GLB_URLS_LO[corpKey] ?? hiUrl;
-  const { scene } = useGLTF(useHi ? hiUrl : loUrl);
+  const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
   const fpMap = useContext(NodeFootprintContext);
   const fpRef = useRef<{ halfX: number; halfZ: number }>({ halfX: 0, halfZ: 0 });
   useEffect(() => {
