@@ -38,6 +38,10 @@ const MODEL_SCALE = 280;
 const MODEL_XZ_SCALE: Partial<Record<string, number>> = {
   warez: 0.8,
 };
+// Uniform per-corp scale multiplier applied to all 3 axes.
+const MODEL_SCALE_MUL: Partial<Record<string, number>> = {
+  tang: 1.15,
+};
 
 const COLOR_UNCLEARED = 0xc8d8ec;
 const EMISSIVE_CLEARED = 0x2c3a4a;
@@ -297,7 +301,9 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
     });
 
     const xzMul = MODEL_XZ_SCALE[corpKey] ?? 1;
-    const sx = MODEL_SCALE * xzMul;
+    const uniMul = MODEL_SCALE_MUL[corpKey] ?? 1;
+    const sy = MODEL_SCALE * uniMul;
+    const sx = MODEL_SCALE * xzMul * uniMul;
     if (corpKey === "donut") {
       fpRef.current = {
         halfX: ((box.max.x - box.min.x) / 2) * sx,
@@ -306,8 +312,8 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
     }
     return {
       obj: c,
-      pos: [-center.x * sx, -box.min.y * MODEL_SCALE + FLOOR_Y + (securityLevel - 1) * SEC_HEIGHT_STEP + (NODE_ID_Y_OFFSET[nodeId] ?? 0), -center.z * sx + (NODE_ID_Z_OFFSET[nodeId] ?? 0)] as [number, number, number],
-      scale: [sx, MODEL_SCALE, sx] as [number, number, number],
+      pos: [-center.x * sx, -box.min.y * sy + FLOOR_Y + (securityLevel - 1) * SEC_HEIGHT_STEP + (NODE_ID_Y_OFFSET[nodeId] ?? 0), -center.z * sx + (NODE_ID_Z_OFFSET[nodeId] ?? 0)] as [number, number, number],
+      scale: [sx, sy, sx] as [number, number, number],
     };
   }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
