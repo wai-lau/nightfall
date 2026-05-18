@@ -494,6 +494,20 @@ function main() {
     if (owner) tileOwner.set(k, owner);
   }
 
+  // 5b. Force-fill the 5x5 ring around each node (excluding inner 3x3 platform).
+  // Guarantees a solid plinth of floor around each node regardless of probabilistic
+  // visibility falloff.
+  for (const n of nodeData) {
+    const [cc, cr] = n.tile;
+    for (let dr = -2; dr <= 2; dr++) {
+      for (let dc = -2; dc <= 2; dc++) {
+        if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) continue;
+        const k = `${cc + dc},${cr + dr}`;
+        tileOwner.set(k, n.id);
+      }
+    }
+  }
+
   // 6. Prereq edges → A* with port assignment + ripup
   const allEdges = nodeData
     .filter((n) => !!n.prereq)
