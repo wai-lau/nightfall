@@ -123,7 +123,7 @@ interface NodeModelProps {
   blocked: boolean;
 }
 
-const PASTEL_RED = 0xffb0b0;
+const PASTEL_RED = 0xff6060;
 
 const surfaceMatCache = new Map<number, THREE.MeshBasicMaterial>();
 function getSurfaceMat(color: number, opacity: number): THREE.MeshBasicMaterial {
@@ -249,8 +249,8 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
       });
     } else {
       const surfBase = blocked ? PASTEL_RED : 0xaaaaaa;
-      const surfMat = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, 0.45);
-      const surfMatBright = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, 0.65);
+      const surfMat = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, blocked ? 0.315 : 0.45);
+      const surfMatBright = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, blocked ? 0.455 : 0.65);
       c.traverse((child) => {
         const mesh = child as THREE.Mesh;
         if (!mesh.isMesh) return;
@@ -322,6 +322,7 @@ interface NetmapNodeProps {
   isSelected: boolean;
   isNightfallDimmed: boolean;
   playerSecurityLevel: number;
+  prereqCleared: boolean;
   onClick: () => void;
   onHover?: () => void;
 }
@@ -333,6 +334,7 @@ export default function NetmapNode({
   isSelected,
   isNightfallDimmed,
   playerSecurityLevel,
+  prereqCleared,
   onClick,
   onHover,
 }: NetmapNodeProps) {
@@ -416,7 +418,7 @@ export default function NetmapNode({
   if (status === undefined || status === NodeStatus.INVISIBLE) return null;
 
   const cleared = matchFlag(status, NodeStatus.WON);
-  const blocked = !cleared && node.securityLevel > playerSecurityLevel;
+  const blocked = !cleared && (node.securityLevel > playerSecurityLevel || !prereqCleared);
 
   return (
     <>
@@ -426,8 +428,8 @@ export default function NetmapNode({
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; onHover?.(); }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
       >
-        <mesh position={[0, (SELECT_RISE + 8) / 2 + FLOOR_Y, 0]}>
-          <boxGeometry args={[3 * TILE_SIZE, SELECT_RISE + 8, 3 * TILE_SIZE]} />
+        <mesh position={[0, PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP + (SELECT_RISE + 4) / 2, 0]}>
+          <boxGeometry args={[3 * TILE_SIZE, SELECT_RISE + 4, 3 * TILE_SIZE]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
         </mesh>
         <group ref={meshGroupRef}>
