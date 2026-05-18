@@ -36,6 +36,9 @@ const PLATFORM_HALF = 1;
 const PORT_OUT = 2;
 const TURN_PENALTY = 4;
 const STEP_COST = 1;
+// Penalty for entering a cell whose sec is not one of the edge's endpoint secs.
+// Big enough to dominate STEP_COST so A* prefers a longer same-sec detour.
+const SEC_PENALTY = 30;
 
 const PORT_OFFSETS = {
   N: [0, -PORT_OUT],
@@ -295,7 +298,7 @@ function buildSecMap(nodeTiles, nodeSec) {
   return m;
 }
 
-function aStar(start, end, blocked, used) {
+function aStar(start, end, blocked, used, fromSec, toSec, secMap) {
   const dirs = [
     [1, 0],
     [-1, 0],
@@ -340,7 +343,12 @@ function aStar(start, end, blocked, used) {
       const isEnd = nc === end[0] && nr === end[1];
       if (!isEnd && (blocked.has(k) || used.has(k))) continue;
       const turn = cur.dir !== -1 && cur.dir !== d ? TURN_PENALTY : 0;
-      const ng = cur.g + STEP_COST + turn;
+      const cellSec = secMap.get(k);
+      const secPen =
+        !isEnd && cellSec !== undefined && cellSec !== fromSec && cellSec !== toSec
+          ? SEC_PENALTY
+          : 0;
+      const ng = cur.g + STEP_COST + turn + secPen;
       const vk = nc + "," + nr + "," + d;
       const prev = visited.get(vk);
       if (prev !== undefined && prev <= ng) continue;
@@ -519,9 +527,13 @@ function main() {
   const used = new Set();
   const usedPorts = {};
   const baked = [];
+  const nodeSecMap = {};
+  for (const n of nodeData) nodeSecMap[n.id] = n.sec;
   for (const edge of ordered) {
     const [ac, ar] = tileById[edge.from];
     const [bc, br] = tileById[edge.to];
+    const fromSec = nodeSecMap[edge.from];
+    const toSec = nodeSecMap[edge.to];
     const fromUsed = usedPorts[edge.from] || new Set();
     const toUsed = usedPorts[edge.to] || new Set();
     let best = null;
@@ -539,7 +551,7 @@ function main() {
         const eBlocked = blocked.has(ek);
         if (sBlocked) blocked.delete(sk);
         if (eBlocked) blocked.delete(ek);
-        const path = aStar(start, end, blocked, used);
+        const path = aStar(start, end, blocked, used, fromSec, toSec, secMap);
         if (sBlocked) blocked.add(sk);
         if (eBlocked) blocked.add(ek);
         if (!path) continue;
