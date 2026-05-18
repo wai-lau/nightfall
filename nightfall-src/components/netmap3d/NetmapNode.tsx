@@ -96,8 +96,7 @@ const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transpa
 const dimmedSurfaceMat = new THREE.MeshBasicMaterial({ color: 0x4a525a, transparent: true, opacity: 0.1, depthWrite: false });
 
 // Face-normal angle threshold (deg) below which adjacent triangle edges merge.
-// 1 drops only coplanar pairs.
-const EDGES_THRESHOLD_DEFAULT = 1;
+const EDGES_THRESHOLD_DEFAULT = 15;
 const EDGES_THRESHOLD: Partial<Record<string, number>> = {};
 
 const TILE_OFFSETS: [number, number][] = [];
