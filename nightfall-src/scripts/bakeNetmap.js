@@ -519,8 +519,9 @@ function main() {
   // 4. Voronoi sec map + smoothing
   const secMap = buildSecMap(nodeTiles, nodeSecArr);
 
-  // 5. Initial owner: Voronoi nearest node
-  const tileOwner = new Map();
+  // 5. Voronoi nearest-node owner. Base layer only — the final per-tile owner
+  // is decided in one priority pass in step 7 (no stamp-order dependence).
+  const voronoiOwner = new Map();
   for (const k of visible) {
     const [cs, rs] = k.split(",");
     const c = +cs,
@@ -535,7 +536,7 @@ function main() {
         owner = nodeData[n].id;
       }
     }
-    if (owner) tileOwner.set(k, owner);
+    if (owner) voronoiOwner.set(k, owner);
   }
 
   // 6. Prereq edges → A* with port assignment + ripup
@@ -579,6 +580,8 @@ function main() {
   const used = new Set();
   const usedPorts = {};
   const baked = [];
+  const coreCells = new Map(); // 1-wide A* centerline -> edge.to
+  const wideCells = new Map(); // 3x3 brush around centerline -> edge.to
   const nodeSecMap = {};
   for (const n of nodeData) nodeSecMap[n.id] = n.sec;
   for (const edge of ordered) {
@@ -637,40 +640,52 @@ function main() {
     const pathWithSec = fullPath.map(([c, r]) => [c, r, secMap.get(`${c},${r}`) ?? 1]);
     baked.push({ from: edge.from, to: edge.to, path: pathWithSec });
 
-    // Edge-path tiles override owner; force visibility. Stamp a 3-wide
-    // ribbon (3x3 brush per path cell) so the edge floor reads as a road,
-    // not a 1-tile thread.
+    // Record this edge's floor cells for the final owner pass: the 1-wide
+    // A* centerline (core) plus a 3x3-brush widening for a 3-wide road.
     for (const [c, r] of best.full) {
+      coreCells.set(`${c},${r}`, edge.to);
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
-          tileOwner.set(`${c + dc},${r + dr}`, edge.to);
+          wideCells.set(`${c + dc},${r + dr}`, edge.to);
         }
       }
     }
   }
 
-  // 6b. Re-apply the 5x5 ring (outer ring only; inner 3x3 platform skipped)
-  // AFTER edge stamping. Guarantees each node keeps a solid plinth tied to
-  // its OWN visibility — an edge passing through a ring tile no longer steals
-  // ownership and punches a hole in the ring when the far node is hidden.
+  // 6b. Per-node 5x5 ring (outer ring only; inner 3x3 platform skipped).
+  const ringOwner = new Map();
   for (const n of nodeData) {
     const [cc, cr] = n.tile;
     for (let dr = -2; dr <= 2; dr++) {
       for (let dc = -2; dc <= 2; dc++) {
         if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) continue;
-        tileOwner.set(`${cc + dc},${cr + dr}`, n.id);
+        ringOwner.set(`${cc + dc},${cr + dr}`, n.id);
       }
     }
   }
 
-  // 7. Emit baked tiles: every tile in tileOwner gets entry
+  // 7. Decide each tile's owner once, by priority — no stamp-order deps:
+  //   edge core path > node ring > edge widening > Voronoi fill.
+  // Core beats ring so a road never breaks where it crosses a foreign node's
+  // ring; ring beats widening so the road narrows to its 1-wide centerline
+  // through that ring rather than biting a 3-wide hole in it.
+  const allCells = new Set([
+    ...coreCells.keys(),
+    ...ringOwner.keys(),
+    ...wideCells.keys(),
+    ...voronoiOwner.keys(),
+  ]);
   const bakedTiles = [];
-  for (const [k, owner] of tileOwner) {
+  for (const k of allCells) {
+    const owner =
+      coreCells.get(k) ??
+      ringOwner.get(k) ??
+      wideCells.get(k) ??
+      voronoiOwner.get(k);
+    if (!owner) continue;
     const [cs, rs] = k.split(",");
-    const c = +cs,
-      r = +rs;
     const sec = secMap.get(k) ?? 1;
-    bakedTiles.push({ col: c, row: r, owner, sec });
+    bakedTiles.push({ col: +cs, row: +rs, owner, sec });
   }
   bakedTiles.sort((a, b) => a.row - b.row || a.col - b.col);
 
