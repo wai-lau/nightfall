@@ -82,6 +82,8 @@ const Descriptions: Record<string, string> = {
     "TANG strategic reserve — Disarray's exploit stockpile. Burn it down.",
   T5:
     "TANG imperial guard. Off-books elite hardpoint. Use the spoofed credentials Spinner cracked.",
+  S1R:
+    "TANG hostiles breached HQ. Push them out before they pivot any deeper.",
 };
 
 export default Descriptions;

@@ -1,8 +1,13 @@
-import { IGameStatusCoordinator, IProgram, IDialogue } from "../types";
+import { IGameStatusCoordinator, IProgram, IDialogue, NodeStatus } from "../types";
 
 export const revealNode = (ids: string | string[]) => async (gsc: IGameStatusCoordinator) => {
   const idList = Array.isArray(ids) ? ids : [ids];
   await Promise.all(idList.map((id) => gsc.revealNode(id)));
+  return;
+};
+
+export const hideNode = (id: string) => async (gsc: IGameStatusCoordinator) => {
+  await gsc.setNodeStatus(id, NodeStatus.INVISIBLE);
   return;
 };
 

@@ -36,6 +36,7 @@ const PLATFORM_HALF = 1;
 const PORT_OUT = 2;
 const TURN_PENALTY = 4;
 const STEP_COST = 1;
+const DIAG_COST = 1.4;
 // Penalty for entering a cell whose sec is not one of the edge's endpoint secs.
 // Big enough to dominate STEP_COST so A* prefers a longer same-sec detour.
 const SEC_PENALTY = 30;
@@ -47,6 +48,21 @@ const PORT_OFFSETS = {
   E: [PORT_OUT, 0],
 };
 const ALL_PORTS = ["N", "S", "E", "W"];
+
+// Per-edge port forcing. Listed edges are routed first; the named fp/tp is
+// reserved before remaining edges are greedy-assigned. Either fp or tp may be
+// omitted to let A* pick.
+// Nodes excluded from bake (no floor tiles, no edges). Useful for overlay/wall
+// nodes that share another node's position and shouldn't influence routing.
+const BAKE_IGNORE = new Set(["smart-hq-retake"]);
+
+const PORT_OVERRIDES = [
+  { from: "ph-prdatabase", to: "car-memorytower", fp: "E", tp: "S" },
+  { from: "car-memorytower", to: "car-sydney", fp: "W" },
+  { from: "lmm-toy", to: "ped-offshore", fp: "S" },
+  { from: "lmm-toy", to: "warez-3", fp: "E" },
+  { from: "lmm-toy", to: "tang-cultural-restoration", fp: "N" },
+];
 
 function readSource(p) {
   return fs.readFileSync(p, "utf8");
@@ -304,10 +320,29 @@ function aStar(start, end, blocked, used, fromSec, toSec, secMap) {
     [-1, 0],
     [0, 1],
     [0, -1],
+    [1, 1],
+    [1, -1],
+    [-1, 1],
+    [-1, -1],
+  ];
+  const stepCosts = [
+    STEP_COST,
+    STEP_COST,
+    STEP_COST,
+    STEP_COST,
+    DIAG_COST,
+    DIAG_COST,
+    DIAG_COST,
+    DIAG_COST,
   ];
   const open = [];
   const visited = new Map();
-  const h = (c, r) => Math.abs(c - end[0]) + Math.abs(r - end[1]);
+  // Octile heuristic — admissible for 8-way grid with diag cost ~sqrt(2).
+  const h = (c, r) => {
+    const dx = Math.abs(c - end[0]);
+    const dy = Math.abs(r - end[1]);
+    return Math.max(dx, dy) + (DIAG_COST - STEP_COST) * Math.min(dx, dy);
+  };
   const startNode = {
     c: start[0],
     r: start[1],
@@ -335,20 +370,27 @@ function aStar(start, end, blocked, used, fromSec, toSec, secMap) {
       }
       return path;
     }
-    for (let d = 0; d < 4; d++) {
+    for (let d = 0; d < 8; d++) {
       const [dc, dr] = dirs[d];
       const nc = cur.c + dc,
         nr = cur.r + dr;
       const k = cellKey(nc, nr);
       const isEnd = nc === end[0] && nr === end[1];
       if (!isEnd && (blocked.has(k) || used.has(k))) continue;
+      // Diagonals must not climb to a higher sec level.
+      if (d >= 4) {
+        const curSec = secMap.get(cellKey(cur.c, cur.r));
+        const nextSec = secMap.get(k);
+        if (curSec !== undefined && nextSec !== undefined && nextSec > curSec)
+          continue;
+      }
       const turn = cur.dir !== -1 && cur.dir !== d ? TURN_PENALTY : 0;
       const cellSec = secMap.get(k);
       const secPen =
         !isEnd && cellSec !== undefined && cellSec !== fromSec && cellSec !== toSec
           ? SEC_PENALTY
           : 0;
-      const ng = cur.g + STEP_COST + turn + secPen;
+      const ng = cur.g + stepCosts[d] + turn + secPen;
       const vk = nc + "," + nr + "," + d;
       const prev = visited.get(vk);
       if (prev !== undefined && prev <= ng) continue;
@@ -368,7 +410,9 @@ function aStar(start, end, blocked, used, fromSec, toSec, secMap) {
 
 function main() {
   const src = readSource(NETMAP_PATH);
-  const { positions, nodes: nodeMeta } = parseNetmap(src);
+  const parsed = parseNetmap(src);
+  const positions = parsed.positions;
+  const nodeMeta = parsed.nodes.filter((n) => !BAKE_IGNORE.has(n.id));
   console.log(
     `parsed ${nodeMeta.length} nodes, ${Object.keys(positions).length} positions`
   );
@@ -530,13 +574,21 @@ function main() {
     }
   }
 
+  const overrideFor = (from, to) =>
+    PORT_OVERRIDES.find((o) => o.from === from && o.to === to);
+
   const ordered = allEdges
     .map((e) => {
       const [ac, ar] = tileById[e.from];
       const [bc, br] = tileById[e.to];
       return { ...e, dist: Math.abs(bc - ac) + Math.abs(br - ar) };
     })
-    .sort((a, b) => a.dist - b.dist);
+    .sort((a, b) => {
+      const ao = overrideFor(a.from, a.to) ? 0 : 1;
+      const bo = overrideFor(b.from, b.to) ? 0 : 1;
+      if (ao !== bo) return ao - bo;
+      return a.dist - b.dist;
+    });
 
   const used = new Set();
   const usedPorts = {};
@@ -550,13 +602,16 @@ function main() {
     const toSec = nodeSecMap[edge.to];
     const fromUsed = usedPorts[edge.from] || new Set();
     const toUsed = usedPorts[edge.to] || new Set();
+    const override = overrideFor(edge.from, edge.to);
     let best = null;
     for (const fp of ALL_PORTS) {
       if (fromUsed.has(fp)) continue;
+      if (override?.fp && fp !== override.fp) continue;
       const [foc, forr] = PORT_OFFSETS[fp];
       const start = [ac + foc, ar + forr];
       for (const tp of ALL_PORTS) {
         if (toUsed.has(tp)) continue;
+        if (override?.tp && tp !== override.tp) continue;
         const [toc, torr] = PORT_OFFSETS[tp];
         const end = [bc + toc, br + torr];
         const sk = cellKey(start[0], start[1]);

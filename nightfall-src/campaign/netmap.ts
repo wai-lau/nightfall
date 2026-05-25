@@ -7,6 +7,7 @@ import Descriptions from "./nodeDescriptions";
 import { resolveImage } from "../util/util";
 import {
   revealNode,
+  hideNode,
   addProgram,
   setLevel,
   startDialogue,
@@ -66,6 +67,7 @@ export const Nodes = {
   T3: "tang-cultural-restoration",
   T4: "tang-strategic-reserve",
   T5: "tang-imperial-guard",
+  S1R: "smart-hq-retake",
 };
 
 const positions: Record<string, NetmapPosition> = {
@@ -114,8 +116,9 @@ const positions: Record<string, NetmapPosition> = {
   [Nodes.T1]: [998, 1097],
   [Nodes.T2]: [1086, 824],
   [Nodes.T3]: [1100, 380],
-  [Nodes.T4]: [1300, 310],
+  [Nodes.T4]: [1310, 700],
   [Nodes.T5]: [1148, 1390],
+  [Nodes.S1R]: [472, 691],
 };
 
 const netmap: INetmap = {
@@ -133,6 +136,7 @@ const netmap: INetmap = {
       [Nodes.L1]: NodeStatus.UNCLEARED_UNATTEMPTED,
       [Nodes.T3]: NodeStatus.INVISIBLE,
       [Nodes.T4]: NodeStatus.INVISIBLE,
+      [Nodes.S1R]: NodeStatus.INVISIBLE,
     },
     collectedCreditIDs: [],
     securityLevel: 1,
@@ -701,8 +705,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.L6,
       firstClearCredits: 1200,
-      // TODO: flipS1ToBattle hook + reveal T4 on S1 retake (engine work pending)
-      onFirstClear: startDialogue(Dialogue.SuperphreakT3),
+      onFirstClear: chain(startDialogue(Dialogue.SuperphreakT3), revealNode(Nodes.S1R)),
     },
     {
       ...NodeStyle.tang,
@@ -726,6 +729,21 @@ const netmap: INetmap = {
       firstClearCredits: 2000,
       // TODO: addProgram(Kuang12) once Kuang12 program file is implemented
       onFirstClear: startDialogue(Dialogue.WintermutantT5),
+    },
+    {
+      ...NodeStyle.tang,
+      id: Nodes.S1R,
+      description: Descriptions.S1R,
+      name: "HQ Under Siege",
+      securityLevel: 1,
+      type: Battle,
+      prereq: Nodes.S1,
+      firstClearCredits: 1500,
+      onFirstClear: chain(
+        startDialogue(Dialogue.SuperphreakS1),
+        revealNode(Nodes.T4),
+        hideNode(Nodes.S1R),
+      ),
     },
   ],
 };

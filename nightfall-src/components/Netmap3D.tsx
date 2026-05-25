@@ -20,7 +20,8 @@ import NetmapFloor, { secColor, FLOOR_Y } from "./netmap3d/NetmapFloor";
 import NetmapNode from "./netmap3d/NetmapNode";
 import { RevealContext } from "./netmap3d/RevealContext";
 import { pixelToWorldXZ, toWorld, TILE_SIZE } from "../util/netmap3d";
-import { leadDebounce } from "../util/util";
+import { leadDebounce, matchFlag } from "../util/util";
+import { Nodes } from "../campaign/netmap";
 
 const HOVER_SOUNDS = [AudioSources.HoverC, AudioSources.HoverEb, AudioSources.HoverF];
 
@@ -286,29 +287,38 @@ export default function Netmap3D(props: Netmap3DProps) {
         <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} playerSecurityLevel={playerSecurityLevel} />
 
         <Suspense fallback={null}>
-        {nodes.map((node) => {
-          const pos2d = positions[node.id];
-          if (!pos2d) return null;
-          const position = toWorld(pos2d, node.securityLevel);
-          const isNightfallDimmed =
-            nightfallAvailableNodes !== undefined &&
-            !nightfallAvailableNodes.includes(node.id);
-          const prereqCleared = !node.prereq || netmapStatus[node.prereq] === NodeStatus.CLEARED;
-          return (
-            <NetmapNode
-              key={node.id}
-              node={node}
-              position={position}
-              status={netmapStatus[node.id]}
-              isSelected={node.id === selectedID}
-              isNightfallDimmed={isNightfallDimmed}
-              playerSecurityLevel={playerSecurityLevel}
-              prereqCleared={prereqCleared}
-              onClick={() => onSelectNode(node.id)}
-              onHover={onHover}
-            />
-          );
-        })}
+        {(() => {
+          const s1rStatus = netmapStatus[Nodes.S1R];
+          const s1rActive =
+            s1rStatus !== undefined &&
+            matchFlag(s1rStatus, NodeStatus.VISIBLE) &&
+            !matchFlag(s1rStatus, NodeStatus.WON);
+          return nodes.map((node) => {
+            const pos2d = positions[node.id];
+            if (!pos2d) return null;
+            const position = toWorld(pos2d, node.securityLevel);
+            const isNightfallDimmed =
+              nightfallAvailableNodes !== undefined &&
+              !nightfallAvailableNodes.includes(node.id);
+            const prereqCleared = !node.prereq || netmapStatus[node.prereq] === NodeStatus.CLEARED;
+            const clickDisabled = node.id === Nodes.S1 && s1rActive;
+            return (
+              <NetmapNode
+                key={node.id}
+                node={node}
+                position={position}
+                status={netmapStatus[node.id]}
+                isSelected={node.id === selectedID}
+                isNightfallDimmed={isNightfallDimmed}
+                playerSecurityLevel={playerSecurityLevel}
+                prereqCleared={prereqCleared}
+                clickDisabled={clickDisabled}
+                onClick={() => onSelectNode(node.id)}
+                onHover={onHover}
+              />
+            );
+          });
+        })()}
         </Suspense>
         </RevealContext.Provider>
       </Canvas>

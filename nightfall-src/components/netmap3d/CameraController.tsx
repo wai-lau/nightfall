@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Direction, NetmapPosition } from "../../types";
 import { pixelToWorldXZ } from "../../util/netmap3d";
 
-const CAM_HEIGHT = 39.15;
+const CAM_HEIGHT = 55.7;
 const CAM_DISTANCE = 50;
 const CAM_ANGLE = Math.PI / 4;
 const CAM_OFFSET_X = -CAM_DISTANCE * Math.sin(CAM_ANGLE);

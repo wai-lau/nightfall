@@ -86,6 +86,27 @@ const blockedLineMat = new THREE.LineBasicMaterial({ color: 0xffb0b0 });
 const dimmedLineMat = new THREE.LineBasicMaterial({ color: COLOR_DIMMED, transparent: true, opacity: 0.2 });
 const dimmedSurfaceMat = new THREE.MeshBasicMaterial({ color: 0x4a525a, transparent: true, opacity: 0.1, depthWrite: false });
 
+const s1rGradientMat = new THREE.ShaderMaterial({
+  uniforms: {},
+  vertexShader: `
+    varying float vY;
+    void main() {
+      vY = uv.y;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying float vY;
+    void main() {
+      float a = mix(0.8, 0.0, clamp(vY / 0.8, 0.0, 1.0));
+      gl_FragColor = vec4(1.0, 0.0, 0.0, a);
+    }
+  `,
+  transparent: true,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+});
+
 // Face-normal angle threshold (deg) below which adjacent triangle edges merge.
 const EDGES_THRESHOLD_DEFAULT = 15;
 const EDGES_THRESHOLD: Partial<Record<string, number>> = {};
@@ -328,6 +349,7 @@ interface NetmapNodeProps {
   isNightfallDimmed: boolean;
   playerSecurityLevel: number;
   prereqCleared: boolean;
+  clickDisabled?: boolean;
   onClick: () => void;
   onHover?: () => void;
 }
@@ -340,6 +362,7 @@ export default function NetmapNode({
   isNightfallDimmed,
   playerSecurityLevel,
   prereqCleared,
+  clickDisabled,
   onClick,
   onHover,
 }: NetmapNodeProps) {
@@ -364,7 +387,7 @@ export default function NetmapNode({
     platformYMap.set(node.id, yRef);
     return () => { platformYMap.delete(node.id); };
   }, [node.id, platformYMap]);
-  const targetY = (isSelected || hovered) ? RISE_AMOUNT : 0;
+  const targetY = (node.id !== Nodes.S1R && (isSelected || hovered)) ? RISE_AMOUNT : 0;
 
   const reveal = useContext(RevealContext);
   const revealActiveRef = useRef(false);
@@ -429,16 +452,40 @@ export default function NetmapNode({
     <>
       <group
         position={[position[0], NODE_Y, position[2]]}
-        onClick={(e) => { e.stopPropagation(); onClick(); }}
-        onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; onHover?.(); }}
-        onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
+        onClick={clickDisabled ? undefined : (e) => { e.stopPropagation(); onClick(); }}
+        onPointerOver={clickDisabled ? undefined : (e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer"; onHover?.(); }}
+        onPointerOut={clickDisabled ? undefined : () => { setHovered(false); document.body.style.cursor = "default"; }}
       >
         <mesh position={[0, PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP + (SELECT_RISE + 4) / 2, 0]}>
           <boxGeometry args={[3 * TILE_SIZE, SELECT_RISE + 4, 3 * TILE_SIZE]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
         </mesh>
         <group ref={meshGroupRef}>
-          <NodeModel nodeId={node.id} corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} selected={isSelected} securityLevel={node.securityLevel} blocked={blocked} />
+          {node.id !== Nodes.S1R && (
+            <NodeModel nodeId={node.id} corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} selected={isSelected} securityLevel={node.securityLevel} blocked={blocked} />
+          )}
+          {node.id === Nodes.S1R && (() => {
+            const w = 3 * TILE_SIZE;
+            const h = 6 * TILE_SIZE;
+            const baseY = PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP;
+            const half = w / 2;
+            return (
+              <group position={[0, baseY + h / 2, 0]}>
+                <mesh position={[0, 0,  half]} material={s1rGradientMat}>
+                  <planeGeometry args={[w, h]} />
+                </mesh>
+                <mesh position={[0, 0, -half]} rotation={[0, Math.PI, 0]} material={s1rGradientMat}>
+                  <planeGeometry args={[w, h]} />
+                </mesh>
+                <mesh position={[ half, 0, 0]} rotation={[0,  Math.PI / 2, 0]} material={s1rGradientMat}>
+                  <planeGeometry args={[w, h]} />
+                </mesh>
+                <mesh position={[-half, 0, 0]} rotation={[0, -Math.PI / 2, 0]} material={s1rGradientMat}>
+                  <planeGeometry args={[w, h]} />
+                </mesh>
+              </group>
+            );
+          })()}
         </group>
 
         {hovered && (

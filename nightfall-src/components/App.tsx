@@ -138,8 +138,20 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     } else {
       setIfUnset(T3, NodeStatus.INVISIBLE);
     }
-    // T4 stays INVISIBLE until S1 retake mechanic fires (not yet shipped).
-    setIfUnset(T4, NodeStatus.INVISIBLE);
+    // S1 retake: T3 clear reveals smart-hq-retake. T4 stays INVISIBLE until
+    // smart-hq-retake is cleared.
+    const S1R = "smart-hq-retake";
+    if (clearedNode(T3)) {
+      setIfUnset(S1R, NodeStatus.UNCLEARED_UNATTEMPTED);
+    } else {
+      setIfUnset(S1R, NodeStatus.INVISIBLE);
+    }
+    if (clearedNode(S1R)) {
+      setIfUnset(T4, NodeStatus.UNCLEARED_UNATTEMPTED);
+      migratedStatus[S1R] = NodeStatus.INVISIBLE;
+    } else {
+      setIfUnset(T4, NodeStatus.INVISIBLE);
+    }
     if (clearedNode("ped-privileged")) setIfUnset(T5, NodeStatus.UNCLEARED_UNATTEMPTED);
 
     this.state = {
@@ -259,13 +271,14 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       throw new Error("No node with id " + id);
     }
     await this.setStateP(() => ({ selection: node, level: null }));
+    const offsetPosition = addCoordinates(this.props.netmap.positions[node.id], [40, 40]);
+    const scrollPromise = this.netmapScrollFunction
+      ? this.netmapScrollFunction(offsetPosition)
+      : Promise.resolve();
     const level = node.comingSoon
       ? null
       : (await import("../campaign/levels/" + id)).default;
-    const offsetPosition = addCoordinates(this.props.netmap.positions[node.id], [40, 40]);
-    if (this.netmapScrollFunction) {
-      await this.netmapScrollFunction(offsetPosition);
-    }
+    await scrollPromise;
     await this.setStateP(() => ({
       level,
       scrollPosition: offsetPosition,
@@ -473,6 +486,12 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     }
     this.scrollToNode(id);
     return;
+  };
+
+  setNodeStatus = async (id: string, status: NodeStatus) => {
+    await this.setStateP((state) => ({
+      netmapStatus: { ...state.netmapStatus, [id]: status },
+    }));
   };
 
   setNightfallNodes = async (ids?: string[]) => {

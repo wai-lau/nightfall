@@ -12,7 +12,7 @@ const Line = DreiLine as unknown as React.ForwardRefExoticComponent<
 import { INetmap, NodeStatus } from "../../types";
 import { TILE_SIZE, OFFSET_X, OFFSET_Z } from "../../util/netmap3d";
 import { FLOOR_Y, SEC_HEIGHT_STEP } from "./NetmapFloor";
-import { RevealContext, REVEAL_HOLD_MS, REVEAL_FLOW_MS } from "./RevealContext";
+import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_FLOW_MS } from "./RevealContext";
 import { BAKED_EDGES } from "../../campaign/netmap.baked";
 
 export const PlatformYContext = createContext<Map<string, { current: number }>>(new Map());
@@ -222,8 +222,25 @@ function AnimatedEdge({
 
   const fromStart = reveal.startTimeMs.get(from);
   const toStart = reveal.startTimeMs.get(to);
-  const pulseStart = toStart ?? fromStart;
+  const revealStart = toStart ?? fromStart;
+  const usingReveal = revealStart !== undefined;
   const pulseDir = toStart !== undefined ? 1 : -1;
+
+  // Detect blocked→unblocked transition with both endpoints already revealed:
+  // fire pulse along the edge without waiting for any node rise.
+  const prevBlockedRef = useRef<boolean | undefined>(undefined);
+  const unblockStartRef = useRef<number | undefined>(undefined);
+  if (
+    prevBlockedRef.current === true &&
+    blocked === false &&
+    !usingReveal
+  ) {
+    unblockStartRef.current = performance.now();
+  }
+  prevBlockedRef.current = blocked;
+
+  const pulseStart = usingReveal ? revealStart : unblockStartRef.current;
+  const pulseDelay = usingReveal ? REVEAL_HOLD_MS + REVEAL_RISE_MS : 0;
 
   const prevRef = useRef({ f: NaN, t: NaN, fpFR: NaN, fpTR: NaN });
   useFrame((_, delta) => {
@@ -236,10 +253,18 @@ function AnimatedEdge({
     const fromR_ = fromFpRef ? (fromUnitX !== 0 ? fromFpRef.halfX : fromFpRef.halfZ) : FOOTPRINT_DEFAULT;
     const toFpRef = fpMap.get(to)?.current;
     const toR_ = toFpRef ? (toUnitX !== 0 ? toFpRef.halfX : toFpRef.halfZ) : FOOTPRINT_DEFAULT;
-    const pulseActive = pulseStart !== undefined && performance.now() - pulseStart < REVEAL_HOLD_MS + REVEAL_FLOW_MS;
+    const now = performance.now();
+    const pulseElapsed = pulseStart !== undefined ? now - pulseStart - pulseDelay : -Infinity;
+    const pulseActive = pulseStart !== undefined && pulseElapsed < REVEAL_FLOW_MS;
+    const inRise = usingReveal && now - revealStart! < REVEAL_HOLD_MS + REVEAL_RISE_MS;
     const p = prevRef.current;
-    if (!pulseActive && p.f === fromRise && p.t === toRise && p.fpFR === fromR_ && p.fpTR === toR_) return;
+    if (!pulseActive && !inRise && p.f === fromRise && p.t === toRise && p.fpFR === fromR_ && p.fpTR === toR_) return;
     prevRef.current = { f: fromRise, t: toRise, fpFR: fromR_, fpTR: toR_ };
+
+    // Static link: hidden while a freshly-revealed endpoint is still rising;
+    // unblock-only animations leave the line visible throughout.
+    (line as unknown as { visible: boolean }).visible = !inRise;
+
     for (let i = 0; i < fromRiseIdx.length; i++) {
       arr[fromRiseIdx[i] * 3 + 1] = fromTopBaseY + fromRise;
     }
@@ -254,16 +279,13 @@ function AnimatedEdge({
 
     if (pulseRef.current && pulseStart !== undefined) {
       pulseRef.current.geometry.setPositions(arr);
-      const elapsed = performance.now() - pulseStart;
-      const visible = elapsed >= 0 && elapsed < REVEAL_HOLD_MS + REVEAL_FLOW_MS;
+      const visible = pulseElapsed >= 0 && pulseElapsed < REVEAL_FLOW_MS;
       pulseRef.current.visible = visible;
       const mat = pulseRef.current.material;
       if (mat && visible) {
         mat.dashOffset = (mat.dashOffset ?? 0) - delta * 18 * pulseDir;
-        const fadeIn = Math.min(1, elapsed / 200);
-        const fadeOut = elapsed > REVEAL_HOLD_MS
-          ? Math.max(0, 1 - (elapsed - REVEAL_HOLD_MS) / REVEAL_FLOW_MS)
-          : 1;
+        const fadeIn = Math.min(1, pulseElapsed / 200);
+        const fadeOut = Math.max(0, 1 - pulseElapsed / REVEAL_FLOW_MS);
         mat.opacity = fadeIn * fadeOut;
         mat.transparent = true;
         mat.needsUpdate = true;
