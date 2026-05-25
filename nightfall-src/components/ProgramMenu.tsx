@@ -33,7 +33,7 @@ class ProgramMenu extends React.Component<ProgramMenuProps> {
         bgColor={ButtonColor.LightBlueGradient}
         onClick={onClick}
       >
-        {keyLabel && <span className="pm-key-hint">[{keyLabel}]</span>}{actionText}
+        {actionText}{keyLabel && <span className="pm-key-hint"> [{keyLabel}]</span>}
       </Button>
     );
   };
@@ -80,9 +80,6 @@ class ProgramMenu extends React.Component<ProgramMenuProps> {
         <h3 className="pm-commands">Commands</h3>
         <div className="pm-actions">
           {program.actions.map(this.renderAction)}
-          <Button onClick={this.props.onSelectNoAction} bgColor={ButtonColor.DarkBlueGradient}>
-            <span className="pm-key-hint">[Space]</span>No Action
-          </Button>
         </div>
         {descriptionEl}
       </div>

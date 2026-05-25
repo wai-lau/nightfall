@@ -90,7 +90,7 @@ h3 {
   width: 100%;
   height: 100%;
   grid-template-columns: 1fr 1fr 2fr 1fr;
-  grid-template-rows: 1fr 2fr 2.5em;
+  grid-template-rows: 1fr 2fr auto 2.5em;
   padding: var(--padding);
 }
 
@@ -103,8 +103,12 @@ h3 {
 }
 
 .battle-grid {
+  touch-action: manipulation;
+}
+
+.battle-grid {
   margin: auto;
-  grid-row: 1/4;
+  grid-row: 1/5;
   grid-column: 2/5;
   padding: calc(var(--padding) * 2);
   position: relative;
@@ -292,13 +296,26 @@ h3 {
   overflow: scroll;
 }
 
+.battle-container.databattle-started .program-menu {
+  grid-row: 1/3;
+}
+
+.no-action {
+  grid-row: 3;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
 .begin-databattle {
   grid-column: 2;
 }
 
 .begin-databattle,
 .undo {
-  grid-row: 3;
+  grid-row: 4;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -784,10 +801,11 @@ h3 {
 
 .ul-menu-items {
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   flex: 1 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .ul-item {
@@ -799,15 +817,42 @@ h3 {
   cursor: pointer;
 }
 
-.ul-menu-scroll {
-  margin-left: 1em;
-  width: 0.5em;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: stretch;
+@media (pointer: coarse) {
+  .ul-item {
+    font-size: 1.4em;
+  }
+  .ul-item.clickable:active {
+    background: rgba(125, 255, 255, 0.15);
+  }
+  .ul-menu-scroll {
+    display: none;
+  }
+  .undo .Button,
+  .begin-databattle .Button {
+    font-size: 1.3em;
+  }
+  .pm-container {
+    font-size: 1.3em;
+  }
 }
 
+.ul-menu-scroll {
+  display: none !important;
+}
+.ul-menu-items {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
+}
+.ul-menu-items::-webkit-scrollbar {
+  width: 6px;
+}
+.ul-menu-items::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+}
+.ul-menu-items::-webkit-scrollbar-track {
+  background: transparent;
+}
 .ul-menu-scroll-down,
 .ul-menu-scroll-up {
   flex: 1 1;
@@ -1198,7 +1243,7 @@ h3 {
 }
 
 :root {
-  --arrow-size: 5em;
+  --arrow-size: 7.5em;
   --arrow-margin: 0.5em;
 }
 
@@ -1653,9 +1698,9 @@ h3 {
   padding: 1em;
   color: #fff;
   background: linear-gradient(180deg, rgb(0, 0, 0, 0.5), transparent);
-  text-transform: uppercase;
   line-height: 1.4em;
   white-space: pre-wrap;
+  font-size: 1.15em;
 }
 
 .dialogue-buttons {

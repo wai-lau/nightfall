@@ -1648,9 +1648,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     const dataPackEl = this.renderDataPack();
     const guideEl = this.renderGuideText();
 
-    const uploadList = databattleStarted ? (
-      <Hackerman text={document.body.innerHTML} />
-    ) : (
+    const uploadList = databattleStarted ? null : (
       <HeaderBox title="program.list">
         <UploadMenu
           programs={this.props.availablePrograms}
@@ -1688,27 +1686,35 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     })();
     const canBack = viewingEnemy && this.lastP1ProgramID !== null
       && this.state.programs.some((p) => p.id === this.lastP1ProgramID);
+    const sel = this.state.selection;
+    const selProgram = sel && sel.type === SelectionType.PROGRAM ? this.getProgramByID(sel.id) : null;
+    const showNoAction = !!selProgram && selProgram.team === "P1" && selProgram.team === this.props.teams[this.state.teamIndex] && databattleStarted;
+    const noActionButton = showNoAction && (
+      <div className="no-action">
+        <Button onClick={this.onSelectNoAction} bgColor={ButtonColor.DarkBlueGradient}>
+          No Action<span className="pm-key-hint"> [Space]</span>
+        </Button>
+      </div>
+    );
     const undoButton = isP1Turn && (
       canBack ? (
         <div className="undo">
           <Button
             bgColor={ButtonColor.RedGradient}
-            isBold={true}
             onClick={this.selectLastP1Program}
             playSound={false}
           >
-            <span className="pm-key-hint">[Esc]</span>Back
+            Back<span className="pm-key-hint"> [Esc]</span>
           </Button>
         </div>
       ) : (
         <div className="undo">
           <Button
             bgColor={ButtonColor.RedGradient}
-            isBold={true}
             onClick={this.undo}
             playSound={false}
           >
-            <span className="pm-key-hint">[Esc]</span>Undo
+            Undo<span className="pm-key-hint"> [Esc]</span>
           </Button>
         </div>
       )
@@ -1734,10 +1740,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     return (
       <div className="battle-bg" style={bgStyle}>
         <HeaderBox title="databattle in progress" rightButton={headerButtonProps} extraRightButtons={devButtons}>
-          <div className="battle-container">
+          <div className={"battle-container" + (databattleStarted ? " databattle-started" : "")}>
             <div className="upload-list">{uploadList}</div>
             <div className="program-menu">{menuEl}</div>
             {commitButton}
+            {noActionButton}
             {undoButton}
             <div className="battle-grid" style={gridStyle}>
               {backgroundTiles}
