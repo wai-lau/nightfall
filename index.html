@@ -1,4 +1,76 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="./hack.png"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Web site created using create-react-app"/><link rel="apple-touch-icon" href="./hack.png"/><link rel="manifest" href="./manifest.json"/><title>The Nightfall Incident</title><link href="./static/css/bundle.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<link rel="icon" href="./hack.png"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#000000"/>
+<meta name="description" content="Web site created using create-react-app"/>
+<link rel="apple-touch-icon" href="./hack.png"/>
+<link rel="manifest" href="./manifest.json"/>
+<title>The Nightfall Incident</title>
+<style>
+  html, body { width:100%; height:100%; margin:0; background:#222; }
+  #boot-bar {
+    position:fixed; left:4em; right:4em;
+    bottom:calc(var(--nav-h, 0px) + 2em);
+    height:0.7em; border:0.15em solid #fff;
+    background:transparent; mix-blend-mode:screen;
+    overflow:hidden; box-sizing:border-box;
+    pointer-events:none; z-index:1000;
+    transition:opacity 0.8s ease, bottom 0.25s ease;
+  }
+  #boot-bar-fill {
+    height:100%; width:0%; background:#fff;
+    transition:width 0.4s ease-out;
+  }
+  #boot-bar.done { opacity:0; }
+</style>
+<link rel="preload" href="./static/css/bundle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="./static/css/bundle.css"></noscript>
+<script>
+(function(){
+  var fontsLoaded=0, fontsTotal=3;
+  var audioLoaded=0, audioTotal=0;
+  var imageLoaded=0, imageTotal=0;
+  function update() {
+    var fill = document.getElementById('boot-bar-fill');
+    var bar = document.getElementById('boot-bar');
+    if (!fill || !bar) return;
+    var total = fontsTotal + audioTotal + imageTotal;
+    var loaded = fontsLoaded + audioLoaded + imageLoaded;
+    var pct = total ? (loaded / total) * 100 : 0;
+    var registered = audioTotal > 0 && imageTotal > 0;
+    if (!registered) pct = Math.min(pct, 92);
+    var done = registered && loaded >= total;
+    if (!done) pct = Math.max(20, pct);
+    fill.style.width = Math.min(100, pct) + '%';
+    if (done) bar.classList.add('done');
+  }
+  window.__nfProgress = function(kind, loaded, total) {
+    if (kind === 'fonts')  { fontsLoaded = loaded; fontsTotal = total; }
+    else if (kind === 'audio')  { audioLoaded = loaded; audioTotal = total; }
+    else if (kind === 'images') { imageLoaded = loaded; imageTotal = total; }
+    update();
+  };
+})();
+</script>
+</head>
+<body>
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="boot-bar"><div id="boot-bar-fill"></div></div>
+<script>
+requestAnimationFrame(function(){
+  requestAnimationFrame(function(){
+    var f = document.getElementById('boot-bar-fill');
+    if (!f) return;
+    var cur = parseFloat(f.style.width) || 0;
+    if (cur < 20) f.style.width = '20%';
+  });
+});
+</script>
+<div id="root"></div>
+<script>
 (function(){
   var _contexts=[];
   var _patch=function(ctor){
@@ -17,4 +89,7 @@
     }
   });
 })();
-</script><script src="./static/js/bundle.js"></script></body></html>
+</script>
+<script src="./static/js/bundle.js"></script>
+</body>
+</html>

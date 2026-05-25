@@ -5,6 +5,7 @@ import * as AudioSources from "../audio/audioSources";
 
 interface AudioLoaderProps {
   onLoad: () => void;
+  onProgress?: (loaded: number, total: number) => void;
 }
 interface AudioLoaderState {
   hasReceivedContext: boolean;
@@ -23,10 +24,20 @@ export default class AudioLoader extends React.Component<AudioLoaderProps, Audio
   }
 
   async loadAudio() {
-    const loadPromises = Object.values(AudioSources).map((source) =>
-      this.context.player.loadAudio(source).catch((e) => {
-        console.warn("Failed to load audio:", source.name, e);
-      })
+    const sources = Object.values(AudioSources);
+    const total = sources.length;
+    let loaded = 0;
+    this.props.onProgress?.(0, total);
+    const loadPromises = sources.map((source) =>
+      this.context.player
+        .loadAudio(source)
+        .catch((e: unknown) => {
+          console.warn("Failed to load audio:", source.name, e);
+        })
+        .finally(() => {
+          loaded++;
+          this.props.onProgress?.(loaded, total);
+        })
     );
     await Promise.all(loadPromises);
     this.props.onLoad();

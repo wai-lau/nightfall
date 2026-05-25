@@ -7,6 +7,7 @@ import TitleButton from "./TitleButton";
 interface LandingProps {
   onClose: () => void;
   duration: number;
+  ready: boolean;
 }
 
 interface LandingState {
@@ -22,6 +23,7 @@ class Landing extends React.Component<LandingProps, LandingState> {
   }
 
   onClose = () => {
+    if (!this.props.ready) return;
     this.setState({
       isClosing: true,
     });
@@ -29,9 +31,14 @@ class Landing extends React.Component<LandingProps, LandingState> {
   };
 
   render() {
+    const { ready } = this.props;
     const landingClassname = cn(["landing", this.state.isClosing ? "fade-out" : "fade-in"]);
     const landingStyle: CSSProperties = {
       animationDuration: this.props.duration + "ms",
+    };
+    const startStyle: CSSProperties = {
+      opacity: ready ? 1 : 0.35,
+      cursor: ready ? "pointer" : "default",
     };
     return (
       <div className={landingClassname} style={landingStyle}>
@@ -39,7 +46,7 @@ class Landing extends React.Component<LandingProps, LandingState> {
           <h1 className="landing-title">Nightfall</h1>
           <h1 className="landing-title landing-title-small">Incident</h1>
         </div>
-        <TitleButton className="landing-button" onClick={this.onClose}>
+        <TitleButton className="landing-button" onClick={this.onClose} style={startStyle}>
           Start
         </TitleButton>
       </div>

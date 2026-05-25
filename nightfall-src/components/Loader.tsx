@@ -22,6 +22,11 @@ import "./Loader.css";
 import Button from "./Button";
 import GameCredits from "./GameCredits";
 
+const NOOP_PLAYER = {
+  loadAudio: () => Promise.resolve(true),
+  playAudio: () => Promise.resolve(true),
+};
+
 const saveFileNames = ["save1", "save2", "save3"] as const;
 type SaveFileName = typeof saveFileNames[number];
 
@@ -54,6 +59,14 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
       showCredits: false,
     };
   }
+
+  onAudioProgress = (loaded: number, total: number) => {
+    window.__nfProgress?.("audio", loaded, total);
+  };
+
+  onImageProgress = (loaded: number, total: number) => {
+    window.__nfProgress?.("images", loaded, total);
+  };
 
   componentDidMount = () => {
     this.load();
@@ -166,11 +179,17 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
 
   getContents = () => {
     const { saves, selectedSave, allAudioLoaded, showLanding } = this.state;
+    if (showLanding) {
+      return (
+        <Landing
+          duration={this.landingDuration}
+          onClose={this.onCloseLanding}
+          ready={this.isReady()}
+        />
+      );
+    }
     if (saves === null || !allAudioLoaded) {
       return null;
-    }
-    if (showLanding) {
-      return <Landing duration={this.landingDuration} onClose={this.onCloseLanding} />;
     }
 
     const save = this.getCurrentSave();
@@ -223,16 +242,22 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
             buttonsOrientation="VERTICAL"
           />
         )}
-        <ImageLoader imgs={ImageList} onDone={this.onLoadedImages} />
+        <ImageLoader
+          imgs={ImageList}
+          onDone={this.onLoadedImages}
+          onProgress={this.onImageProgress}
+        />
         <AudioPlayer muted={this.state.muted} onReady={this.onPlayerReady}></AudioPlayer>
         <div className="App">
           <div className="container">
-            {this.state.player && (
-              <AudioContext.Provider value={{ player: this.state.player }}>
-                <AudioLoader onLoad={this.onLoadAudio} />
-                {contents}
-              </AudioContext.Provider>
-            )}
+            <AudioContext.Provider
+              value={{ player: (this.state.player ?? NOOP_PLAYER) as IAudioPlayer }}
+            >
+              {this.state.player && (
+                <AudioLoader onLoad={this.onLoadAudio} onProgress={this.onAudioProgress} />
+              )}
+              {contents}
+            </AudioContext.Provider>
           </div>
         </div>
       </>

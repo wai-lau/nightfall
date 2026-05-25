@@ -13,12 +13,36 @@ console.warn = (...args: unknown[]) => {
 
 const Loader = require("./components/Loader").default;
 
-ReactDOM.render(
-  <React.StrictMode>
-    <Loader />
-  </React.StrictMode>,
-  document.getElementById("root")
-);
+async function preloadFonts() {
+  const families = ["1em bitlight", "1em jhtitles", '1em "04b25"'];
+  const total = families.length;
+  window.__nfProgress?.("fonts", 0, total);
+  if (!document.fonts || !document.fonts.load) {
+    window.__nfProgress?.("fonts", total, total);
+    return;
+  }
+  let loaded = 0;
+  await Promise.all(
+    families.map((f) =>
+      document.fonts
+        .load(f)
+        .catch(() => {})
+        .finally(() => {
+          loaded++;
+          window.__nfProgress?.("fonts", loaded, total);
+        })
+    )
+  );
+}
+
+preloadFonts().then(() => {
+  ReactDOM.render(
+    <React.StrictMode>
+      <Loader />
+    </React.StrictMode>,
+    document.getElementById("root")
+  );
+});
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

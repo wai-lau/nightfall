@@ -4,6 +4,7 @@ import { resolveImage } from "../util/util";
 interface ImageLoaderProps {
   imgs: string[];
   onDone: () => void;
+  onProgress?: (loaded: number, total: number) => void;
 }
 
 interface ImageLoaderState {
@@ -23,6 +24,7 @@ export default class ImageLoader extends React.Component<ImageLoaderProps, Image
   }
 
   componentDidMount() {
+    this.props.onProgress?.(0, this.props.imgs.length);
     this.startLoad();
   }
 
@@ -33,9 +35,16 @@ export default class ImageLoader extends React.Component<ImageLoaderProps, Image
   }
 
   createOnLoad = (img: string) => () => {
-    this.setState((state) => ({
-      statuses: { ...state.statuses, [img]: true },
-    }));
+    this.setState(
+      (state) => {
+        if (state.statuses[img]) return null;
+        return { statuses: { ...state.statuses, [img]: true } };
+      },
+      () => {
+        const loaded = Object.values(this.state.statuses).filter(Boolean).length;
+        this.props.onProgress?.(loaded, this.props.imgs.length);
+      }
+    );
   };
 
   startLoad = () => {
@@ -43,6 +52,7 @@ export default class ImageLoader extends React.Component<ImageLoaderProps, Image
       const imgEl = new Image();
       imgEl.src = resolveImage(img);
       imgEl.addEventListener("load", this.createOnLoad(img));
+      imgEl.addEventListener("error", this.createOnLoad(img));
     });
   };
 

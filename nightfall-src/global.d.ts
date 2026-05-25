@@ -4,3 +4,7 @@ declare module "*.glb" {
 }
 
 declare function require(path: string): string;
+
+interface Window {
+  __nfProgress?: (kind: "fonts" | "audio" | "images", loaded: number, total: number) => void;
+}
