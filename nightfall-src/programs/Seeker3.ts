@@ -21,6 +21,6 @@ export const Seeker3: IProgram = {
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(selfID, 2), ac.damageTarget(targetID, 5)],
     },
   ],
-  maxSize: 5,
+  maxSize: 3,
   numMoves: 4,
 };

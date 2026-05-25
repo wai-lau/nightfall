@@ -16,5 +16,5 @@ export const Ballista: IProgram = {
     },
   ],
   maxSize: 2,
-  numMoves: 1,
+  numMoves: 2,
 };

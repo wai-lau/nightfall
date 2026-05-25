@@ -171,6 +171,11 @@ export default class AIController {
       return;
     }
     await this.programFollowPath(programID, path);
+    const postProgram = this.game.getProgramByID(programID);
+    if (action.sizeReq && action.sizeReq > postProgram.body.length) {
+      this.game.onSelectNoAction();
+      return;
+    }
     await this.game.onSelectAction(ACTION_INDEX);
     await delay(this.actionDelay);
     const validTargets = this.game.getValidTargets();

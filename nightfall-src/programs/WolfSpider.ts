@@ -14,6 +14,12 @@ export const WolfSpider: IProgram = {
       range: 1,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
+    {
+      name: "Prick",
+      description: "Decreases Move Rate of Target Program by 1",
+      range: 1,
+      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -1)],
+    },
   ],
   maxSize: 2,
   numMoves: 4,

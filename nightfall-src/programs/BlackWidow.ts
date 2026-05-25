@@ -15,10 +15,10 @@ export const BlackWidow: IProgram = {
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
     {
-      name: "Paralyze",
-      description: "Decreases Move Rate of Target Program by 3",
+      name: "Poison",
+      description: "Decreases Move Rate of Target Program by 2",
       range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
+      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -2)],
     },
   ],
   maxSize: 2,
