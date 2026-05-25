@@ -14,7 +14,7 @@ const map = `
 const creditValues: number[] = [500, 500, 500, 500, 500, 500, 500];
 const enemies = [
   Programs.Warden,
-  Programs.FireWall,
+  Programs.InfernoWall,
   Programs.WatchmanX,
   Programs.WatchmanX,
   Programs.Warden,

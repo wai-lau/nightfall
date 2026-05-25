@@ -13,7 +13,7 @@ const map = `
 -@--Bbbbbb--45
 ---.bbbbbb.-6-
 `;
-const enemies = [Programs.FireWall, Programs.FireWall];
+const enemies = [Programs.InfernoWall, Programs.InfernoWall];
 const creditValues: number[] = [800, 890, 840, 900, 760, 860]; // TODO - may be inaccurate
 
 const level = processMap(id, map, enemies, creditValues);
