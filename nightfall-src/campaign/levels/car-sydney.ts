@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "car-sydney";
 const map = `
@@ -16,7 +16,7 @@ const map = `
 const enemies = [Programs.Sentinel, Programs.Sentinel, Programs.Sentinel];
 const creditValues: number[] = [270, 340];
 
-const level = processMap(id, map, enemies, creditValues);
+const level = defineLevel(id, map, enemies, creditValues);
 
 level.programs.push({
   ...Programs.BitMan,

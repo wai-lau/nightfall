@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "tang-imperial-guard";
 // L7 (lmm-assimilation) battle: one large program centre-grid, two corner
@@ -17,6 +17,4 @@ C--------@
 const enemies = [Programs.Kuang12, Programs.WardenPP, Programs.WardenPP, Programs.Radar];
 const creditValues: number[] = [];
 
-const level = processMap(id, map, enemies, creditValues);
-
-export default level;
+export default defineLevel(id, map, enemies, creditValues);

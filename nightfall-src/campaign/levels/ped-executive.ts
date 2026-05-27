@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "ped-executive";
 const map = `
@@ -29,9 +29,7 @@ const enemies = [
 ];
 const creditValues: number[] = [700, 700, 790, 720];
 
-const level = processMap(id, map, enemies, creditValues);
-
-export default level;
+export default defineLevel(id, map, enemies, creditValues);
 
 // 29#0:58
 // TODO: Purple sumo

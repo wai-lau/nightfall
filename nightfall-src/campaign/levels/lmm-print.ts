@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "lmm-print";
 const map = `
@@ -16,8 +16,6 @@ aA.---.--c-.
 const enemies = [Programs.Warden, Programs.Warden, Programs.Warden, Programs.Warden];
 const creditValues: number[] = [350, 460, 360, 400];
 
-const level = processMap(id, map, enemies, creditValues);
-
-export default level;
+export default defineLevel(id, map, enemies, creditValues);
 
 // 9#1:32

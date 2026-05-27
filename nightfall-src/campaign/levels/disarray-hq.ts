@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "disarray-hq";
 const map = `
@@ -39,9 +39,7 @@ const enemies = [
   Programs.Sumo,
 ];
 
-const level = processMap(id, map, enemies);
-
-export default level;
+export default defineLevel(id, map, enemies);
 
 // TODO Purple sumo
 // 37#0:40

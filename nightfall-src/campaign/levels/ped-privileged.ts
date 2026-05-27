@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "ped-privileged";
 const map = `
@@ -37,8 +37,6 @@ const enemies = [
 ];
 const creditValues: number[] = [800, 730, 760, 880, 700, 860, 860, 830, 870];
 
-const level = processMap(id, map, enemies, creditValues);
-
-export default level;
+export default defineLevel(id, map, enemies, creditValues);
 
 // 32#1:23

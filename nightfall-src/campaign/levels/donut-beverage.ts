@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "donut-beverage";
 const map = `
@@ -30,6 +30,4 @@ const enemies = [
   Programs.AttackDog,
 ];
 
-const level = processMap(id, map, enemies);
-
-export default level;
+export default defineLevel(id, map, enemies);

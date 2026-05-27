@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "lmm-techsupport";
 const map = `
@@ -15,8 +15,6 @@ const map = `
 `;
 const enemies = [Programs.Sentinel, Programs.Sentinel];
 
-const level = processMap(id, map, enemies);
-
-export default level;
+export default defineLevel(id, map, enemies);
 
 // 2#0:16

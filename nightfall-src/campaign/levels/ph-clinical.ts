@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "ph-clinical";
 const map = `
@@ -25,7 +25,7 @@ const enemies = [
 ];
 const creditValues: number[] = [440, 450, 500, 470, 450, 370, 370, 380, 420, 470];
 
-const level = processMap(id, map, enemies, creditValues);
+const level = defineLevel(id, map, enemies, creditValues);
 
 if (level.credits) {
   level.credits.push(

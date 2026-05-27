@@ -1,5 +1,5 @@
 import * as Programs from "../../programs";
-import processMap from "../../util/processMap";
+import { defineLevel } from "./_defineLevel";
 
 const id = "lmm-assimilation";
 const map = `
@@ -14,8 +14,6 @@ const map = `
 const enemies = [Programs.Sumo];
 const creditValues: number[] = [860, 790]; // TODO, made up 790
 
-const level = processMap(id, map, enemies, creditValues);
-
-export default level;
+export default defineLevel(id, map, enemies, creditValues);
 
 // 24#0:57
