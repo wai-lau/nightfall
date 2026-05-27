@@ -111,13 +111,13 @@ export const tang: Pick<
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-ph-t.png"),
     clearedIcon: resolveImage("nodes/trim-ph-o.png"),
-    infoImage: resolveImage("bg/ph-logo.png"),
+    infoImage: resolveImage("bg/tang-logo.png"),
     netmapOrgName: "TANG",
   },
   battleStyle: {
     warningHeader: "Sovereignty as a Service",
     warningText: standardWarning("Territorial Ancestry Negotiation Group"),
-    battleLogoImage: resolveImage("bg/ph-logo.png"),
+    battleLogoImage: resolveImage("bg/tang-logo.png"),
     bgImage: resolveImage("bg/tang.png"),
     introAudio: AudioSources.PHIntro,
   },
