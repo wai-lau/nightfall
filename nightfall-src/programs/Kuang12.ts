@@ -3,7 +3,7 @@ import { resolveImage } from "../util/util";
 
 export const Kuang12: IProgram = {
   id: "Kuang12",
-  color: "rgb(212,175,55)",
+  color: "rgb(166,147,86)",
   iconImageFile: resolveImage("programs/Kuang12.png"),
   name: "Kuang-12",
   description: "Military-Grade Program. Slow Viral Lattice. Has Teeth.",
