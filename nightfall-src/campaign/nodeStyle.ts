@@ -118,7 +118,7 @@ export const tang: Pick<
     warningHeader: "Sovereignty as a Service",
     warningText: standardWarning("Territorial Ancestry Negotiation Group"),
     battleLogoImage: resolveImage("bg/ph-logo.png"),
-    bgImage: resolveImage("bg/pharmhaus.jpg"),
+    bgImage: resolveImage("bg/tang.png"),
     introAudio: AudioSources.PHIntro,
   },
 };
