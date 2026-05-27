@@ -654,13 +654,19 @@ function main() {
     const startCap = [ac + foc, ar + forr];
     const endCap = [bc + toc, br + torr];
     const fullPath = [startCap, ...best.full, endCap];
-    // Attach per-cell sec from baked Voronoi+smooth map (needed for edge Y).
-    const pathWithSec = fullPath.map(([c, r]) => [c, r, secMap.get(`${c},${r}`) ?? 1]);
+    // Same-level edges sit flat at the path level; level-changing edges follow
+    // the per-cell Voronoi sec so they ramp. The edge line uses the same sec as
+    // its floor band (below) so the road never bobs over a crossed sec band.
+    const flatSec = fromSec === toSec ? fromSec : null;
+    const pathWithSec = fullPath.map(([c, r]) => [
+      c,
+      r,
+      flatSec ?? secMap.get(`${c},${r}`) ?? 1,
+    ]);
     baked.push({ from: edge.from, to: edge.to, path: pathWithSec });
 
     // Record this edge's floor cells for the final owner pass: the 1-wide
     // A* centerline (core) plus a 3x3-brush widening for a 3-wide road.
-    const flatSec = fromSec === toSec ? fromSec : null;
     for (const [c, r] of best.full) {
       coreCells.set(`${c},${r}`, edge.to);
       for (let dr = -1; dr <= 1; dr++) {
