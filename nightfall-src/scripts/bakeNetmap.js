@@ -52,6 +52,9 @@ const PORT_OFFSETS = {
   SW: [-PORT_OUT, PORT_OUT],
 };
 const ALL_PORTS = ["N", "S", "E", "W", "NE", "NW", "SE", "SW"];
+const CARDINAL_PORTS = ["N", "S", "E", "W"];
+// Donut nodes route on cardinal ports only — no diagonal entry/exit.
+const portsFor = (id) => (id.startsWith("donut-") ? CARDINAL_PORTS : ALL_PORTS);
 
 // Per-edge port forcing. Listed edges are routed first; the named fp/tp is
 // reserved before remaining edges are greedy-assigned. Either fp or tp may be
@@ -62,11 +65,29 @@ const BAKE_IGNORE = new Set(["smart-hq-retake"]);
 
 const PORT_OVERRIDES = [
   { from: "ph-prdatabase", to: "car-memorytower", fp: "SE", tp: "SW" },
-  { from: "car-memorytower", to: "car-sydney", fp: "W" },
+  { from: "car-memorytower", to: "car-sydney", fp: "W", tp: "SW" },
   { from: "lmm-toy", to: "ped-offshore", fp: "S" },
   { from: "lmm-toy", to: "warez-3", fp: "E" },
   { from: "lmm-toy", to: "tang-cultural-restoration", fp: "N" },
 ];
+
+// Manual per-cell security-level overrides, applied after the owner/sec pass.
+// Use sparingly for spots where the Voronoi sec clashes with a road that brushes
+// a higher-sec node ring (road sits a step below the ring it touches).
+const SEC_OVERRIDES = [
+  // P2->P3 road (sec 3) brushes T5's sec-4 ring; level these cells to the road.
+  { col: 43, row: 56, sec: 3 },
+  { col: 43, row: 57, sec: 3 },
+  { col: 44, row: 57, sec: 3 },
+  // L2->C4 road (sec 2) wraps F2's sec-1 ring corner; level the touched cells.
+  { col: 20, row: 37, sec: 2 },
+  { col: 20, row: 39, sec: 2 },
+  { col: 20, row: 40, sec: 2 },
+  { col: 21, row: 40, sec: 2 },
+];
+const SEC_OVERRIDE_MAP = new Map(
+  SEC_OVERRIDES.map((o) => [`${o.col},${o.row}`, o.sec])
+);
 
 function readSource(p) {
   return fs.readFileSync(p, "utf8");
@@ -611,12 +632,12 @@ function main() {
     const toUsed = usedPorts[edge.to] || new Set();
     const override = overrideFor(edge.from, edge.to);
     let best = null;
-    for (const fp of ALL_PORTS) {
+    for (const fp of portsFor(edge.from)) {
       if (fromUsed.has(fp)) continue;
       if (override?.fp && fp !== override.fp) continue;
       const [foc, forr] = PORT_OFFSETS[fp];
       const start = [ac + foc, ar + forr];
-      for (const tp of ALL_PORTS) {
+      for (const tp of portsFor(edge.to)) {
         if (toUsed.has(tp)) continue;
         if (override?.tp && tp !== override.tp) continue;
         const [toc, torr] = PORT_OFFSETS[tp];
@@ -714,6 +735,9 @@ function main() {
   ]);
   const bakedTiles = [];
   for (const k of allCells) {
+    // Never emit a floor tile inside a node's 3x3 platform: the node platform
+    // occupies that space, so a road/neighbor-ring tile there z-fights it.
+    if (skip.has(k)) continue;
     const coreO = coreCells.get(k);
     const ringO = ringOwner.get(k);
     const wideO = wideCells.get(k);
@@ -724,7 +748,9 @@ function main() {
     // same-level edge takes the path level so the band sits flat; all else uses
     // the per-cell Voronoi sec.
     const roadOwned = coreO !== undefined || (ringO === undefined && wideO !== undefined);
-    const sec = roadOwned && roadSec.has(k) ? roadSec.get(k) : (secMap.get(k) ?? 1);
+    const sec =
+      SEC_OVERRIDE_MAP.get(k) ??
+      (roadOwned && roadSec.has(k) ? roadSec.get(k) : (secMap.get(k) ?? 1));
     const tile = { col: +cs, row: +rs, owner, sec };
     // Extra visibility members beyond the priority-winning owner:
     //  - ring cells: every encircling node (ring stays whole if any revealed)
