@@ -53,7 +53,7 @@ Remake (2020)/
 
 Remake+ (2026)/
 
-  _QoL + Hosting/
+  _3D-NETMAP, BALANCE CHANGES, QoL TWEAKS/
     W ai      L au
 
   _Music Archivist/
