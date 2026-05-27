@@ -36,7 +36,7 @@ const PLATFORM_HALF = 1;
 const PORT_OUT = 2;
 const TURN_PENALTY = 4;
 const STEP_COST = 1;
-const DIAG_COST = 1.4;
+const DIAG_COST = 1.6;
 // Penalty for entering a cell whose sec is not one of the edge's endpoint secs.
 // Big enough to dominate STEP_COST so A* prefers a longer same-sec detour.
 const SEC_PENALTY = 30;
