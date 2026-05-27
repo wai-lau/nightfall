@@ -402,11 +402,13 @@ function aStar(start, end, blocked, used, fromSec, toSec, secMap) {
       const k = cellKey(nc, nr);
       const isEnd = nc === end[0] && nr === end[1];
       if (!isEnd && (blocked.has(k) || used.has(k))) continue;
-      // Diagonals must not climb to a higher sec level.
+      // Diagonals must not change sec level — a road steps between levels on a
+      // straight (cardinal) move ("go up, then go in a direction"), never on a
+      // diagonal, so the ramp reads as a clean step rather than a slanted seam.
       if (d >= 4) {
         const curSec = secMap.get(cellKey(cur.c, cur.r));
         const nextSec = secMap.get(k);
-        if (curSec !== undefined && nextSec !== undefined && nextSec > curSec)
+        if (curSec !== undefined && nextSec !== undefined && nextSec !== curSec)
           continue;
       }
       const turn = cur.dir !== -1 && cur.dir !== d ? TURN_PENALTY : 0;
@@ -611,6 +613,10 @@ function main() {
   const baked = [];
   const coreCells = new Map(); // 1-wide A* centerline -> edge.to
   const wideCells = new Map(); // 3x3 brush around centerline -> edge.to
+  // centerline cell -> its own sec. A core cell keeps this even though an
+  // adjacent centerline cell's brush may also cover it, so the road's sec steps
+  // exactly at the centerline's cardinal transition, not one cell early.
+  const coreSec = new Map();
   // road cell -> gating node id(s) of every edge painting it (edge.to, the same
   // node that owns un-stolen road cells). Used as vis members so a road cell
   // whose owner was won by a neighbor's ring/core still fills with the rest of
@@ -695,6 +701,7 @@ function main() {
       // with the centerline for level-changing ones — never a Voronoi step
       // across the road's width.
       const cellSec = flatSec ?? (secMap.get(`${c},${r}`) ?? 1);
+      coreSec.set(`${c},${r}`, cellSec);
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           const k = `${c + dc},${r + dr}`;
@@ -755,7 +762,12 @@ function main() {
     const roadOwned = coreO !== undefined || (ringO === undefined && wideO !== undefined);
     const sec =
       SEC_OVERRIDE_MAP.get(k) ??
-      (roadOwned && roadSec.has(k) ? roadSec.get(k) : (secMap.get(k) ?? 1));
+      // a core (centerline) cell keeps its own sec; brush cells follow roadSec
+      (coreO !== undefined && coreSec.has(k)
+        ? coreSec.get(k)
+        : roadOwned && roadSec.has(k)
+        ? roadSec.get(k)
+        : secMap.get(k) ?? 1);
     const tile = { col: +cs, row: +rs, owner, sec };
     // Extra visibility members beyond the priority-winning owner:
     //  - ring cells: every encircling node (ring stays whole if any revealed)
