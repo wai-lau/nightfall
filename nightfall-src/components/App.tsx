@@ -410,13 +410,34 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     const childrenStatus = children
       .map((n) => ({ [n.id]: NodeStatus.UNCLEARED_UNATTEMPTED }))
       .reduce((val, next) => ({ ...val, ...next }), {});
+    // Award first-clear credits now, but defer revealing the prereq children
+    // until after the node's dialogue — nodes should always appear after the
+    // dialogue, not pop in (and steal the camera) while it is still up.
+    await this.setStateP((state) => ({
+      numCredits: state.numCredits + (state.firstClearCredits || 0),
+      firstClearCredits: null,
+    }));
+    if (node.onFirstClear) {
+      const gsCoordinator = this as IGameStatusCoordinator;
+      await this.setStateP(() => ({
+        firstClearNode: { id: node.id, result: "clear" },
+      }));
+      this.onFirstClearLock = true;
+      await this.save();
+      await node.onFirstClear(gsCoordinator);
+      await this.setStateP(() => ({
+        firstClearNode: null,
+      }));
+      await this.save();
+      this.onFirstClearLock = false;
+    }
+    // Reveal prereq children after the dialogue resolves. Recompute newly
+    // revealed here since onFirstClear may have revealed some itself.
     const newlyRevealedChildren = children.filter((n) => {
       const s = this.state.netmapStatus[n.id];
       return s === undefined || s === NodeStatus.INVISIBLE;
     });
     await this.setStateP((state) => ({
-      numCredits: state.numCredits + (state.firstClearCredits || 0),
-      firstClearCredits: null,
       netmapStatus: {
         ...childrenStatus,
         ...state.netmapStatus,
@@ -425,21 +446,6 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     if (newlyRevealedChildren.length > 0) {
       this.scrollToNode(newlyRevealedChildren[0].id);
     }
-    if (!node.onFirstClear) {
-      return;
-    }
-    const gsCoordinator = this as IGameStatusCoordinator;
-    await this.setStateP(() => ({
-      firstClearNode: { id: node.id, result: "clear" },
-    }));
-    this.onFirstClearLock = true;
-    await this.save();
-    await node.onFirstClear(gsCoordinator);
-    await this.setStateP(() => ({
-      firstClearNode: null,
-    }));
-    await this.save();
-    this.onFirstClearLock = false;
   };
 
   showPostVictory = () => {
