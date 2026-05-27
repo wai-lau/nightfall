@@ -37,9 +37,10 @@ interface NetmapEdgesProps {
   positions: INetmap["positions"];
   netmapStatus: { [id: string]: NodeStatus };
   playerSecurityLevel: number;
+  nightfall?: boolean;
 }
 
-export default function NetmapEdges({ nodes, positions, netmapStatus, playerSecurityLevel }: NetmapEdgesProps) {
+export default function NetmapEdges({ nodes, positions, netmapStatus, playerSecurityLevel, nightfall }: NetmapEdgesProps) {
   const edges = useMemo(() => {
     const nodeSec: Record<string, number> = {};
     for (const n of nodes) nodeSec[n.id] = n.securityLevel;
@@ -171,7 +172,7 @@ export default function NetmapEdges({ nodes, positions, netmapStatus, playerSecu
   return (
     <>
       {edges.map((edge) => (
-        <AnimatedEdge key={`${edge.from}->${edge.to}`} {...edge} />
+        <AnimatedEdge key={`${edge.from}->${edge.to}`} {...edge} nightfall={nightfall} />
       ))}
     </>
   );
@@ -185,6 +186,7 @@ interface AnimatedEdgeProps {
   render: boolean;
   bothCleared: boolean;
   blocked: boolean;
+  nightfall?: boolean;
   fromTopBaseY: number;
   toTopBaseY: number;
   fromRiseIdx: Uint16Array;
@@ -202,7 +204,7 @@ interface AnimatedEdgeProps {
 }
 
 function AnimatedEdge({
-  from, to, verts, accessible, render, bothCleared, blocked, fromTopBaseY, toTopBaseY, fromRiseIdx, toRiseIdx,
+  from, to, verts, accessible, render, bothCleared, blocked, nightfall, fromTopBaseY, toTopBaseY, fromRiseIdx, toRiseIdx,
   fromCapIdx, toCapIdx, fromCenterX, fromCenterZ, toCenterX, toCenterZ,
   fromUnitX, fromUnitZ, toUnitX, toUnitZ,
 }: AnimatedEdgeProps) {
@@ -298,7 +300,8 @@ function AnimatedEdge({
       <Line
         ref={lineRef}
         points={points}
-        color={blocked ? "#ff6060" : (accessible ? "#aaaaaa" : "#333333")}
+        // Nightfall: edges at 40% brightness, desaturated to grey, full opacity.
+        color={nightfall ? "#666666" : (blocked ? "#ff6060" : (accessible ? "#aaaaaa" : "#333333"))}
         lineWidth={bothCleared ? 4.5 : (accessible ? 1.5 : 1)}
       />
       {pulseStart !== undefined && (

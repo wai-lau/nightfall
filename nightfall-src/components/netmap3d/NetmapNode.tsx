@@ -145,9 +145,14 @@ interface NodeModelProps {
   selected: boolean;
   securityLevel: number;
   blocked: boolean;
+  nightfall: boolean;
 }
 
 const PASTEL_RED = 0xff6060;
+// Nightfall: nodes render in pastel red at 70% brightness with saturation
+// halved, full opacity.
+const NIGHTFALL_RED = 0x975f5f; // PASTEL_RED * 0.7 brightness, saturation halved
+const nightfallLineMat = new THREE.LineBasicMaterial({ color: 0xa58989 }); // 0xffb0b0 * 0.7, saturation halved
 
 const surfaceMatCache = new Map<number, THREE.MeshBasicMaterial>();
 function getSurfaceMat(color: number, opacity: number): THREE.MeshBasicMaterial {
@@ -169,7 +174,7 @@ function getClearedMat(color: number): THREE.MeshStandardMaterial {
   return m;
 }
 
-function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked }: NodeModelProps) {
+function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked, nightfall }: NodeModelProps) {
   const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
   const fpMap = useContext(NodeFootprintContext);
   const fpRef = useRef<{ halfX: number; halfZ: number }>({ halfX: 0, halfZ: 0 });
@@ -272,7 +277,7 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
         m.castShadow = true;
       });
     } else {
-      const surfBase = blocked ? PASTEL_RED : 0xaaaaaa;
+      const surfBase = nightfall ? NIGHTFALL_RED : (blocked ? PASTEL_RED : 0xaaaaaa);
       const surfMat = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, blocked ? 0.315 : 0.45);
       const surfMatBright = dimmed ? dimmedSurfaceMat : getSurfaceMat(surfBase, blocked ? 0.455 : 0.65);
       c.traverse((child) => {
@@ -287,7 +292,7 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
       });
     }
     if (wantOverlay) {
-      const lineMat = dimmed ? dimmedLineMat : (blocked ? blockedLineMat : unclearedLineMat);
+      const lineMat = nightfall ? nightfallLineMat : (dimmed ? dimmedLineMat : (blocked ? blockedLineMat : unclearedLineMat));
       const threshold = EDGES_THRESHOLD[corpKey] ?? EDGES_THRESHOLD_DEFAULT;
       const toAdd: { parent: THREE.Object3D; lines: THREE.LineSegments }[] = [];
       c.traverse((child) => {
@@ -336,7 +341,7 @@ function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, 
       pos: [-center.x * sx, -box.min.y * sy + FLOOR_Y + (securityLevel - 1) * SEC_HEIGHT_STEP + (NODE_ID_Y_OFFSET[nodeId] ?? 0), -center.z * sx + (NODE_ID_Z_OFFSET[nodeId] ?? 0)] as [number, number, number],
       scale: [sx, sy, sx] as [number, number, number],
     };
-  }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked, nightfall]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <primitive object={obj} scale={scale} position={pos} />;
 }
@@ -370,6 +375,19 @@ export default function NetmapNode({
   const platformMat = useMemo(() => {
     const base = new THREE.Color(secColor(node.securityLevel));
     const c = isSelected ? base.clone().multiplyScalar(1.6) : base;
+    // Nightfall: the platform matches the floor tiles — fill dimmed to 20% of
+    // its sec brightness.
+    if (isNightfallDimmed) {
+      const dim = new THREE.Color(secColor(node.securityLevel)).multiplyScalar(0.2);
+      return new THREE.MeshStandardMaterial({
+        color: dim,
+        metalness: 0.05,
+        roughness: 0.8,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      });
+    }
     return new THREE.MeshStandardMaterial({
       color: c,
       emissive: isSelected ? base : 0x000000,
@@ -377,7 +395,7 @@ export default function NetmapNode({
       metalness: 0.05, roughness: 0.8,
       polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
     });
-  }, [node.securityLevel, isSelected]);
+  }, [node.securityLevel, isSelected, isNightfallDimmed]);
   const platformRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -447,6 +465,10 @@ export default function NetmapNode({
 
   const cleared = matchFlag(status, NodeStatus.WON);
   const blocked = !cleared && (node.securityLevel > playerSecurityLevel || !prereqCleared);
+  // During nightfall, affected nodes read as inaccessible — pastel-red wireframe
+  // mesh — instead of the old dark fade.
+  const nfCleared = isNightfallDimmed ? false : cleared;
+  const nfBlocked = isNightfallDimmed ? true : blocked;
 
   return (
     <>
@@ -462,7 +484,7 @@ export default function NetmapNode({
         </mesh>
         <group ref={meshGroupRef}>
           {node.id !== Nodes.S1R && (
-            <NodeModel nodeId={node.id} corpKey={corpKey} cleared={cleared} dimmed={isNightfallDimmed} selected={isSelected} securityLevel={node.securityLevel} blocked={blocked} />
+            <NodeModel nodeId={node.id} corpKey={corpKey} cleared={nfCleared} dimmed={false} selected={isSelected} securityLevel={node.securityLevel} blocked={nfBlocked} nightfall={isNightfallDimmed} />
           )}
           {node.id === Nodes.S1R && (() => {
             const w = 3 * TILE_SIZE;

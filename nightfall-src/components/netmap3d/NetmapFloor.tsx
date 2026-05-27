@@ -73,11 +73,16 @@ export function secColor(level: number): number {
   return SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, level - 1))] ?? SEC_COLOR_DEFAULT;
 }
 
+// Nightfall floor: tile fill dimmed to 20% of its sec brightness. The frame
+// outline keeps the default material throughout.
+const NIGHTFALL_DIM = 0.2;
+
 interface NetmapFloorProps {
   netmapStatus: { [id: string]: NodeStatus };
+  nightfall?: boolean;
 }
 
-export default function NetmapFloor({ netmapStatus }: NetmapFloorProps) {
+export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const frameRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -92,17 +97,21 @@ export default function NetmapFloor({ netmapStatus }: NetmapFloorProps) {
 
   const instanceCount = BAKED_TILES.length;
 
-  // Set per-tile colors once (sec is baked, never changes).
+  // Set per-tile fill colors. Sec is baked; under nightfall every tile fill is
+  // dimmed to NIGHTFALL_DIM of its sec brightness. The frame outline keeps the
+  // default dark material throughout.
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
     for (let i = 0; i < instanceCount; i++) {
       const sec = BAKED_TILES[i].sec;
       const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, sec - 1))] ?? SEC_COLOR_DEFAULT;
-      mesh.setColorAt(i, tmpColor.set(hex));
+      tmpColor.set(hex);
+      if (nightfall) tmpColor.multiplyScalar(NIGHTFALL_DIM);
+      mesh.setColorAt(i, tmpColor);
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [instanceCount, tmpColor]);
+  }, [instanceCount, tmpColor, nightfall]);
 
   // Dirty flag triggers a full repaint on netmapStatus change. useFrame additionally
   // runs while any owner is mid-reveal so tiles rise in sync with their node platform.
@@ -172,8 +181,18 @@ export default function NetmapFloor({ netmapStatus }: NetmapFloorProps) {
 
   return (
     <group position={[0, FLOOR_Y, 0]}>
-      <instancedMesh ref={meshRef} args={[FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, instanceCount]} receiveShadow />
-      <instancedMesh ref={frameRef} args={[FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, instanceCount]} renderOrder={1} />
+      <instancedMesh
+        ref={meshRef}
+        args={[FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, instanceCount]}
+        receiveShadow
+      />
+      {/* Nightfall drops the solid fill (columns invisible) and tints the tile
+          frame to the sec colour, leaving sec-coloured tile outlines. */}
+      <instancedMesh
+        ref={frameRef}
+        args={[FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, instanceCount]}
+        renderOrder={1}
+      />
     </group>
   );
 }

@@ -13,6 +13,7 @@ import {
   startDialogue,
   displayMessage,
   setNightfallNodes,
+  scrollToNode,
   chain,
   addCredits,
 } from "../util/gscHelpers";
@@ -652,7 +653,8 @@ const netmap: INetmap = {
         startDialogue(Dialogue.DisarrayF8),
         setLevel(5),
         revealNode(Nodes.Q1),
-        setNightfallNodes([Nodes.Q1])
+        setNightfallNodes([Nodes.Q1]),
+        scrollToNode(Nodes.Q1)
       ),
     },
 
@@ -668,7 +670,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.F7,
       firstClearCredits: 1000,
-      onFirstLose: chain(startDialogue(Dialogue.SuperphreakQ1Lose), setNightfallNodes()),
+      onFirstLose: startDialogue(Dialogue.SuperphreakQ1Lose),
       onFirstClear: chain(setNightfallNodes(), startDialogue(Dialogue.SuperphreakQ1Win)),
     },
 

@@ -11,6 +11,11 @@ export const hideNode = (id: string) => async (gsc: IGameStatusCoordinator) => {
   return;
 };
 
+export const scrollToNode = (id: string) => async (gsc: IGameStatusCoordinator) => {
+  await gsc.scrollToNode(id);
+  return;
+};
+
 export const addProgram = (p: IProgram) => async (gsc: IGameStatusCoordinator) => {
   await gsc.addProgram(p);
   return;

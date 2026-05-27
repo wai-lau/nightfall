@@ -193,6 +193,15 @@ export default function Netmap3D(props: Netmap3DProps) {
   }, [netmapStatus]);
   const revealCtx = useMemo(() => ({ startTimeMs: revealStartRef.current }), []);
 
+  // During nightfall the key light beams from over Q1 (Disarray's HQ).
+  const nightfall = nightfallAvailableNodes !== undefined;
+  const keyLightPos = useMemo<[number, number, number]>(() => {
+    const p = positions[Nodes.Q1];
+    if (!nightfall || !p) return [-20, 30, -20];
+    const w = toWorld(p, 5);
+    return [w[0], w[1] + 40, w[2]];
+  }, [nightfall, positions]);
+
   // initialScroll is camera-center pixel coords (matches scrollFunction's input).
   const initialTarget = pixelToWorldXZ(initialScrollX, initialScrollY);
 
@@ -253,12 +262,19 @@ export default function Netmap3D(props: Netmap3DProps) {
         dpr={[1, IS_MOBILE ? 1.25 : 2]}
         shadows={{ type: THREE.VSMShadowMap }}
       >
-        <color attach="background" args={[secColor(3)]} />
-        <fog attach="fog" args={[secColor(3), 1, 1000]} />
+        {/* Nightfall blacks out background + fog. */}
+        <color
+          attach="background"
+          args={[nightfallAvailableNodes !== undefined ? 0x000000 : secColor(3)]}
+        />
+        <fog
+          attach="fog"
+          args={[nightfallAvailableNodes !== undefined ? 0x000000 : secColor(3), 1, 1000]}
+        />
         <ambientLight intensity={0.35} />
         <directionalLight position={[0, 30, 60]} intensity={0.25} />
         <directionalLight
-          position={[-20, 30, -20]}
+          position={keyLightPos}
           intensity={1.1}
           castShadow
           shadow-mapSize-width={IS_MOBILE ? 1024 : 4096}
@@ -283,8 +299,8 @@ export default function Netmap3D(props: Netmap3DProps) {
         />
 
         <RevealContext.Provider value={revealCtx}>
-        <NetmapFloor netmapStatus={netmapStatus} />
-        <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} playerSecurityLevel={playerSecurityLevel} />
+        <NetmapFloor netmapStatus={netmapStatus} nightfall={nightfallAvailableNodes !== undefined} />
+        <NetmapEdges nodes={nodes} positions={positions} netmapStatus={netmapStatus} playerSecurityLevel={playerSecurityLevel} nightfall={nightfallAvailableNodes !== undefined} />
 
         <Suspense fallback={null}>
         {(() => {
