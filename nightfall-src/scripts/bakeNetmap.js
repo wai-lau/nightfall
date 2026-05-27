@@ -46,8 +46,12 @@ const PORT_OFFSETS = {
   S: [0, PORT_OUT],
   W: [-PORT_OUT, 0],
   E: [PORT_OUT, 0],
+  NE: [PORT_OUT, -PORT_OUT],
+  NW: [-PORT_OUT, -PORT_OUT],
+  SE: [PORT_OUT, PORT_OUT],
+  SW: [-PORT_OUT, PORT_OUT],
 };
-const ALL_PORTS = ["N", "S", "E", "W"];
+const ALL_PORTS = ["N", "S", "E", "W", "NE", "NW", "SE", "SW"];
 
 // Per-edge port forcing. Listed edges are routed first; the named fp/tp is
 // reserved before remaining edges are greedy-assigned. Either fp or tp may be
@@ -499,22 +503,26 @@ function main() {
     const drop = Math.max(platProb, hullProb);
     if (tileHash(c + 9999, r + 9999) >= drop) visible.add(k);
   }
-  // 1x1 hole fill
-  const fill = [];
-  for (const k of allowed) {
-    if (visible.has(k) || skip.has(k)) continue;
-    const [cs, rs] = k.split(",");
-    const c = +cs,
-      r = +rs;
-    if (
-      visible.has(`${c + 1},${r}`) &&
-      visible.has(`${c - 1},${r}`) &&
-      visible.has(`${c},${r + 1}`) &&
-      visible.has(`${c},${r - 1}`)
-    )
-      fill.push(k);
+  // 1x1 hole fill — iterate to fixpoint: filling a hole can give a neighboring
+  // hole its 4th orthogonal neighbor, so a single pass leaves residual holes.
+  for (;;) {
+    const fill = [];
+    for (const k of allowed) {
+      if (visible.has(k) || skip.has(k)) continue;
+      const [cs, rs] = k.split(",");
+      const c = +cs,
+        r = +rs;
+      if (
+        visible.has(`${c + 1},${r}`) &&
+        visible.has(`${c - 1},${r}`) &&
+        visible.has(`${c},${r + 1}`) &&
+        visible.has(`${c},${r - 1}`)
+      )
+        fill.push(k);
+    }
+    if (!fill.length) break;
+    for (const k of fill) visible.add(k);
   }
-  for (const k of fill) visible.add(k);
 
   // 4. Voronoi sec map + smoothing
   const secMap = buildSecMap(nodeTiles, nodeSecArr);
@@ -653,13 +661,21 @@ function main() {
   }
 
   // 6b. Per-node 5x5 ring (outer ring only; inner 3x3 platform skipped).
+  // ringOwner: last-write-wins, drives tile owner/color priority.
+  // ringMembers: ALL nodes whose ring covers a cell — used so a shared border
+  // cell stays visible when any encircling node is revealed (ring no longer
+  // gaps toward a still-hidden neighbor that happened to win ownership).
   const ringOwner = new Map();
+  const ringMembers = new Map();
   for (const n of nodeData) {
     const [cc, cr] = n.tile;
     for (let dr = -2; dr <= 2; dr++) {
       for (let dc = -2; dc <= 2; dc++) {
         if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) continue;
-        ringOwner.set(`${cc + dc},${cr + dr}`, n.id);
+        const k = `${cc + dc},${cr + dr}`;
+        ringOwner.set(k, n.id);
+        if (!ringMembers.has(k)) ringMembers.set(k, []);
+        ringMembers.get(k).push(n.id);
       }
     }
   }
@@ -685,7 +701,15 @@ function main() {
     if (!owner) continue;
     const [cs, rs] = k.split(",");
     const sec = secMap.get(k) ?? 1;
-    bakedTiles.push({ col: +cs, row: +rs, owner, sec });
+    const tile = { col: +cs, row: +rs, owner, sec };
+    // Ring cells: extra visibility members = encircling nodes other than the
+    // owner that won the tile. Lets the ring render whole if any are revealed.
+    const members = ringMembers.get(k);
+    if (members) {
+      const extra = [...new Set(members.filter((m) => m !== owner))];
+      if (extra.length) tile.vis = extra;
+    }
+    bakedTiles.push(tile);
   }
   bakedTiles.sort((a, b) => a.row - b.row || a.col - b.col);
 
@@ -698,10 +722,16 @@ function main() {
   const ownerList = [
     ...new Set([
       ...bakedTiles.map((t) => t.owner),
+      ...bakedTiles.flatMap((t) => t.vis ?? []),
       ...baked.flatMap((e) => [e.from, e.to]),
     ]),
   ].sort();
   const ownerIdx = new Map(ownerList.map((o, i) => [o, i]));
+
+  // Extra-visibility members for shared ring cells: [col, row, ...ownerIdx].
+  const tileVis = bakedTiles
+    .filter((t) => t.vis)
+    .map((t) => [t.col, t.row, ...t.vis.map((o) => ownerIdx.get(o))]);
 
   // Tiles (sorted row-major) → [row, (col0, len, ownerIdx, sec) ...]: runs of
   // contiguous cells sharing owner + sec.
@@ -759,6 +789,9 @@ function main() {
     "  row: number;",
     "  owner: string;",
     "  sec: number;",
+    "  // Ring tiles only: extra node ids that also make this tile visible when",
+    "  // revealed (shared ring borders; keeps a ring whole past a hidden neighbor).",
+    "  vis?: string[];",
     "}",
     "",
     `const OWNERS: ReadonlyArray<string> = ${JSON.stringify(ownerList)};`,
@@ -766,6 +799,11 @@ function main() {
     "// Tiles, run-length encoded per row: [row, (col0, len, ownerIdx, sec) ...].",
     "const TILE_ROWS: ReadonlyArray<ReadonlyArray<number>> = [",
     ...tileRows.map((r) => `  [${r.join(",")}],`),
+    "];",
+    "",
+    "// Shared ring cells with extra visibility members: [col, row, ...ownerIdx].",
+    "const TILE_VIS: ReadonlyArray<ReadonlyArray<number>> = [",
+    ...tileVis.map((r) => `  [${r.join(",")}],`),
     "];",
     "",
     "// Edges flattened: [fromIdx, toIdx, (col, row, sec) ...].",
@@ -781,6 +819,16 @@ function main() {
     "      const c0 = r[i], len = r[i + 1], owner = OWNERS[r[i + 2]], sec = r[i + 3];",
     "      for (let c = c0; c < c0 + len; c += 1) tiles.push({ col: c, row, owner, sec });",
     "    }",
+    "  }",
+    "  const visByCell = new Map<string, string[]>();",
+    "  for (const v of TILE_VIS) {",
+    "    const members: string[] = [];",
+    "    for (let i = 2; i < v.length; i += 1) members.push(OWNERS[v[i]]);",
+    "    visByCell.set(`${v[0]},${v[1]}`, members);",
+    "  }",
+    "  for (const t of tiles) {",
+    "    const v = visByCell.get(`${t.col},${t.row}`);",
+    "    if (v) t.vis = v;",
     "  }",
     "  return tiles;",
     "}",

@@ -128,8 +128,13 @@ export default function NetmapFloor({ netmapStatus }: NetmapFloorProps) {
 
     for (let i = 0; i < instanceCount; i++) {
       const tile = BAKED_TILES[i];
-      const status = netmapStatus[tile.owner];
-      const visible = status !== undefined && status !== NodeStatus.INVISIBLE;
+      const isVis = (id: string) => {
+        const s = netmapStatus[id];
+        return s !== undefined && s !== NodeStatus.INVISIBLE;
+      };
+      // Shared ring cells: visible if the owner OR any encircling member node is
+      // revealed, so a ring never gaps toward a still-hidden neighbor.
+      const visible = isVis(tile.owner) || (tile.vis?.some(isVis) ?? false);
       if (!visible) {
         mesh.setMatrixAt(i, zero);
         if (frame) frame.setMatrixAt(i, zero);
