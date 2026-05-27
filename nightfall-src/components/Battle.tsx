@@ -14,9 +14,7 @@ import {
   CoordinateMap,
   IGridInitialProgram,
   IGridActiveProgram,
-  CoordinateArray,
   IActionCoordinator,
-  ValidTarget as VT,
   TargetColor as TC,
   IGridActiveUploadZone,
   IProgram,
@@ -27,13 +25,9 @@ import {
 import {
   coordinateKey,
   create2DArray,
-  getAdjacent,
-  coordinateInArray,
   deleteFromArray,
   cloneCoordinateMap,
-  matchFlag,
   coordinatesEqual,
-  isInBounds,
   delay,
 } from "../util/util";
 import * as AudioSources from "../audio/audioSources";
@@ -46,7 +40,8 @@ import { ISelection, SelectionType } from "../types/Selection";
 import StaticMenu, { StaticMenuType } from "./StaticMenu";
 import Button, { ButtonColor } from "./Button";
 
-import { getRangeFromArea, sortBodyFromHead } from "../util/path";
+import { sortBodyFromHead } from "../util/path";
+import * as Rules from "../util/battleLogic";
 import Modal, { ModalConfig } from "./Modal";
 import Credit from "./Credit";
 import DataPack from "./DataPack";
@@ -209,6 +204,16 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   // Returns grid dimensions as Coordinate
   getDimensions = () => [this.props.width, this.props.height] as Coordinate;
 
+  // Read-only view of the grid for the pure rules in util/battleLogic.
+  getModel = (): Rules.BattleModel => ({
+    width: this.props.width,
+    height: this.props.height,
+    filledCoordinates: this.state.filledCoordinates,
+    programs: this.state.programs,
+    credits: this.state.credits,
+    dataPack: this.props.dataPack,
+  });
+
   // Returns all programs
   getPrograms = () => this.state.programs;
 
@@ -249,29 +254,12 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   };
 
   // Get the id of the program at a coordinate, or null if no program is there
-  getProgramIDAtCoordinate = (c: Coordinate) => {
-    const [x, y] = c;
-    const programsAt = this.getProgramMap();
-    const programAtCoordinate = programsAt[y][x];
-    if (programAtCoordinate.length > 1) {
-      console.error(
-        "Tile",
-        `(${x},${y})`,
-        "contained multiple programs:",
-        programAtCoordinate.join(", ")
-      );
-    }
-    return programAtCoordinate[0] || null;
-  };
+  getProgramIDAtCoordinate = (c: Coordinate) =>
+    Rules.programIDAtCoordinate(this.state.programs, c);
 
   // Get the id of the credit at a coordinate, or null if no credit is there
-  getCreditIDAtCoordinate = (c: Coordinate) => {
-    const matchedCredit = this.state.credits.find((credit) => coordinatesEqual(credit.position, c));
-    if (!matchedCredit) {
-      return null;
-    }
-    return matchedCredit.id;
-  };
+  getCreditIDAtCoordinate = (c: Coordinate) =>
+    Rules.creditIDAtCoordinate(this.state.credits, c);
 
   // Convert an IGridInitialProram to an IGridActiveProgram
   initializeProgram = (p: IGridInitialProgram) => ({
@@ -412,25 +400,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Get valid coordinates for where the selected program can move
   getValidMoves = () => {
-    const { width, height } = this.props;
     const { selection } = this.state;
     if (selection?.type !== SelectionType.PROGRAM) {
       throw new Error("Cannot get valid moves if a program is not selected");
     }
-    const selectedProgram = this.getProgramByID(selection.id);
-    const { head, id, movesRemaining } = selectedProgram;
-    if (movesRemaining === 0) {
-      return null;
-    }
-
-    // Find adjacent coordinates in the grid that are either empty or occupied by same program
-    const adjacentCoordinates = getAdjacent(head).filter((c) => isInBounds(c, width, height));
-    const adjacentFilled = adjacentCoordinates.filter(this.isFilled);
-    const validMoves = adjacentFilled.filter((c) => {
-      const programID = this.getProgramIDAtCoordinate(c);
-      return programID === null || programID === id;
-    });
-    return validMoves;
+    return Rules.validMoves(this.getModel(), selection.id);
   };
 
   // Get valid destinations for where the selected program can end the turn
@@ -439,62 +413,16 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     if (selection?.type !== SelectionType.PROGRAM) {
       throw new Error("Cannot get valid moves if a program is not selected");
     }
-    const program = this.getProgramByID(selection.id);
-    const { head, id, movesRemaining } = program;
-    if (movesRemaining === 0) {
-      return null;
-    }
-
-    const passable = this.getPassable(id);
-    return getRangeFromArea([head], movesRemaining, passable);
+    return Rules.validDestinations(this.getModel(), selection.id);
   };
 
   // Get valid coordinates for where the selected program and action can act
   getValidTargets = () => {
-    const { width, height } = this.props;
     const { selection, actionIndex } = this.state;
-
     if (!selection || actionIndex === null) {
       return null;
     }
-
-    const selectedProgram = this.getProgramByID(selection.id);
-    // TODO: move check for not rendering targets after action to render()
-    if (selectedProgram.hasActed) {
-      return null;
-    }
-
-    const { name, head, actions } = selectedProgram;
-    const action = actions[actionIndex];
-    if (!action) {
-      console.error("Action #", actionIndex, "was not found in program", name);
-      return null;
-    }
-    const { range, validTargetScheme = VT.Default } = action;
-
-    const inRange = getRangeFromArea([head], range).filter((c) => isInBounds(c, width, height));
-    let validTargets = inRange.filter((c) => {
-      // If target is unfilled and unfilled tiles are disallowed, return false
-      if (!this.isFilled(c)) {
-        return matchFlag(validTargetScheme, VT.Unfilled);
-      }
-      const id = this.getProgramIDAtCoordinate(c);
-      // If target is filled but unoccupied and unoccupied tiles are disallowed, return false
-      if (!id) {
-        return matchFlag(validTargetScheme, VT.EmptyFilled);
-      }
-
-      const targetProgram = this.getProgramByID(id);
-      // Check for target is occupied by self, same team, or other team
-      if (targetProgram.id === selection.id) {
-        return matchFlag(validTargetScheme, VT.Self);
-      } else if (targetProgram.team === selectedProgram.team) {
-        return matchFlag(validTargetScheme, VT.SameTeam);
-      } else {
-        return matchFlag(validTargetScheme, VT.OtherTeam);
-      }
-    });
-    return validTargets;
+    return Rules.validTargets(this.getModel(), selection.id, actionIndex);
   };
 
   // Create callback for selecting a program
@@ -639,35 +567,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   };
 
   // Returns cells that the given program can move through
-  getPassable = (programID: string) => {
-    const { width, height } = this.props;
-    const { filledCoordinates } = this.state;
-    const program = this.getProgramByID(programID);
-    let passable: CoordinateArray = [];
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (!filledCoordinates[y][x]) {
-          continue;
-        }
-        const c = [x, y] as Coordinate;
-        if (program.team === "CPU") {
-          const { dataPack } = this.props;
-          if (dataPack && coordinatesEqual(dataPack, c)) {
-            continue;
-          }
-          const credit = this.getCreditIDAtCoordinate(c);
-          if (credit && program.team === "CPU") {
-            continue;
-          }
-        }
-        const occupyID = this.getProgramIDAtCoordinate(c);
-        if (!occupyID || occupyID === programID) {
-          passable.push([x, y]);
-        }
-      }
-    }
-    return passable;
-  };
+  getPassable = (programID: string) => Rules.passableCells(this.getModel(), programID);
 
   // Collect credit if applicable, and return whether a credit was collected
   // TODO: Convert return type to enum to allow playing datapack sound
@@ -746,37 +646,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     if (!targetID) {
       return;
     }
-    const { width, height } = this.props;
     const targetProgram = this.getProgramByID(targetID);
-    const { body, maxSize } = targetProgram;
-    let numAdded = 0;
-    // While there are more tiles to add, find furthest empty tiles from the head (by body order)
-    // Start the loop over immediately if we manage to add a tile (the added tile will be where we search).
-    let updatedBody = [...body];
-    while (numAdded < value && updatedBody.length < maxSize) {
-      let i = 0;
-      while (i < updatedBody.length) {
-        const adjacentCoordinates = getAdjacent(updatedBody[i]).filter((c) =>
-          isInBounds(c, width, height)
-        );
-        const adjacentInGrid = adjacentCoordinates.filter(this.isFilled);
-        const adjacentAndEmpty = adjacentInGrid.filter(
-          (c) => !this.getProgramIDAtCoordinate(c) && !coordinateInArray(c, updatedBody)
-        );
-        if (adjacentAndEmpty.length) {
-          updatedBody.push(adjacentAndEmpty[0]);
-          // Below line inserts the new branch at a higher position in the body queue.
-          // updatedBody = [...updatedBody.slice(0, i), adjacentAndEmpty[0], ...updatedBody.slice(i)]
-          numAdded++;
-          break;
-        }
-        i++;
-      }
-      if (i === updatedBody.length) {
-        break;
-      }
-    }
-    await this.updateProgram({ ...targetProgram, body: updatedBody });
+    const body = Rules.grownBody(this.getModel(), targetID, value);
+    await this.updateProgram({ ...targetProgram, body });
   };
 
   // Change the number of a target's moves by ID
@@ -785,14 +657,12 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       return;
     }
     const targetProgram = this.getProgramByID(targetID);
-    const { numMoves, movesRemaining } = targetProgram;
-    const newMovesRemaining = Math.min(Math.max(movesRemaining + value, 0), 10);
-    const newNumMoves = newMovesRemaining - movesRemaining + numMoves;
-    await this.updateProgram({
-      ...targetProgram,
-      numMoves: newNumMoves,
-      movesRemaining: newMovesRemaining,
-    });
+    const { numMoves, movesRemaining } = Rules.applyMoveDelta(
+      targetProgram.numMoves,
+      targetProgram.movesRemaining,
+      value
+    );
+    await this.updateProgram({ ...targetProgram, numMoves, movesRemaining });
   };
 
   // Change a target's max size by ID
@@ -801,10 +671,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       return;
     }
     const targetProgram = this.getProgramByID(targetID);
-    const { maxSize } = targetProgram;
     await this.updateProgram({
       ...targetProgram,
-      maxSize: Math.max(0, maxSize + value),
+      maxSize: Rules.applyMaxSizeDelta(targetProgram.maxSize, value),
     });
   };
 
@@ -974,19 +843,10 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Check if victory has occurred
   checkForVictory = async () => {
-    const remainingTeams = new Set<string>();
-    this.state.programs.forEach((program) => {
-      remainingTeams.add(program.team);
-    });
-    if (remainingTeams.size === 1) {
-      const lastTeam = Array.from(remainingTeams.values())[0];
-      if (lastTeam !== "CPU" && this.props.dataPack) {
-        return;
-      }
-      await this.gameOver(lastTeam);
-      return;
+    const winner = Rules.getWinner(this.state.programs, !!this.props.dataPack);
+    if (winner !== null) {
+      await this.gameOver(winner);
     }
-    return;
   };
 
   // Display modal allowing player to quit
