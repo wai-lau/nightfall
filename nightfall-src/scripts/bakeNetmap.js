@@ -690,13 +690,18 @@ function main() {
     // A* centerline (core) plus a 3x3-brush widening for a 3-wide road.
     for (const [c, r] of best.full) {
       coreCells.set(`${c},${r}`, edge.to);
+      // The 3-wide brush takes its centerline cell's sec so the band always
+      // matches the road tile it surrounds: flat for same-level edges, ramping
+      // with the centerline for level-changing ones — never a Voronoi step
+      // across the road's width.
+      const cellSec = flatSec ?? (secMap.get(`${c},${r}`) ?? 1);
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           const k = `${c + dc},${r + dr}`;
           wideCells.set(k, edge.to);
           if (!roadMembers.has(k)) roadMembers.set(k, new Set());
           roadMembers.get(k).add(edge.to);
-          if (flatSec !== null) roadSec.set(k, flatSec);
+          roadSec.set(k, cellSec);
         }
       }
     }
