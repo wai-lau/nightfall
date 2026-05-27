@@ -1,4 +1,5 @@
-import { IProgram } from "../types";
+import { IProgram, TargetColor as TC } from "../types";
+import { Clog as ClogSound } from "../audio/audioSources";
 import { resolveImage } from "../util/util";
 
 export const Tarantula: IProgram = {
@@ -19,6 +20,8 @@ export const Tarantula: IProgram = {
       description: "Decreases Move Rate of Target Program by 3",
       range: 1,
       run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
+      audioSource: ClogSound,
+      targetColor: TC.Blue,
     },
   ],
   maxSize: 3,

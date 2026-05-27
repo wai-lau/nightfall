@@ -1,4 +1,5 @@
-import { IProgram } from "../types";
+import { IProgram, TargetColor as TC } from "../types";
+import { Clog as ClogSound } from "../audio/audioSources";
 import { resolveImage } from "../util/util";
 
 export const BlackWidow: IProgram = {
@@ -19,6 +20,8 @@ export const BlackWidow: IProgram = {
       description: "Decreases Move Rate of Target Program by 2",
       range: 1,
       run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -2)],
+      audioSource: ClogSound,
+      targetColor: TC.Blue,
     },
   ],
   maxSize: 2,
