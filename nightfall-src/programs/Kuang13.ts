@@ -5,7 +5,7 @@ import { resolveImage } from "../util/util";
 // Kuang12; different art/colour — the LogicBomb / LogicBomb2 pattern.
 export const Kuang13: IProgram = {
   id: "Kuang13",
-  color: "rgb(112,0,240)",
+  color: "rgb(255,56,207)",
   iconImageFile: resolveImage("programs/Kuang13.png"),
   name: "Kuang-12",
   description: "Military-Grade Program. Slow Viral Lattice. Has Teeth.",
