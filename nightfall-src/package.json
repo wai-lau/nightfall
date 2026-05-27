@@ -6,6 +6,7 @@
     "build": "NODE_ENV=production webpack --mode production",
     "start": "webpack serve --mode development --open",
     "bake-netmap": "node scripts/bakeNetmap.js",
+    "gen-dialogues": "node scripts/genDialogueIndex.js",
     "test": "vitest run"
   },
   "dependencies": {

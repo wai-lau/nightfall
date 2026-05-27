@@ -3,6 +3,12 @@ import { resolveImage } from "../util/util";
 import * as AudioSources from "../audio/audioSources";
 import { TANGConfig } from "./corpAudioConfigs";
 
+// The boilerplate corp access-warning — only the org's legal name varies.
+const standardWarning = (org: string): string[] => [
+  `The node you are attempting to access is the property of ${org}. Unauthorized access beyond this point is strictly prohibited.`,
+  "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
+];
+
 export const ph: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-ph-t.png"),
@@ -12,10 +18,7 @@ export const ph: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
   battleStyle: {
     warningHeader: "We take your medication seriously",
-    warningText: [
-      "The node you are attempting to access is the property of Pharmahaus LLC. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Pharmahaus LLC"),
     battleLogoImage: resolveImage("bg/ph-logo.png"),
     bgImage: resolveImage("bg/pharmhaus.jpg"),
     introAudio: AudioSources.PHIntro,
@@ -30,10 +33,7 @@ export const lmm: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
   battleStyle: {
     warningHeader: "It's all in your imagination",
-    warningText: [
-      "The node you are attempting to access is the property of Lucky Monkey Media. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Lucky Monkey Media"),
     battleLogoImage: resolveImage("bg/lmm-logo.png"),
     bgImage: resolveImage("bg/lucky-monkey.jpg"),
     introAudio: AudioSources.LMMIntro,
@@ -48,10 +48,7 @@ export const ped: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
   battleStyle: {
     warningHeader: "Your money is our business",
-    warningText: [
-      "The node you are attempting to access is the property of Parker Ellington Davis Consulting. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Parker Ellington Davis Consulting"),
     battleLogoImage: resolveImage("bg/ped-logo.png"),
     bgImage: resolveImage("bg/parker-ellington-davis.jpg"),
     introAudio: AudioSources.PEDIntro,
@@ -66,10 +63,7 @@ export const car: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
   battleStyle: {
     warningHeader: "Making the future less predictable",
-    warningText: [
-      "The node you are attempting to access is the property of Cellular Automata Research. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Cellular Automata Research"),
     battleLogoImage: resolveImage("bg/car-logo.png"),
     bgImage: resolveImage("bg/cellular-automata.jpg"),
     introAudio: AudioSources.CARIntro,
@@ -84,10 +78,7 @@ export const donut: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
   battleStyle: {
     warningHeader: 'Open wide and say "AHHHHHH!"',
-    warningText: [
-      "The node you are attempting to access is the property of Dr. Donut. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Dr. Donut"),
     battleLogoImage: resolveImage("bg/donut-logo.png"),
     bgImage: resolveImage("bg/dr-donut.jpg"),
     introAudio: AudioSources.DonutIntro,
@@ -125,10 +116,7 @@ export const tang: Pick<
   },
   battleStyle: {
     warningHeader: "Sovereignty as a Service",
-    warningText: [
-      "The node you are attempting to access is the property of Territorial Ancestry Negotiation Group. Unauthorized access beyond this point is strictly prohibited.",
-      "If you proceed you will be in violation of international corporate stature 71J-36Wf9 and will be forcibly disconnected by this node's anti-intrusion security software. Thank you for not hacking.",
-    ],
+    warningText: standardWarning("Territorial Ancestry Negotiation Group"),
     battleLogoImage: resolveImage("bg/ph-logo.png"),
     bgImage: resolveImage("bg/pharmhaus.jpg"),
     introAudio: AudioSources.PHIntro,

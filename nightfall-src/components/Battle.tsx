@@ -21,6 +21,7 @@ import {
   CoordinateFill,
   IGridActiveCredit,
   IBattleStyle,
+  IAudioPlayer,
 } from "../types";
 import {
   coordinateKey,
@@ -213,6 +214,10 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     credits: this.state.credits,
     dataPack: this.props.dataPack,
   });
+
+  // Play a one-off sound cue (centralizes the audio-context access path).
+  playCue: IAudioPlayer["playAudio"] = (source, options) =>
+    this.audioContext.player.playAudio(source, options);
 
   // Returns all programs
   getPrograms = () => this.state.programs;
@@ -429,7 +434,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   createOnSelectProgram = (id: string) => async () => {
     this.cancelAutoAdvance();
 
-    await this.audioContext.player.playAudio(AudioSources.ProgramReady);
+    await this.playCue(AudioSources.ProgramReady);
     const selectedProgram = this.getProgramByID(id);
     if (selectedProgram.team === "P1") {
       this.lastP1ProgramID = id;
@@ -514,9 +519,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     const didCollectProgram = await this.checkCollection(c);
     if (didCollectProgram) {
-      await this.audioContext.player.playAudio(AudioSources.Credit);
+      await this.playCue(AudioSources.Credit);
     } else {
-      await this.audioContext.player.playAudio(AudioSources.Move);
+      await this.playCue(AudioSources.Move);
     }
 
     // TODO: Should this be in a tick method?
@@ -545,7 +550,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     const actionCoordinator = this as IActionCoordinator;
 
     if (targetedID || selectedAction.alwaysPlayAudio) {
-      await this.audioContext.player.playAudio(selectedAction.audioSource || AudioSources.Attack);
+      await this.playCue(selectedAction.audioSource || AudioSources.Attack);
     }
     await this.setProgramDone(selectedProgram);
     await Promise.all(selectedAction.run(actionCoordinator, c, selection.id, targetedID));
@@ -816,7 +821,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     if (selection?.type !== SelectionType.PROGRAM) {
       throw new Error("Cannot select an action without a program selected");
     }
-    await this.audioContext.player.playAudio(AudioSources.SelectAction);
+    await this.playCue(AudioSources.SelectAction);
     await this.setStateP(() => ({ actionIndex }));
   };
 
@@ -829,7 +834,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     const selectedProgram = this.getProgramByID(selection.id);
     if (selectedProgram.team === "P1") {
-      await this.audioContext.player.playAudio(AudioSources.SelectAction);
+      await this.playCue(AudioSources.SelectAction);
     }
 
     this.setProgramDone(selectedProgram);
@@ -879,10 +884,10 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     const didWin = winner === "P1";
     const source = didWin ? AudioSources.Success : AudioSources.Disconnect;
-    await this.audioContext.player.playAudio(source);
+    await this.playCue(source);
 
     if (winner === "P1") {
-      await this.audioContext.player.playAudio(AudioSources.Success);
+      await this.playCue(AudioSources.Success);
       this.displayModal({
         headerBoxTitle: "databattle.result",
         header: "DATABATTLE SUCCESSFUL",
@@ -901,7 +906,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
         ],
       });
     } else {
-      await this.audioContext.player.playAudio(AudioSources.Disconnect);
+      await this.playCue(AudioSources.Disconnect);
       this.displayModal({
         headerBoxTitle: "databattle.result",
         header: "DATABATTLE UNSUCCESSFUL",
@@ -1025,7 +1030,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       const entries = this.getUploadMenuEntries();
       const entry = entries[this.state.keyboardUploadIndex];
       if (!entry || !entry.filteredIndexes.length) return;
-      await this.audioContext.player.playAudio(AudioSources.UploadProgram);
+      await this.playCue(AudioSources.UploadProgram);
       this.onUploadProgram(entry.filteredIndexes[0]);
       return;
     }
@@ -1079,7 +1084,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     const canMove = validMoves?.some((c) => coordinatesEqual(c, target)) ?? false;
 
     if (!canMove) {
-      await this.audioContext.player.playAudio(AudioSources.UploadProgram);
+      await this.playCue(AudioSources.UploadProgram);
       return;
     }
 
