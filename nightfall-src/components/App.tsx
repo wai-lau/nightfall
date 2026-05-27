@@ -460,6 +460,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     await this.waitForPopup();
     if (this.state.availablePrograms.filter((prog) => prog.id === p.id).length >= 2) {
       await this.displayPopup(this.createStackFullModal(p));
+      await this.waitForPopup();
       return;
     }
     await this.audioContext.player?.playAudio(Received);
@@ -467,6 +468,9 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
       availablePrograms: [...state.availablePrograms, p],
     }));
     await this.displayPopup(this.createProgramModal(p));
+    // Block until the "received" modal is dismissed so a chained action (e.g.
+    // T5's WintermutantT5 dialogue) doesn't open on top of it.
+    await this.waitForPopup();
     return;
   };
 
