@@ -61,7 +61,7 @@ const ALL_PORTS = ["N", "S", "E", "W", "NE", "NW", "SE", "SW"];
 const BAKE_IGNORE = new Set(["smart-hq-retake"]);
 
 const PORT_OVERRIDES = [
-  { from: "ph-prdatabase", to: "car-memorytower", fp: "E", tp: "S" },
+  { from: "ph-prdatabase", to: "car-memorytower", fp: "SE", tp: "SW" },
   { from: "car-memorytower", to: "car-sydney", fp: "W" },
   { from: "lmm-toy", to: "ped-offshore", fp: "S" },
   { from: "lmm-toy", to: "warez-3", fp: "E" },
@@ -590,6 +590,16 @@ function main() {
   const baked = [];
   const coreCells = new Map(); // 1-wide A* centerline -> edge.to
   const wideCells = new Map(); // 3x3 brush around centerline -> edge.to
+  // road cell -> gating node id(s) of every edge painting it (edge.to, the same
+  // node that owns un-stolen road cells). Used as vis members so a road cell
+  // whose owner was won by a neighbor's ring/core still fills with the rest of
+  // its road when the edge is visible — no 3-wide paint holes.
+  const roadMembers = new Map();
+  // road cell -> security level, only for edges that stay at one level
+  // (fromSec === toSec). Those edges paint their whole 3-wide band at the path
+  // level instead of the per-cell Voronoi sec, so the road sits flat. Edges
+  // that change level keep per-cell sec so the ramp is preserved.
+  const roadSec = new Map();
   const nodeSecMap = {};
   for (const n of nodeData) nodeSecMap[n.id] = n.sec;
   for (const edge of ordered) {
@@ -650,11 +660,16 @@ function main() {
 
     // Record this edge's floor cells for the final owner pass: the 1-wide
     // A* centerline (core) plus a 3x3-brush widening for a 3-wide road.
+    const flatSec = fromSec === toSec ? fromSec : null;
     for (const [c, r] of best.full) {
       coreCells.set(`${c},${r}`, edge.to);
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
-          wideCells.set(`${c + dc},${r + dr}`, edge.to);
+          const k = `${c + dc},${r + dr}`;
+          wideCells.set(k, edge.to);
+          if (!roadMembers.has(k)) roadMembers.set(k, new Set());
+          roadMembers.get(k).add(edge.to);
+          if (flatSec !== null) roadSec.set(k, flatSec);
         }
       }
     }
@@ -693,20 +708,26 @@ function main() {
   ]);
   const bakedTiles = [];
   for (const k of allCells) {
-    const owner =
-      coreCells.get(k) ??
-      ringOwner.get(k) ??
-      wideCells.get(k) ??
-      voronoiOwner.get(k);
+    const coreO = coreCells.get(k);
+    const ringO = ringOwner.get(k);
+    const wideO = wideCells.get(k);
+    const owner = coreO ?? ringO ?? wideO ?? voronoiOwner.get(k);
     if (!owner) continue;
     const [cs, rs] = k.split(",");
-    const sec = secMap.get(k) ?? 1;
+    // Road-owned tile (core won, or wide won with no ring above it) on a flat
+    // same-level edge takes the path level so the band sits flat; all else uses
+    // the per-cell Voronoi sec.
+    const roadOwned = coreO !== undefined || (ringO === undefined && wideO !== undefined);
+    const sec = roadOwned && roadSec.has(k) ? roadSec.get(k) : (secMap.get(k) ?? 1);
     const tile = { col: +cs, row: +rs, owner, sec };
-    // Ring cells: extra visibility members = encircling nodes other than the
-    // owner that won the tile. Lets the ring render whole if any are revealed.
-    const members = ringMembers.get(k);
-    if (members) {
-      const extra = [...new Set(members.filter((m) => m !== owner))];
+    // Extra visibility members beyond the priority-winning owner:
+    //  - ring cells: every encircling node (ring stays whole if any revealed)
+    //  - road cells: the painting edge's endpoints (3-wide paint fills whenever
+    //    the edge is visible, even where a neighbor's ring/core won the cell)
+    const ringMem = ringMembers.get(k) || [];
+    const roadMem = roadMembers.has(k) ? [...roadMembers.get(k)] : [];
+    if (ringMem.length || roadMem.length) {
+      const extra = [...new Set([...ringMem, ...roadMem])].filter((m) => m !== owner);
       if (extra.length) tile.vis = extra;
     }
     bakedTiles.push(tile);
