@@ -727,7 +727,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.P7,
       firstClearCredits: 2000,
-      onFirstClear: chain(addProgram(Programs.Kuang12), startDialogue(Dialogue.WintermutantT5)),
+      onFirstClear: chain(addProgram(Programs.Kuang13), startDialogue(Dialogue.WintermutantT5)),
     },
     {
       ...NodeStyle.tang,

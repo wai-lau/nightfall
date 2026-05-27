@@ -25,6 +25,7 @@ export { Hack3 } from "./Hack3";
 export { Heisenbug } from "./Heisenbug";
 export { InfernoWall } from "./InfernoWall";
 export { Kuang12 } from "./Kuang12";
+export { Kuang13 } from "./Kuang13";
 export { LaserSatellite } from "./LaserSatellite";
 export { LogicBomb } from "./LogicBomb";
 export { LogicBomb2 } from "./LogicBomb2";

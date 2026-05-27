@@ -1,10 +1,12 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
 
-export const Kuang12: IProgram = {
-  id: "Kuang12",
-  color: "rgb(187,63,50)",
-  iconImageFile: resolveImage("programs/Kuang12.png"),
+// Player-side Kuang-12 (awarded at T5). Same name + behaviour as the enemy
+// Kuang12; different art/colour — the LogicBomb / LogicBomb2 pattern.
+export const Kuang13: IProgram = {
+  id: "Kuang13",
+  color: "rgb(112,0,240)",
+  iconImageFile: resolveImage("programs/Kuang13.png"),
   name: "Kuang-12",
   description: "Military-Grade Program. Slow Viral Lattice. Has Teeth.",
   actions: [
