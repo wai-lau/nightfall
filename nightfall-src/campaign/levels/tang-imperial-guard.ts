@@ -4,7 +4,7 @@ import processMap from "../../util/processMap";
 const id = "tang-imperial-guard";
 // L7 (lmm-assimilation) battle: one large program centre-grid, two corner
 // pickups. Here the centre program is Kuang-12 and the two corners are
-// LogicBomb2 programs (A = Kuang-12 head, B/C = corner LogicBomb2s).
+// WardenPP programs (A = Kuang-12 head, B/C = corner WardenPPs).
 const map = `
 @--------B
 ----------
@@ -14,7 +14,7 @@ const map = `
 ----------
 C--------@
 `;
-const enemies = [Programs.Kuang12, Programs.LogicBomb2, Programs.LogicBomb2];
+const enemies = [Programs.Kuang12, Programs.WardenPP, Programs.WardenPP];
 const creditValues: number[] = [];
 
 const level = processMap(id, map, enemies, creditValues);
