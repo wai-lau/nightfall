@@ -48,6 +48,11 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "../static"),
     filename: "js/bundle.js",
+    // Code-split chunks (e.g. per-level) are loaded by the webpack runtime, not
+    // via index.html, so the server-side ?v= cache-bust can't reach them. Give
+    // them a contenthash so a changed chunk gets a new name and never serves
+    // stale from cache. The entry bundle.js keeps its stable name (?v=-busted).
+    chunkFilename: "js/[name].[contenthash:8].bundle.js",
     publicPath: staticPublicPath,
   },
   devServer: {
