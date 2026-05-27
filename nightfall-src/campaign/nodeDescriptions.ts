@@ -79,7 +79,7 @@ const Descriptions: Record<string, string> = {
   T3:
     "TANG malware staging depot. Forged signatures here may unravel the network anomalies.",
   T4:
-    "TANG strategic reserve — Disarray's exploit stockpile. Burn it down.",
+    "TANG strategic reserve. Pull another sample of the forged signature stockpiled here — the proof the frame-up wasn't us.",
   T5:
     "TANG imperial guard. Off-books elite hardpoint. Use the spoofed credentials Spinner cracked.",
   S1R:
