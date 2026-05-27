@@ -219,3 +219,10 @@ export const BattleQ1: IAudioSource = {
   name: "battle-q1",
   volume: 0.4,
 };
+
+export const BattleTANG: IAudioSource = {
+  solo: true,
+  srcUrl: u("TANG.mp3"),
+  name: "battle-tang",
+  volume: 0.4,
+};

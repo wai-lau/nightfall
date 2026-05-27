@@ -18,3 +18,4 @@ export const CARConfig = loopConfig(AudioSources.BattleCAR, "car");
 export const LMMConfig = loopConfig(AudioSources.BattleLMM, "lmm");
 export const DonutConfig = loopConfig(AudioSources.BattleDonut, "donut");
 export const Q1Config = loopConfig(AudioSources.BattleQ1, "q1");
+export const TANGConfig = loopConfig(AudioSources.BattleTANG, "tang");

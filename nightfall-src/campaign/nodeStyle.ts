@@ -1,6 +1,7 @@
 import { INetmapBattleNode, INetmapNonBattleNode } from "../types";
 import { resolveImage } from "../util/util";
 import * as AudioSources from "../audio/audioSources";
+import { TANGConfig } from "./corpAudioConfigs";
 
 export const ph: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   nodeStyle: {
@@ -111,7 +112,11 @@ export const hq: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   },
 };
 
-export const tang: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
+export const tang: Pick<
+  INetmapBattleNode,
+  "battleStyle" | "nodeStyle" | "audioConfig"
+> = {
+  audioConfig: TANGConfig,
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-ph-t.png"),
     clearedIcon: resolveImage("nodes/trim-ph-o.png"),
