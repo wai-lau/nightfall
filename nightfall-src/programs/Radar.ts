@@ -9,7 +9,7 @@ export const Radar: IProgram = {
   description: "Long-Range Program Eradicator",
   actions: [
     {
-      name: "Pong",
+      name: "Ping",
       description: "Deletes 1 Sector From Target",
       range: 8,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],

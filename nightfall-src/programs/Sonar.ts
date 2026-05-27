@@ -9,7 +9,7 @@ export const Sonar: IProgram = {
   description: "Deadly Program Eradicator",
   actions: [
     {
-      name: "Ping",
+      name: "Pong",
       description: "Deletes 2 Sectors From Target",
       range: 5,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
