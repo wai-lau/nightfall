@@ -4,6 +4,12 @@ import * as Programs from "../programs";
 
 const DEFAULT_KEY = "save";
 
+// Saves store owned programs by id. Pre-split saves were awarded the enemy
+// program id (Kuang12); the player version is now Kuang13. Remap on load.
+const PROGRAM_ID_ALIASES: Record<string, string> = {
+  Kuang12: "Kuang13",
+};
+
 interface ISerializableGameStatus extends Omit<IGameStatus, "availablePrograms"> {
   programIDs: string[];
 }
@@ -104,6 +110,7 @@ class SerializableGameStatus implements ISerializableGameStatus {
 
   toIGameStatus = () => {
     const availablePrograms = this.programIDs
+      .map((id) => PROGRAM_ID_ALIASES[id] ?? id)
       .map((id) => Object.values(Programs).find((p) => p.id === id))
       .filter((x) => x !== undefined);
     const withPrograms = {
