@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Sensor: IProgram = {
   id: "Sensor",
@@ -7,14 +8,7 @@ export const Sensor: IProgram = {
   iconImageFile: resolveImage("programs/Sensor.png"),
   name: "Sensor",
   description: "Immobile Program Eradicator",
-  actions: [
-    {
-      name: "Blip",
-      description: "Deletes 1 Sector From Target",
-      range: 5,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
-    },
-  ],
+  actions: [attack("Blip", "Deletes 1 Sector From Target", 1, { range: 5 })],
   maxSize: 1,
   numMoves: 0,
 };

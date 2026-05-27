@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const InfernoWall: IProgram = {
   id: "InfernoWall",
@@ -7,14 +8,7 @@ export const InfernoWall: IProgram = {
   iconImageFile: resolveImage("programs/InfernoWall.png"),
   name: "Infernowall",
   description: "Incinerates Unwanted Programs in Corprate Sectors",
-  actions: [
-    {
-      name: "Incinerate",
-      description: "Deletes 5 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 5)],
-    },
-  ],
+  actions: [attack("Incinerate", "Deletes 5 Sectors From Target", 5)],
   maxSize: 20,
   numMoves: 2,
 };

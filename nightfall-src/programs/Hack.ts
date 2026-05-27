@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Hack: IProgram = {
   id: "Hack",
@@ -7,14 +8,7 @@ export const Hack: IProgram = {
   iconImageFile: resolveImage("programs/Hack.png"),
   name: "Hack",
   description: "Basic Attack Program",
-  actions: [
-    {
-      name: "Slice",
-      description: "Deletes 2 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-  ],
+  actions: [attack("Slice", "Deletes 2 Sectors From Target", 2)],
   maxSize: 4,
   numMoves: 2,
 };

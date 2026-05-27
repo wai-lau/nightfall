@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Mandelbug: IProgram = {
   id: "Mandelbug",
@@ -7,14 +8,7 @@ export const Mandelbug: IProgram = {
   iconImageFile: resolveImage("programs/Mandelbug.png"),
   name: "Mandelbug",
   description: "It's Not a Bug, It's a Feature",
-  actions: [
-    {
-      name: "Fractal Glitch",
-      description: "Deletes 4 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
-    },
-  ],
+  actions: [attack("Fractal Glitch", "Deletes 4 Sectors From Target", 4)],
   maxSize: 1,
   numMoves: 5,
 };

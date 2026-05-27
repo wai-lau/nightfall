@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Tower: IProgram = {
   id: "Tower",
@@ -7,14 +8,7 @@ export const Tower: IProgram = {
   iconImageFile: resolveImage("programs/Tower.png"),
   name: "TOWER",
   description: "Immobile Long-Range Program",
-  actions: [
-    {
-      name: "Spot",
-      description: "Deletes 1 Sector From Target",
-      range: 6,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
-    },
-  ],
+  actions: [attack("Spot", "Deletes 1 Sector From Target", 1, { range: 6 })],
   maxSize: 1,
   numMoves: 0,
 };

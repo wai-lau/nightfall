@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const AttackDog: IProgram = {
   id: "AttackDog",
@@ -7,14 +8,7 @@ export const AttackDog: IProgram = {
   iconImageFile: resolveImage("programs/AttackDog.png"),
   name: "Attack Dog",
   description: "Ravenous and Bloodthirsty Corporate Canine",
-  actions: [
-    {
-      name: "Megabyte",
-      description: "Deletes 3 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
-    },
-  ],
+  actions: [attack("Megabyte", "Deletes 3 Sectors From Target", 3)],
   maxSize: 7,
   numMoves: 4,
 };

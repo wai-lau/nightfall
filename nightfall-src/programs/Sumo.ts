@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Sumo: IProgram = {
   id: "Sumo",
@@ -7,15 +8,7 @@ export const Sumo: IProgram = {
   iconImageFile: resolveImage("programs/Sumo.png"),
   name: "Sumo",
   description: "A Massive and Slow-Moving Powerhouse",
-  actions: [
-    {
-      name: "Slam",
-      description: "Deletes 8 Sectors From Target",
-      range: 1,
-      sizeReq: 6,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 8)],
-    },
-  ],
+  actions: [attack("Slam", "Deletes 8 Sectors From Target", 8, { sizeReq: 6 })],
   maxSize: 12,
   numMoves: 3,
 };

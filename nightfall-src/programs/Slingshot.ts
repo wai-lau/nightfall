@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Slingshot: IProgram = {
   id: "Slingshot",
@@ -7,14 +8,7 @@ export const Slingshot: IProgram = {
   iconImageFile: resolveImage("programs/Slingshot.png"),
   name: "Slingshot",
   description: "Basic Ranged Attack Program",
-  actions: [
-    {
-      name: "Stone",
-      description: "Deletes 1 Sector From Target",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
-    },
-  ],
+  actions: [attack("Stone", "Deletes 1 Sector From Target", 1, { range: 3 })],
   maxSize: 2,
   numMoves: 2,
 };

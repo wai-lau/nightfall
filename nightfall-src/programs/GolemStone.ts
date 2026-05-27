@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const GolemStone: IProgram = {
   id: "GolemStone",
@@ -7,14 +8,7 @@ export const GolemStone: IProgram = {
   iconImageFile: resolveImage("programs/GolemStone.png"),
   name: "Golem.Stone",
   description: "Nothing Can Stand In Its Way",
-  actions: [
-    {
-      name: "Crash",
-      description: "Deletes 7 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 7)],
-    },
-  ],
+  actions: [attack("Crash", "Deletes 7 Sectors From Target", 7)],
   maxSize: 7,
   numMoves: 3,
 };

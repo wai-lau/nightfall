@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Sonar: IProgram = {
   id: "Sonar",
@@ -7,14 +8,7 @@ export const Sonar: IProgram = {
   iconImageFile: resolveImage("programs/Sonar.png"),
   name: "Sonar",
   description: "Deadly Program Eradicator",
-  actions: [
-    {
-      name: "Pong",
-      description: "Deletes 2 Sectors From Target",
-      range: 5,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-  ],
+  actions: [attack("Pong", "Deletes 2 Sectors From Target", 2, { range: 5 })],
   maxSize: 1,
   numMoves: 0,
 };

@@ -1,6 +1,6 @@
-import { IProgram, TargetColor } from "../types";
+import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
-import { Clog as ClogSound } from "../audio/audioSources";
+import { slow } from "./_helpers";
 
 export const Clog3: IProgram = {
   id: "Clog3",
@@ -9,23 +9,8 @@ export const Clog3: IProgram = {
   name: "Clog.03",
   description: "Brings Hostile Programs to a Halt",
   actions: [
-    {
-      name: "Chug",
-      description: "Decreases Move Rate of Target by 2",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -2)],
-      audioSource: ClogSound,
-      targetColor: TargetColor.Blue,
-    },
-    {
-      name: "Hang",
-      description: "Decreases Move Rate of Target by 4",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -4)],
-      sizeReq: 4,
-      audioSource: ClogSound,
-      targetColor: TargetColor.Blue,
-    },
+    slow("Chug", "Decreases Move Rate of Target by 2", 2, { range: 3 }),
+    slow("Hang", "Decreases Move Rate of Target by 4", 4, { range: 3, sizeReq: 4 }),
   ],
   maxSize: 4,
   numMoves: 2,

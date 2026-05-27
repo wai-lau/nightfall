@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Sentinel: IProgram = {
   id: "Sentinel",
@@ -7,14 +8,7 @@ export const Sentinel: IProgram = {
   iconImageFile: resolveImage("programs/Sentinel.png"),
   name: "Sentinel",
   description: "Corporate Data Defender",
-  actions: [
-    {
-      name: "Cut",
-      description: "Deletes 2 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-  ],
+  actions: [attack("Cut", "Deletes 2 Sectors From Target", 2)],
   maxSize: 3,
   numMoves: 1,
 };

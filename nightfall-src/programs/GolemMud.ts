@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const GolemMud: IProgram = {
   id: "GolemMud",
@@ -7,14 +8,7 @@ export const GolemMud: IProgram = {
   iconImageFile: resolveImage("programs/GolemMud.png"),
   name: "Golem.Mud",
   description: "Slow and Steady Attack Program",
-  actions: [
-    {
-      name: "Thump",
-      description: "Deletes 3 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
-    },
-  ],
+  actions: [attack("Thump", "Deletes 3 Sectors From Target", 3)],
   maxSize: 5,
   numMoves: 1,
 };

@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Satellite: IProgram = {
   id: "Satellite",
@@ -7,14 +8,7 @@ export const Satellite: IProgram = {
   iconImageFile: resolveImage("programs/Satellite.png"),
   name: "Satellite",
   description: "Short-Range Hard-Hitting Program",
-  actions: [
-    {
-      name: "Scramble",
-      description: "Deletes 4 Sectors From Target",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
-    },
-  ],
+  actions: [attack("Scramble", "Deletes 4 Sectors From Target", 4, { range: 2 })],
   maxSize: 1,
   numMoves: 1,
 };

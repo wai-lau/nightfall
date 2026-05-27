@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const WardenPP: IProgram = {
   id: "WardenPP",
@@ -7,14 +8,7 @@ export const WardenPP: IProgram = {
   iconImageFile: resolveImage("programs/WardenPP.png"),
   name: "Warden++",
   description: "The Last Word in Corporate Security",
-  actions: [
-    {
-      name: "Crash",
-      description: "Deletes 7 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 7)],
-    },
-  ],
+  actions: [attack("Crash", "Deletes 7 Sectors From Target", 7)],
   maxSize: 7,
   numMoves: 3,
 };

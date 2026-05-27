@@ -1,6 +1,6 @@
-import { IProgram, TargetColor as TC } from "../types";
-import { Clog as ClogSound } from "../audio/audioSources";
+import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack, slow } from "./_helpers";
 
 export const Tarantula: IProgram = {
   id: "Tarantula",
@@ -9,20 +9,8 @@ export const Tarantula: IProgram = {
   name: "Tarantula",
   description: "Fast, with a Venomous Bite",
   actions: [
-    {
-      name: "Megabyte",
-      description: "Deletes 3 Sectors From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
-    },
-    {
-      name: "Paralyze",
-      description: "Decreases Move Rate of Target Program by 3",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
-      audioSource: ClogSound,
-      targetColor: TC.Blue,
-    },
+    attack("Megabyte", "Deletes 3 Sectors From Target", 3),
+    slow("Paralyze", "Decreases Move Rate of Target Program by 3", 3),
   ],
   maxSize: 3,
   numMoves: 5,

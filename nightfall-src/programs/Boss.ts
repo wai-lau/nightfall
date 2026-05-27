@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Boss: IProgram = {
   id: "Boss",
@@ -7,14 +8,7 @@ export const Boss: IProgram = {
   iconImageFile: resolveImage("programs/Boss.png"),
   name: "Boss",
   description: "Prepare To Be 0wned",
-  actions: [
-    {
-      name: "Shutdown",
-      description: "Deletes 5 Sectors From Target Program",
-      range: 5,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 5)],
-    },
-  ],
+  actions: [attack("Shutdown", "Deletes 5 Sectors From Target Program", 5, { range: 5 })],
   maxSize: 25,
   numMoves: 6,
 };

@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const Seeker: IProgram = {
   id: "Seeker",
@@ -7,14 +8,7 @@ export const Seeker: IProgram = {
   iconImageFile: resolveImage("programs/Seeker.png"),
   name: "Seeker",
   description: "Solid Distance Attack Program",
-  actions: [
-    {
-      name: "Peek",
-      description: "Deletes 2 Sectors From Target",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-  ],
+  actions: [attack("Peek", "Deletes 2 Sectors From Target", 2, { range: 2 })],
   maxSize: 3,
   numMoves: 3,
 };

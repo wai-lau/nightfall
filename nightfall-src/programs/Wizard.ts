@@ -1,6 +1,6 @@
-import { IProgram, TargetColor as TC } from "../types";
-import { Clog } from "../audio/audioSources";
+import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack, slow } from "./_helpers";
 
 export const Wizard: IProgram = {
   id: "Wizard",
@@ -9,20 +9,8 @@ export const Wizard: IProgram = {
   name: "Wizard",
   description: "Pay No Attention to the Man Behind the Curtain",
   actions: [
-    {
-      name: "Fire",
-      description: "Deletes 4 Sectors From Target",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
-    },
-    {
-      name: "Ice",
-      description: "Decreases Movement of Target by 3",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.changeTargetMoves(targetID, -3)],
-      targetColor: TC.Blue,
-      audioSource: Clog,
-    },
+    attack("Fire", "Deletes 4 Sectors From Target", 4, { range: 2 }),
+    slow("Ice", "Decreases Movement of Target by 3", 3, { range: 2 }),
   ],
   maxSize: 3,
   numMoves: 2,

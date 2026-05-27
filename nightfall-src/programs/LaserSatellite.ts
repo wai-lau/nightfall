@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const LaserSatellite: IProgram = {
   id: "LaserSatellite",
@@ -7,14 +8,7 @@ export const LaserSatellite: IProgram = {
   iconImageFile: resolveImage("programs/LaserSatellite.png"),
   name: "Laser Satellite",
   description: "Long-Range Hard-Hitting Program",
-  actions: [
-    {
-      name: "Megascramble",
-      description: "Deletes 4 Sectors From Target",
-      range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
-    },
-  ],
+  actions: [attack("Megascramble", "Deletes 4 Sectors From Target", 4, { range: 3 })],
   maxSize: 1,
   numMoves: 2,
 };

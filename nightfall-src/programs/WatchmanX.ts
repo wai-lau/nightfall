@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const WatchmanX: IProgram = {
   id: "WatchmanX",
@@ -7,14 +8,7 @@ export const WatchmanX: IProgram = {
   iconImageFile: resolveImage("programs/WatchmanX.png"),
   name: "Watchman X",
   description: "Improved Version of Watchman",
-  actions: [
-    {
-      name: "Phaser",
-      description: "Deletes 2 Sectors From Target",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-  ],
+  actions: [attack("Phaser", "Deletes 2 Sectors From Target", 2, { range: 2 })],
   maxSize: 4,
   numMoves: 1,
 };

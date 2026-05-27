@@ -1,5 +1,6 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
+import { attack } from "./_helpers";
 
 export const FireWall: IProgram = {
   id: "FireWall",
@@ -7,14 +8,7 @@ export const FireWall: IProgram = {
   iconImageFile: resolveImage("programs/FireWall.png"),
   name: "Firewall",
   description: "Keeps Unwanted Programs Out of Corprate Sectors",
-  actions: [
-    {
-      name: "Burn",
-      description: "Deletes 1 Sector From Target",
-      range: 1,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 1)],
-    },
-  ],
+  actions: [attack("Burn", "Deletes 1 Sector From Target", 1)],
   maxSize: 20,
   numMoves: 2,
 };
