@@ -50,6 +50,7 @@ export * from "./wintermutant-l3";
 export * from "./wintermutant-l4";
 export * from "./wintermutant-l7";
 export * from "./wintermutant-l9";
+export * from "./wintermutant-t1";
 export * from "./wintermutant-t5";
 export * from "./zhangshan-t2";
 export * from "./zhangshan-t4";

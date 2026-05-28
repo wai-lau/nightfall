@@ -11,7 +11,7 @@ disarray:f4:100-700
 >300 I don't know, what is it?
 >300 Sure.
 
-#300 SmA-RT has a special program that would really help with the crashing and all. To get it running I need a couple of files that are hidden in the corporate nodes around here, two nodes to be exact.
+#300 SmA-RT's got a special program that would really help with the crashing and all. It comes in two halves, hidden in the corporate nodes around here. And it's encrypted - the decryption key's locked up in a TANG node.
 >400 What's the program?
 >401 How do I fit in?
 
@@ -23,9 +23,9 @@ disarray:f4:100-700
 >500 Let me think about it.
 >500 Sure thing.
 
-#500 Okay. You can get to the nodes through this one. They're all level three, so you'll need to get the access code for that level first.
+#500 Three nodes, then: the two halves and the TANG key. They're locked down tight, so line up the right access codes before you go knocking.
 >600 Got it.
 
-#600 I'll load the first node onto your map now. Hack that to access the nodes that contain the program. I'll catch up with you when you've taken care of the security. Later newbie.
+#600 Loading all three onto your map now. Get me in and I'll handle the rest. I'll catch up when you've cleared the security. Later, newbie.
 >700 Ready to receive node data.
 `);

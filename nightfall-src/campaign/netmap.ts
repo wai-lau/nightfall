@@ -354,7 +354,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.C4,
       firstClearCredits: 600,
-      onFirstClear: chain(startDialogue(Dialogue.DisarrayD1), revealNode(Nodes.D3)),
+      onFirstClear: chain(startDialogue(Dialogue.DisarrayD1), revealNode(Nodes.D5), revealNode(Nodes.L8), revealNode(Nodes.T3)),
     },
     {
       ...NodeStyle.donut,
@@ -685,7 +685,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.F2,
       firstClearCredits: 600,
-      onFirstClear: startDialogue(Dialogue.DisarrayT1),
+      onFirstClear: startDialogue(Dialogue.WintermutantT1),
     },
     {
       ...NodeStyle.tang,
@@ -696,7 +696,7 @@ const netmap: INetmap = {
       type: Battle,
       prereq: Nodes.T1,
       firstClearCredits: 600,
-      onFirstClear: chain(startDialogue(Dialogue.ZhangShanT2), revealNode(Nodes.T3)),
+      onFirstClear: startDialogue(Dialogue.ZhangShanT2),
     },
     {
       ...NodeStyle.tang,

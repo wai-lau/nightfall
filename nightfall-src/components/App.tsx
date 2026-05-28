@@ -133,11 +133,9 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     const T5 = "tang-imperial-guard";
     if (clearedNode("ph-employee")) setIfUnset(T1, NodeStatus.UNCLEARED_UNATTEMPTED);
     if (clearedNode(T1)) setIfUnset(T2, NodeStatus.UNCLEARED_UNATTEMPTED);
-    if (clearedNode(T2)) {
-      setIfUnset(T3, NodeStatus.UNCLEARED_UNATTEMPTED);
-    } else {
-      setIfUnset(T3, NodeStatus.INVISIBLE);
-    }
+    // T3 (Disarray's decryption key) is revealed by the Disarray quest now,
+    // not by clearing T2. Keep it INVISIBLE until that explicit reveal.
+    setIfUnset(T3, NodeStatus.INVISIBLE);
     // S1 retake: T3 clear reveals smart-hq-retake. T4 stays INVISIBLE until
     // smart-hq-retake is cleared.
     const S1R = "smart-hq-retake";
