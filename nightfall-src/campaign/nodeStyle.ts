@@ -88,7 +88,7 @@ export const hq: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-hq-t.png"),
     clearedIcon: resolveImage("nodes/trim-hq-o.png"),
-    infoImage: "", // No Image
+    infoImage: resolveImage("bg/disarray.png"),
     netmapOrgName: "", // No Name
   },
   battleStyle: {
