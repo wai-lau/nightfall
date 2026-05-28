@@ -800,7 +800,8 @@ h3 {
 }
 
 .ul-menu-items {
-  overflow: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   flex: 1 1;
   display: flex;
@@ -1233,6 +1234,22 @@ h3 {
   grid-column: 1;
   background-color: rgb(0, 0, 0, 0.5);
   color: #fff;
+}
+
+/* program.info scrolls natively like program.list (.ul-menu-items): vertical
+   only, matching thin scrollbar — keeps the two panels the same width. */
+.current-programs-info .header-box-contents {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
+}
+.current-programs-info .header-box-contents::-webkit-scrollbar {
+  width: 6px;
+}
+.current-programs-info .header-box-contents::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
 }
 
 .toggle-hidden {
