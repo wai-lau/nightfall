@@ -3,7 +3,7 @@ import { defineLevel } from "./_defineLevel";
 
 const id = "tang-cultural-restoration";
 const map = `
---G-----C
+#-G-----C
 --A---B--
 ......-.-
 --D-H-E--

@@ -77,7 +77,7 @@ const Descriptions: Record<string, string> = {
   T2:
     "TANG asset-mapping payload. Recon infrastructure for an organization that doesn't want to be mapped.",
   T3:
-    "TANG malware staging depot. Forged signatures here may unravel the network anomalies.",
+    "TANG malware staging depot. The decryption key Disarray needs is locked away inside — pull the file before TANG's security catches you.",
   T4:
     "TANG strategic reserve. Pull another sample of the forged signature stockpiled here — the proof the frame-up wasn't us.",
   T5:
