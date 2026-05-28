@@ -27,10 +27,6 @@ export const FLOOR_TILE_MAT = new THREE.MeshStandardMaterial({
 const COLUMN_HEIGHT = 30;
 export const FLOOR_COLUMN_GEO = new THREE.BoxGeometry(TILE_SIZE, COLUMN_HEIGHT, TILE_SIZE);
 FLOOR_COLUMN_GEO.translate(0, -COLUMN_HEIGHT / 2, 0);
-// Dawn wireframe source: the column's 12 box edges (incl. the 4 verticals).
-// Threshold 1deg keeps only true box edges (no triangulation diagonals).
-// Shared by the floor merge and the per-node platforms so dawn tiles match.
-export const FLOOR_COLUMN_EDGES = new THREE.EdgesGeometry(FLOOR_COLUMN_GEO, 1);
 export const FLOOR_TOP_GEO = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE);
 FLOOR_TOP_GEO.rotateX(-Math.PI / 2);
 
@@ -80,6 +76,26 @@ export function secColor(level: number): number {
 export const NIGHTFALL_TINT = new THREE.Color(0xa0ffa0);
 export const NIGHTFALL_OPACITY = 0.2;
 
+// Dawn tile geometry: a short box one sec-step tall, top face at local y=0, so
+// positioning it at the tile's sec height aligns its top with the solid morning
+// tile. This is the *visible* slab of the morning column — the 30u depth below
+// is hidden when solid but would crisscross neighbours as wireframe. Faces +
+// edges share this geo so floor and node platforms match.
+export const DAWN_TILE_GEO = new THREE.BoxGeometry(TILE_SIZE, SEC_HEIGHT_STEP, TILE_SIZE);
+DAWN_TILE_GEO.translate(0, -SEC_HEIGHT_STEP / 2, 0);
+export const DAWN_TILE_EDGES = new THREE.EdgesGeometry(DAWN_TILE_GEO, 1);
+export const DAWN_TILE_FACES = DAWN_TILE_GEO.toNonIndexed();
+// Dawn faces: translucent green, pushed back by polygonOffset so the wireframe
+// edges sit crisply in front (no z-fight on shared edge vertices).
+export const DAWN_FACE_MAT = new THREE.MeshBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  opacity: NIGHTFALL_OPACITY,
+  polygonOffset: true,
+  polygonOffsetFactor: 1,
+  polygonOffsetUnits: 1,
+});
+
 interface NetmapFloorProps {
   netmapStatus: { [id: string]: NodeStatus };
   nightfall?: boolean;
@@ -114,37 +130,50 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [instanceCount, tmpColor, nightfall]);
 
-  // Dawn floor: every tile rendered as the same column box as the solid morning
-  // tile, but wireframed (FLOOR_COLUMN_EDGES — full box incl. verticals), merged
-  // into one LineSegments, per-tile vertex-coloured at 20% sec brightness.
+  // Dawn floor: every tile is the short sec-step slab (DAWN_TILE_GEO), merged
+  // into one faces mesh + one LineSegments, per-tile green-tinted by sec. Faces
+  // give visible surfaces; edges give the crisp grid. Both static (dawn is the
+  // endgame state — no reveal animation).
   const dawnFloor = useMemo(() => {
-    const edges = FLOOR_COLUMN_EDGES;
-    const ep = edges.attributes.position.array as ArrayLike<number>;
-    const len = ep.length;
-    const pos = new Float32Array(len * BAKED_TILES.length);
-    const col = new Float32Array(len * BAKED_TILES.length);
+    const ep = DAWN_TILE_EDGES.attributes.position.array as ArrayLike<number>;
+    const fp = DAWN_TILE_FACES.attributes.position.array as ArrayLike<number>;
+    const elen = ep.length;
+    const flen = fp.length;
+    const n = BAKED_TILES.length;
+    const linePos = new Float32Array(elen * n);
+    const lineCol = new Float32Array(elen * n);
+    const facePos = new Float32Array(flen * n);
+    const faceCol = new Float32Array(flen * n);
     const c = new THREE.Color();
-    let o = 0;
+    let lo = 0, fo = 0;
     for (const t of BAKED_TILES) {
       const px = START_X + t.col * TILE_SIZE + TILE_SIZE / 2;
       const py = (t.sec - 1) * SEC_HEIGHT_STEP;
       const pz = START_Z + t.row * TILE_SIZE + TILE_SIZE / 2;
       const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, t.sec - 1))] ?? SEC_COLOR_DEFAULT;
       c.set(hex).multiply(NIGHTFALL_TINT);
-      for (let i = 0; i < len; i += 3) {
-        pos[o] = ep[i] + px;
-        pos[o + 1] = ep[i + 1] + py;
-        pos[o + 2] = ep[i + 2] + pz;
-        col[o] = c.r;
-        col[o + 1] = c.g;
-        col[o + 2] = c.b;
-        o += 3;
+      for (let i = 0; i < elen; i += 3) {
+        linePos[lo] = ep[i] + px;
+        linePos[lo + 1] = ep[i + 1] + py;
+        linePos[lo + 2] = ep[i + 2] + pz;
+        lineCol[lo] = c.r; lineCol[lo + 1] = c.g; lineCol[lo + 2] = c.b;
+        lo += 3;
+      }
+      for (let i = 0; i < flen; i += 3) {
+        facePos[fo] = fp[i] + px;
+        facePos[fo + 1] = fp[i + 1] + py;
+        facePos[fo + 2] = fp[i + 2] + pz;
+        faceCol[fo] = c.r; faceCol[fo + 1] = c.g; faceCol[fo + 2] = c.b;
+        fo += 3;
       }
     }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
-    return g;
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute("position", new THREE.BufferAttribute(linePos, 3));
+    lineGeo.setAttribute("color", new THREE.BufferAttribute(lineCol, 3));
+    const faceGeo = new THREE.BufferGeometry();
+    faceGeo.setAttribute("position", new THREE.BufferAttribute(facePos, 3));
+    faceGeo.setAttribute("color", new THREE.BufferAttribute(faceCol, 3));
+    return { lineGeo, faceGeo };
   }, []);
 
   // Dirty flag triggers a full repaint on netmapStatus change. useFrame additionally
@@ -218,10 +247,14 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
   return (
     <group position={[0, FLOOR_Y, 0]}>
       {nightfall ? (
-        // Dawn: wireframe tile outlines (vertex-coloured), no solid fill/frame.
-        <lineSegments geometry={dawnFloor}>
-          <lineBasicMaterial vertexColors transparent opacity={NIGHTFALL_OPACITY} />
-        </lineSegments>
+        // Dawn: translucent green tile faces + crisp wireframe edges (short
+        // sec-step slabs). No frame.
+        <>
+          <mesh geometry={dawnFloor.faceGeo} material={DAWN_FACE_MAT} />
+          <lineSegments geometry={dawnFloor.lineGeo}>
+            <lineBasicMaterial vertexColors transparent opacity={NIGHTFALL_OPACITY} />
+          </lineSegments>
+        </>
       ) : (
         <>
           <instancedMesh
