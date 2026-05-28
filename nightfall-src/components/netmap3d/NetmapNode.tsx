@@ -15,7 +15,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_COLUMN_GEO, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { FLOOR_COLUMN_GEO, FLOOR_COLUMN_EDGES, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
 import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_LOW_Y } from "./RevealContext";
 
 const GLB_URLS: Record<string, string> = {
@@ -375,19 +375,6 @@ export default function NetmapNode({
   const platformMat = useMemo(() => {
     const base = new THREE.Color(secColor(node.securityLevel));
     const c = isSelected ? base.clone().multiplyScalar(1.6) : base;
-    // Nightfall: the platform matches the floor tiles — fill dimmed to 20% of
-    // its sec brightness.
-    if (isNightfallDimmed) {
-      const dim = new THREE.Color(secColor(node.securityLevel)).multiplyScalar(0.2);
-      return new THREE.MeshStandardMaterial({
-        color: dim,
-        metalness: 0.05,
-        roughness: 0.8,
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 1,
-      });
-    }
     return new THREE.MeshStandardMaterial({
       color: c,
       emissive: isSelected ? base : 0x000000,
@@ -395,7 +382,15 @@ export default function NetmapNode({
       metalness: 0.05, roughness: 0.8,
       polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
     });
-  }, [node.securityLevel, isSelected, isNightfallDimmed]);
+  }, [node.securityLevel, isSelected]);
+  // Dawn: platform tiles render as wireframe columns matching the floor —
+  // sec colour dimmed to 20% (same as NetmapFloor's dawn tiles).
+  const platformLineMat = useMemo(
+    () => new THREE.LineBasicMaterial({
+      color: new THREE.Color(secColor(node.securityLevel)).multiplyScalar(0.2),
+    }),
+    [node.securityLevel]
+  );
   const platformRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -525,8 +520,14 @@ export default function NetmapNode({
       <group ref={platformRef} position={[position[0], NODE_Y + PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP, position[2]]}>
         {TILE_OFFSETS.map(([ox, oz], i) => (
           <React.Fragment key={i}>
-            <mesh position={[ox, 0, oz]} geometry={FLOOR_COLUMN_GEO} material={platformMat} receiveShadow />
-            <mesh position={[ox, 0.001, oz]} geometry={FLOOR_FRAME_GEO} material={FLOOR_FRAME_MAT} renderOrder={1} />
+            {isNightfallDimmed ? (
+              <lineSegments position={[ox, 0, oz]} geometry={FLOOR_COLUMN_EDGES} material={platformLineMat} />
+            ) : (
+              <>
+                <mesh position={[ox, 0, oz]} geometry={FLOOR_COLUMN_GEO} material={platformMat} receiveShadow />
+                <mesh position={[ox, 0.001, oz]} geometry={FLOOR_FRAME_GEO} material={FLOOR_FRAME_MAT} renderOrder={1} />
+              </>
+            )}
           </React.Fragment>
         ))}
         <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]} material={glowMat}>

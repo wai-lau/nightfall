@@ -24,12 +24,13 @@ export const FLOOR_TILE_MAT = new THREE.MeshStandardMaterial({
   polygonOffsetFactor: 1,
   polygonOffsetUnits: 1,
 });
-export const FLOOR_EDGE_MAT = new THREE.LineBasicMaterial({ color: 0xc8d8ec });
-export const FLOOR_TILE_GEO = new THREE.BoxGeometry(TILE_SIZE, 0.05, TILE_SIZE);
-
 const COLUMN_HEIGHT = 30;
 export const FLOOR_COLUMN_GEO = new THREE.BoxGeometry(TILE_SIZE, COLUMN_HEIGHT, TILE_SIZE);
 FLOOR_COLUMN_GEO.translate(0, -COLUMN_HEIGHT / 2, 0);
+// Dawn wireframe source: the column's 12 box edges (incl. the 4 verticals).
+// Threshold 1deg keeps only true box edges (no triangulation diagonals).
+// Shared by the floor merge and the per-node platforms so dawn tiles match.
+export const FLOOR_COLUMN_EDGES = new THREE.EdgesGeometry(FLOOR_COLUMN_GEO, 1);
 export const FLOOR_TOP_GEO = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE);
 FLOOR_TOP_GEO.rotateX(-Math.PI / 2);
 
@@ -111,11 +112,11 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [instanceCount, tmpColor, nightfall]);
 
-  // Dawn floor: every tile rendered as a wireframe outline (EdgesGeometry with a
-  // 1-degree threshold, so only true edges show — no triangulation diagonals),
-  // merged into one LineSegments, per-tile vertex-coloured at 20% sec brightness.
+  // Dawn floor: every tile rendered as the same column box as the solid morning
+  // tile, but wireframed (FLOOR_COLUMN_EDGES — full box incl. verticals), merged
+  // into one LineSegments, per-tile vertex-coloured at 20% sec brightness.
   const dawnFloor = useMemo(() => {
-    const edges = new THREE.EdgesGeometry(FLOOR_TILE_GEO, 1);
+    const edges = FLOOR_COLUMN_EDGES;
     const ep = edges.attributes.position.array as ArrayLike<number>;
     const len = ep.length;
     const pos = new Float32Array(len * BAKED_TILES.length);
