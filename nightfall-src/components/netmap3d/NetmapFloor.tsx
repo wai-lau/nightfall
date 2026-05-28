@@ -76,17 +76,14 @@ export function secColor(level: number): number {
 export const NIGHTFALL_TINT = new THREE.Color(0xa0ffa0);
 export const NIGHTFALL_OPACITY = 0.2;
 
-// Dawn tile geometry: a short box one sec-step tall, top face at local y=0, so
-// positioning it at the tile's sec height aligns its top with the solid morning
-// tile. This is the *visible* slab of the morning column — the 30u depth below
-// is hidden when solid but would crisscross neighbours as wireframe. Faces +
-// edges share this geo so floor and node platforms match.
-export const DAWN_TILE_GEO = new THREE.BoxGeometry(TILE_SIZE, SEC_HEIGHT_STEP, TILE_SIZE);
-DAWN_TILE_GEO.translate(0, -SEC_HEIGHT_STEP / 2, 0);
-export const DAWN_TILE_EDGES = new THREE.EdgesGeometry(DAWN_TILE_GEO, 1);
-export const DAWN_TILE_FACES = DAWN_TILE_GEO.toNonIndexed();
-// Dawn faces: translucent green, pushed back by polygonOffset so the wireframe
-// edges sit crisply in front (no z-fight on shared edge vertices).
+// Dawn tile: keep the full morning column as a wireframe (DAWN_COLUMN_EDGES —
+// all 12 box edges incl. the 4 verticals), but render only the TOP face as a
+// translucent green surface (DAWN_TOP_FACE) — no side/bottom faces, which avoids
+// the overlapping-box clutter. Shared by floor + node platforms.
+export const DAWN_COLUMN_EDGES = new THREE.EdgesGeometry(FLOOR_COLUMN_GEO, 1);
+export const DAWN_TOP_FACE = FLOOR_TOP_GEO.toNonIndexed();
+// Top face: translucent green, pushed back by polygonOffset so the top wireframe
+// edges (coincident at the column top) sit crisply in front (no z-fight).
 export const DAWN_FACE_MAT = new THREE.MeshBasicMaterial({
   vertexColors: true,
   transparent: true,
@@ -130,13 +127,12 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [instanceCount, tmpColor, nightfall]);
 
-  // Dawn floor: every tile is the short sec-step slab (DAWN_TILE_GEO), merged
-  // into one faces mesh + one LineSegments, per-tile green-tinted by sec. Faces
-  // give visible surfaces; edges give the crisp grid. Both static (dawn is the
-  // endgame state — no reveal animation).
+  // Dawn floor: every tile is the full column wireframe (incl. verticals) + a
+  // top-face quad, merged into one LineSegments + one faces mesh, per-tile
+  // green-tinted by sec. Both static (dawn is the endgame state — no reveal).
   const dawnFloor = useMemo(() => {
-    const ep = DAWN_TILE_EDGES.attributes.position.array as ArrayLike<number>;
-    const fp = DAWN_TILE_FACES.attributes.position.array as ArrayLike<number>;
+    const ep = DAWN_COLUMN_EDGES.attributes.position.array as ArrayLike<number>;
+    const fp = DAWN_TOP_FACE.attributes.position.array as ArrayLike<number>;
     const elen = ep.length;
     const flen = fp.length;
     const n = BAKED_TILES.length;

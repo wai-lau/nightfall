@@ -15,7 +15,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_COLUMN_GEO, DAWN_TILE_EDGES, DAWN_TILE_FACES, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, NIGHTFALL_TINT, NIGHTFALL_OPACITY, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { FLOOR_COLUMN_GEO, DAWN_COLUMN_EDGES, DAWN_TOP_FACE, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, NIGHTFALL_TINT, NIGHTFALL_OPACITY, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
 import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_LOW_Y } from "./RevealContext";
 
 const GLB_URLS: Record<string, string> = {
@@ -383,8 +383,8 @@ export default function NetmapNode({
       polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
     });
   }, [node.securityLevel, isSelected]);
-  // Dawn: platform tiles match the floor — translucent green faces + wireframe
-  // edges (short sec-step slabs), sec colour green-tinted at 20% opacity.
+  // Dawn: platform tiles match the floor — full column wireframe + translucent
+  // green top face, sec colour green-tinted at 20% opacity.
   const platformLineMat = useMemo(
     () => new THREE.LineBasicMaterial({
       color: new THREE.Color(secColor(node.securityLevel)).multiply(NIGHTFALL_TINT),
@@ -535,8 +535,8 @@ export default function NetmapNode({
           <React.Fragment key={i}>
             {isNightfallDimmed ? (
               <group position={[ox, 0, oz]}>
-                <mesh geometry={DAWN_TILE_FACES} material={platformFaceMat} />
-                <lineSegments geometry={DAWN_TILE_EDGES} material={platformLineMat} />
+                <mesh geometry={DAWN_TOP_FACE} material={platformFaceMat} />
+                <lineSegments geometry={DAWN_COLUMN_EDGES} material={platformLineMat} />
               </group>
             ) : (
               <>
