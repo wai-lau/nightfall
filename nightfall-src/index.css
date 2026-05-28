@@ -1441,19 +1441,14 @@ h3 {
   padding-right: 1em;
 }
 
-/* Nightfall/dawn mode toggle next to Menu: a fixed square sized to the Menu
-   button's height; the symbol is scaled to fit and never changes the size. */
+/* Day/dawn mode toggle next to Menu: same height + font as the Menu button
+   (isBold), 3x as wide as it is tall. */
 .top-right-controls > .nightfall-toggle {
   margin-left: 1em;
   align-self: stretch;
-  aspect-ratio: 1;
+  aspect-ratio: 3;
   min-width: 0;
   padding: 0;
-  overflow: hidden;
-}
-.nightfall-toggle > .button-text {
-  font-size: 1.2em;
-  line-height: 1;
 }
 
 .credits-num {

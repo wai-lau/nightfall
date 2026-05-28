@@ -350,8 +350,8 @@ export default function Netmap3D(props: Netmap3DProps) {
           Menu
         </Button>
         {q1Cleared && onToggleNightfall && (
-          <Button onClick={onToggleNightfall} className="nightfall-toggle">
-            {nightfallAvailableNodes === undefined ? "☼" : "✧"}
+          <Button isBold onClick={onToggleNightfall} className="nightfall-toggle">
+            {nightfallAvailableNodes === undefined ? "12PM" : "12AM"}
           </Button>
         )}
       </div>
