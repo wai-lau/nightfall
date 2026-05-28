@@ -4,7 +4,7 @@ import { attack } from "./_helpers";
 
 export const InfernoWall: IProgram = {
   id: "InfernoWall",
-  color: "rgb(244,52,23)",
+  color: "rgb(209,57,33)",
   iconImageFile: resolveImage("programs/InfernoWall.png"),
   name: "Infernowall",
   description: "Incinerates Unwanted Programs in Corprate Sectors",
