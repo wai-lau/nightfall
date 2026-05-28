@@ -69,6 +69,9 @@ const PORT_OVERRIDES = [
   { from: "lmm-toy", to: "ped-offshore", fp: "S" },
   { from: "lmm-toy", to: "warez-3", fp: "E" },
   { from: "lmm-toy", to: "tang-cultural-restoration", fp: "N" },
+  // D3 -> its two children: swap ports (D4 was W / D5 was S, the latter looped).
+  { from: "donut-market", to: "donut-beverage", fp: "S" },
+  { from: "donut-market", to: "donut-flavor", fp: "W" },
 ];
 
 // Manual per-cell security-level overrides, applied after the owner/sec pass.
