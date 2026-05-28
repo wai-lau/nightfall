@@ -1242,6 +1242,7 @@ h3 {
   margin-bottom: auto;
 }
 
+
 :root {
   --arrow-size: 7.5em;
   --arrow-margin: 0.5em;
@@ -1438,6 +1439,21 @@ h3 {
   margin-left: 1em;
   padding-left: 1em;
   padding-right: 1em;
+}
+
+/* Nightfall/dawn mode toggle next to Menu: a fixed square sized to the Menu
+   button's height; the symbol is scaled to fit and never changes the size. */
+.top-right-controls > .nightfall-toggle {
+  margin-left: 1em;
+  align-self: stretch;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.nightfall-toggle > .button-text {
+  font-size: 1.2em;
+  line-height: 1;
 }
 
 .credits-num {

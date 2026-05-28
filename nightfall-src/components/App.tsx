@@ -219,6 +219,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     <>
       <Netmap
         nightfallAvailableNodes={this.state.nightfallAvailableNodes}
+        onToggleNightfall={this.onToggleNightfall}
         programs={this.state.availablePrograms}
         securityLevel={this.state.securityLevel}
         credits={this.state.numCredits}
@@ -508,6 +509,12 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     this.setStateP(() => ({
       nightfallAvailableNodes: ids,
     }));
+  };
+
+  // Toggle the netmap mode (offered once Q1 is cleared) between morning
+  // (undefined, normal) and dawn (empty list, so every node dims incl Q1).
+  onToggleNightfall = () => {
+    this.setNightfallNodes(this.state.nightfallAvailableNodes === undefined ? [] : undefined);
   };
 
   scrollToNode = async (id: string) => {

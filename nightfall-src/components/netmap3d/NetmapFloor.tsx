@@ -97,21 +97,52 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
 
   const instanceCount = BAKED_TILES.length;
 
-  // Set per-tile fill colors. Sec is baked; under nightfall every tile fill is
-  // dimmed to NIGHTFALL_DIM of its sec brightness. The frame outline keeps the
-  // default dark material throughout.
+  // Morning (solid tiles): per-tile sec colors. (Dawn renders the wireframe
+  // below instead.) nightfall is a dep so the colors re-apply when the solid
+  // mesh remounts on the dawn->morning toggle.
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
     for (let i = 0; i < instanceCount; i++) {
       const sec = BAKED_TILES[i].sec;
       const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, sec - 1))] ?? SEC_COLOR_DEFAULT;
-      tmpColor.set(hex);
-      if (nightfall) tmpColor.multiplyScalar(NIGHTFALL_DIM);
-      mesh.setColorAt(i, tmpColor);
+      mesh.setColorAt(i, tmpColor.set(hex));
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [instanceCount, tmpColor, nightfall]);
+
+  // Dawn floor: every tile rendered as a wireframe outline (EdgesGeometry with a
+  // 1-degree threshold, so only true edges show — no triangulation diagonals),
+  // merged into one LineSegments, per-tile vertex-coloured at 20% sec brightness.
+  const dawnFloor = useMemo(() => {
+    const edges = new THREE.EdgesGeometry(FLOOR_TILE_GEO, 1);
+    const ep = edges.attributes.position.array as ArrayLike<number>;
+    const len = ep.length;
+    const pos = new Float32Array(len * BAKED_TILES.length);
+    const col = new Float32Array(len * BAKED_TILES.length);
+    const c = new THREE.Color();
+    let o = 0;
+    for (const t of BAKED_TILES) {
+      const px = START_X + t.col * TILE_SIZE + TILE_SIZE / 2;
+      const py = (t.sec - 1) * SEC_HEIGHT_STEP;
+      const pz = START_Z + t.row * TILE_SIZE + TILE_SIZE / 2;
+      const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, t.sec - 1))] ?? SEC_COLOR_DEFAULT;
+      c.set(hex).multiplyScalar(NIGHTFALL_DIM);
+      for (let i = 0; i < len; i += 3) {
+        pos[o] = ep[i] + px;
+        pos[o + 1] = ep[i + 1] + py;
+        pos[o + 2] = ep[i + 2] + pz;
+        col[o] = c.r;
+        col[o + 1] = c.g;
+        col[o + 2] = c.b;
+        o += 3;
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    return g;
+  }, []);
 
   // Dirty flag triggers a full repaint on netmapStatus change. useFrame additionally
   // runs while any owner is mid-reveal so tiles rise in sync with their node platform.
@@ -181,18 +212,25 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
 
   return (
     <group position={[0, FLOOR_Y, 0]}>
-      <instancedMesh
-        ref={meshRef}
-        args={[FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, instanceCount]}
-        receiveShadow
-      />
-      {/* Nightfall drops the solid fill (columns invisible) and tints the tile
-          frame to the sec colour, leaving sec-coloured tile outlines. */}
-      <instancedMesh
-        ref={frameRef}
-        args={[FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, instanceCount]}
-        renderOrder={1}
-      />
+      {nightfall ? (
+        // Dawn: wireframe tile outlines (vertex-coloured), no solid fill/frame.
+        <lineSegments geometry={dawnFloor}>
+          <lineBasicMaterial vertexColors />
+        </lineSegments>
+      ) : (
+        <>
+          <instancedMesh
+            ref={meshRef}
+            args={[FLOOR_COLUMN_GEO, FLOOR_TILE_MAT, instanceCount]}
+            receiveShadow
+          />
+          <instancedMesh
+            ref={frameRef}
+            args={[FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, instanceCount]}
+            renderOrder={1}
+          />
+        </>
+      )}
     </group>
   );
 }

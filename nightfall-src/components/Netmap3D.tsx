@@ -96,6 +96,7 @@ interface Netmap3DProps extends INetmap {
   selectedID?: string;
   onMenu: () => void;
   nightfallAvailableNodes?: INetmapNode["id"][];
+  onToggleNightfall?: () => void;
 }
 
 export default function Netmap3D(props: Netmap3DProps) {
@@ -111,6 +112,7 @@ export default function Netmap3D(props: Netmap3DProps) {
     selectedID,
     onMenu,
     nightfallAvailableNodes,
+    onToggleNightfall,
     onSelectNode,
     initialScrollX = 0,
     initialScrollY = 0,
@@ -195,6 +197,9 @@ export default function Netmap3D(props: Netmap3DProps) {
 
   // During nightfall the key light beams from over Q1 (Disarray's HQ).
   const nightfall = nightfallAvailableNodes !== undefined;
+  // Once Q1 is cleared, offer a manual nightfall-mode toggle.
+  const q1Status = netmapStatus[Nodes.Q1];
+  const q1Cleared = q1Status !== undefined && matchFlag(q1Status, NodeStatus.WON);
   const keyLightPos = useMemo<[number, number, number]>(() => {
     const p = positions[Nodes.Q1];
     if (!nightfall || !p) return [-20, 30, -20];
@@ -344,6 +349,11 @@ export default function Netmap3D(props: Netmap3DProps) {
         <Button isBold onClick={onMenu}>
           Menu
         </Button>
+        {q1Cleared && onToggleNightfall && (
+          <Button onClick={onToggleNightfall} className="nightfall-toggle">
+            {nightfallAvailableNodes === undefined ? "☼" : "✧"}
+          </Button>
+        )}
       </div>
 
       {showArrows &&

@@ -149,10 +149,10 @@ interface NodeModelProps {
 }
 
 const PASTEL_RED = 0xff6060;
-// Nightfall: nodes render in pastel red at 70% brightness with saturation
-// halved, full opacity.
-const NIGHTFALL_RED = 0x975f5f; // PASTEL_RED * 0.7 brightness, saturation halved
-const nightfallLineMat = new THREE.LineBasicMaterial({ color: 0xa58989 }); // 0xffb0b0 * 0.7, saturation halved
+// Dawn: nodes render in pastel green at 70% brightness with saturation halved,
+// full opacity (green analogues of the pastel-red surface/line colours).
+const NIGHTFALL_RED = 0x5f975f; // pastel green, 70% brightness, saturation halved
+const nightfallLineMat = new THREE.LineBasicMaterial({ color: 0x89a589 });
 
 const surfaceMatCache = new Map<number, THREE.MeshBasicMaterial>();
 function getSurfaceMat(color: number, opacity: number): THREE.MeshBasicMaterial {
