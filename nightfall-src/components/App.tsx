@@ -154,6 +154,17 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
     }
     if (clearedNode("ped-privileged")) setIfUnset(T5, NodeStatus.UNCLEARED_UNATTEMPTED);
 
+    // Reveal-by-prereq migration: backfill the clear-time childrenStatus reveal
+    // (onFinishBattle) for saves that cleared a prereq before its child node
+    // shipped — e.g. donut-flavor/lmm-jungle, wired to prereq D3 after D3 was
+    // already cleared. setIfUnset leaves INVISIBLE-seeded specials + progress
+    // untouched, and is a no-op for non-stale saves.
+    for (const n of this.props.netmap.nodes) {
+      if (n.prereq && clearedNode(n.prereq)) {
+        setIfUnset(n.id, NodeStatus.UNCLEARED_UNATTEMPTED);
+      }
+    }
+
     this.state = {
       ...merged,
       availablePrograms: prunedPrograms,
