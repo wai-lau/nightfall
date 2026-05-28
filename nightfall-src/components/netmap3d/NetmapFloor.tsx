@@ -147,9 +147,11 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
   // Dirty flag triggers a full repaint on netmapStatus change. useFrame additionally
   // runs while any owner is mid-reveal so tiles rise in sync with their node platform.
   const dirty = useRef(true);
+  // netmapStatus repaints on reveal; nightfall repaints because toggling back to
+  // morning remounts a fresh instancedMesh whose instance matrices are zeroed.
   useEffect(() => {
     dirty.current = true;
-  }, [netmapStatus]);
+  }, [netmapStatus, nightfall]);
 
   useFrame(() => {
     const mesh = meshRef.current;
