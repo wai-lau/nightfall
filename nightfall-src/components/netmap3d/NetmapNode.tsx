@@ -15,7 +15,7 @@ import {
 } from "../../types";
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
-import { FLOOR_COLUMN_GEO, FLOOR_COLUMN_EDGES, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
+import { FLOOR_COLUMN_GEO, FLOOR_COLUMN_EDGES, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, NIGHTFALL_TINT, NIGHTFALL_OPACITY, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
 import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_LOW_Y } from "./RevealContext";
 
 const GLB_URLS: Record<string, string> = {
@@ -384,10 +384,12 @@ export default function NetmapNode({
     });
   }, [node.securityLevel, isSelected]);
   // Dawn: platform tiles render as wireframe columns matching the floor —
-  // sec colour dimmed to 20% (same as NetmapFloor's dawn tiles).
+  // sec colour green-tinted at 20% opacity (same as NetmapFloor's dawn tiles).
   const platformLineMat = useMemo(
     () => new THREE.LineBasicMaterial({
-      color: new THREE.Color(secColor(node.securityLevel)).multiplyScalar(0.2),
+      color: new THREE.Color(secColor(node.securityLevel)).multiply(NIGHTFALL_TINT),
+      transparent: true,
+      opacity: NIGHTFALL_OPACITY,
     }),
     [node.securityLevel]
   );

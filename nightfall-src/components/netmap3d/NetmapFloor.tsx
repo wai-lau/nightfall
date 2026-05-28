@@ -74,9 +74,11 @@ export function secColor(level: number): number {
   return SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, level - 1))] ?? SEC_COLOR_DEFAULT;
 }
 
-// Nightfall floor: tile fill dimmed to 20% of its sec brightness. The frame
-// outline keeps the default material throughout.
-const NIGHTFALL_DIM = 0.2;
+// Dawn floor + node platforms: tiles take the node-green hue at their sec
+// brightness, rendered at 20% opacity. The tint is multiplied onto the
+// sec-palette grey so per-sec brightness ordering is preserved.
+export const NIGHTFALL_TINT = new THREE.Color(0xa0ffa0);
+export const NIGHTFALL_OPACITY = 0.2;
 
 interface NetmapFloorProps {
   netmapStatus: { [id: string]: NodeStatus };
@@ -128,7 +130,7 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
       const py = (t.sec - 1) * SEC_HEIGHT_STEP;
       const pz = START_Z + t.row * TILE_SIZE + TILE_SIZE / 2;
       const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, t.sec - 1))] ?? SEC_COLOR_DEFAULT;
-      c.set(hex).multiplyScalar(NIGHTFALL_DIM);
+      c.set(hex).multiply(NIGHTFALL_TINT);
       for (let i = 0; i < len; i += 3) {
         pos[o] = ep[i] + px;
         pos[o + 1] = ep[i + 1] + py;
@@ -218,7 +220,7 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
       {nightfall ? (
         // Dawn: wireframe tile outlines (vertex-coloured), no solid fill/frame.
         <lineSegments geometry={dawnFloor}>
-          <lineBasicMaterial vertexColors />
+          <lineBasicMaterial vertexColors transparent opacity={NIGHTFALL_OPACITY} />
         </lineSegments>
       ) : (
         <>
