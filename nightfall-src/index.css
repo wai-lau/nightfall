@@ -1442,11 +1442,11 @@ h3 {
 }
 
 /* Day/dawn mode toggle next to Menu: same height + font as the Menu button
-   (isBold), 3x as wide as it is tall. */
+   (isBold), 6x as wide as it is tall. */
 .top-right-controls > .nightfall-toggle {
   margin-left: 1em;
   align-self: stretch;
-  aspect-ratio: 3;
+  aspect-ratio: 6;
   min-width: 0;
   padding: 0;
 }
