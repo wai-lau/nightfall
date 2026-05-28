@@ -88,7 +88,7 @@ export const hq: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
   nodeStyle: {
     unclearedIcon: resolveImage("nodes/trim-hq-t.png"),
     clearedIcon: resolveImage("nodes/trim-hq-o.png"),
-    infoImage: resolveImage("bg/disarray.png"),
+    infoImage: "", // No Image
     netmapOrgName: "", // No Name
   },
   battleStyle: {
@@ -97,7 +97,7 @@ export const hq: Pick<INetmapBattleNode, "battleStyle" | "nodeStyle"> = {
       "The node you are attempting to access is the property of Disarray, the world's most elite hacker. Unauthorized access beyuond this point is only for the extremely stupid.",
       "If you proceed you will be in violation of my net genius and will be forcibly ripped into bit-sized pieces by killer programs which will plague your nightmares for the rest of your natural life. Thank you for not hacking well.",
     ],
-    battleLogoImage: "",
+    battleLogoImage: resolveImage("bg/disarray.png"),
     bgImage: resolveImage("bg/code.jpg"),
     introAudio: AudioSources.DisarrayIntro,
   },
