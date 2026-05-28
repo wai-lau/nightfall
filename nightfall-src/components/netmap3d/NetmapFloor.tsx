@@ -76,14 +76,13 @@ export function secColor(level: number): number {
 export const NIGHTFALL_TINT = new THREE.Color(0xa0ffa0);
 export const NIGHTFALL_OPACITY = 0.2;
 
-// Dawn tile: keep the full morning column as a wireframe (DAWN_COLUMN_EDGES —
-// all 12 box edges incl. the 4 verticals), but render only the TOP face as a
-// translucent green surface (DAWN_TOP_FACE) — no side/bottom faces, which avoids
-// the overlapping-box clutter. Shared by floor + node platforms.
-export const DAWN_COLUMN_EDGES = new THREE.EdgesGeometry(FLOOR_COLUMN_GEO, 1);
+// Dawn tile: a flat top-face quad (DAWN_TOP_FACE) as a translucent green surface
+// plus its 4 perimeter edges (DAWN_TOP_EDGES) as the green outline — no columns
+// or verticals. Shared by floor + node platforms.
 export const DAWN_TOP_FACE = FLOOR_TOP_GEO.toNonIndexed();
-// Top face: translucent green, pushed back by polygonOffset so the top wireframe
-// edges (coincident at the column top) sit crisply in front (no z-fight).
+export const DAWN_TOP_EDGES = new THREE.EdgesGeometry(FLOOR_TOP_GEO, 1);
+// Top face: translucent green, pushed back by polygonOffset so the outline edges
+// (coincident in the same plane) sit crisply in front (no z-fight).
 export const DAWN_FACE_MAT = new THREE.MeshBasicMaterial({
   vertexColors: true,
   transparent: true,
@@ -127,22 +126,29 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [instanceCount, tmpColor, nightfall]);
 
-  // Dawn floor: every tile is the full column wireframe (incl. verticals) + a
-  // top-face quad, merged into one LineSegments + one faces mesh, per-tile
-  // green-tinted by sec. Both static (dawn is the endgame state — no reveal).
+  // Dawn floor: each visible tile is a flat top-face quad + its outline edges,
+  // merged into one faces mesh + one LineSegments, per-tile green-tinted by sec.
+  // Visibility matches the morning cull (owner or a shared-ring member revealed)
+  // so dawn never fills an unrevealed node's ring while its platform is absent.
   const dawnFloor = useMemo(() => {
-    const ep = DAWN_COLUMN_EDGES.attributes.position.array as ArrayLike<number>;
+    if (!nightfall) return { lineGeo: new THREE.BufferGeometry(), faceGeo: new THREE.BufferGeometry() };
+    const isVis = (id: string) => {
+      const s = netmapStatus[id];
+      return s !== undefined && s !== NodeStatus.INVISIBLE;
+    };
+    const tiles = BAKED_TILES.filter((t) => isVis(t.owner) || (t.vis?.some(isVis) ?? false));
+    const ep = DAWN_TOP_EDGES.attributes.position.array as ArrayLike<number>;
     const fp = DAWN_TOP_FACE.attributes.position.array as ArrayLike<number>;
     const elen = ep.length;
     const flen = fp.length;
-    const n = BAKED_TILES.length;
+    const n = tiles.length;
     const linePos = new Float32Array(elen * n);
     const lineCol = new Float32Array(elen * n);
     const facePos = new Float32Array(flen * n);
     const faceCol = new Float32Array(flen * n);
     const c = new THREE.Color();
     let lo = 0, fo = 0;
-    for (const t of BAKED_TILES) {
+    for (const t of tiles) {
       const px = START_X + t.col * TILE_SIZE + TILE_SIZE / 2;
       const py = (t.sec - 1) * SEC_HEIGHT_STEP;
       const pz = START_Z + t.row * TILE_SIZE + TILE_SIZE / 2;
@@ -170,7 +176,16 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     faceGeo.setAttribute("position", new THREE.BufferAttribute(facePos, 3));
     faceGeo.setAttribute("color", new THREE.BufferAttribute(faceCol, 3));
     return { lineGeo, faceGeo };
-  }, []);
+  }, [netmapStatus, nightfall]);
+
+  // Dispose the previous merged geometries when they rebuild (status change) or
+  // on unmount, so toggling/clearing in dawn doesn't leak GPU buffers.
+  useEffect(() => {
+    return () => {
+      dawnFloor.lineGeo.dispose();
+      dawnFloor.faceGeo.dispose();
+    };
+  }, [dawnFloor]);
 
   // Dirty flag triggers a full repaint on netmapStatus change. useFrame additionally
   // runs while any owner is mid-reveal so tiles rise in sync with their node platform.
