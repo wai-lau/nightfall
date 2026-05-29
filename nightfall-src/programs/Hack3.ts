@@ -15,7 +15,7 @@ export const Hack3: IProgram = {
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
     },
     {
-      name: "Dice",
+      name: "Cleave",
       description: "Deletes 4 Sectors From Target",
       range: 1,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
