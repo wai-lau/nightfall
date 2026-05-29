@@ -11,14 +11,32 @@
 <title>The Nightfall Incident</title>
 <style>
   html, body { width:100%; height:100%; margin:0; background:#222; }
+  /* Centered frame matching .container's letterboxed game window so the
+     boot-bar lives inside the game window, not pinned to the viewport. */
+  #boot-frame {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none; z-index:1000;
+  }
+  #boot-window {
+    --aspect-ratio:1.5;
+    --v-pct:calc((100vh - env(safe-area-inset-top,2em)*2)/100*var(--aspect-ratio));
+    --h-pct:calc((100vw - env(safe-area-inset-left,2em)*2)/100);
+    --pct-raw:min(var(--v-pct), var(--h-pct));
+    --pct:min(var(--pct-raw), 10px);
+    --font-ratio:1.3;
+    font-size:calc(var(--font-ratio) * var(--pct));
+    width:calc(100 / var(--font-ratio) * 1em);
+    height:calc(100 / var(--aspect-ratio) / var(--font-ratio) * 1em);
+    position:relative;
+  }
   #boot-bar {
-    position:fixed; left:4em; right:4em;
-    bottom:calc(var(--nav-h, 0px) + 2em);
+    position:absolute; left:4em; right:4em; bottom:4em;
     height:0.7em; border:0.15em solid #fff;
     background:transparent; mix-blend-mode:screen;
     overflow:hidden; box-sizing:border-box;
-    pointer-events:none; z-index:1000;
-    transition:opacity 0.8s ease, bottom 0.25s ease;
+    pointer-events:none;
+    transition:opacity 0.8s ease;
   }
   #boot-bar-fill {
     height:100%; width:0%; background:#fff;
@@ -58,7 +76,7 @@
 </head>
 <body>
 <noscript>You need to enable JavaScript to run this app.</noscript>
-<div id="boot-bar"><div id="boot-bar-fill"></div></div>
+<div id="boot-frame"><div id="boot-window"><div id="boot-bar"><div id="boot-bar-fill"></div></div></div></div>
 <script>
 requestAnimationFrame(function(){
   requestAnimationFrame(function(){
