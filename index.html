@@ -61,8 +61,12 @@
     var registered = audioTotal > 0 && imageTotal > 0;
     if (!registered) pct = Math.min(pct, 92);
     var done = registered && loaded >= total;
-    if (!done) pct = Math.max(20, pct);
-    fill.style.width = Math.min(100, pct) + '%';
+    if (!done) pct = Math.max(15, pct);
+    var shown = Math.min(100, pct);
+    fill.style.width = shown + '%';
+    // Logarithmic fade: opacity = ln(1 + (1-p)*(e-1)).
+    // Full at 0%, ~0.017 at 99% (near invisible), 0 at 100%.
+    bar.style.opacity = Math.log(1 + (1 - shown / 100) * (Math.E - 1));
     if (done) bar.classList.add('done');
   }
   window.__nfProgress = function(kind, loaded, total) {
@@ -83,7 +87,7 @@ requestAnimationFrame(function(){
     var f = document.getElementById('boot-bar-fill');
     if (!f) return;
     var cur = parseFloat(f.style.width) || 0;
-    if (cur < 20) f.style.width = '20%';
+    if (cur < 15) f.style.width = '15%';
   });
 });
 </script>
