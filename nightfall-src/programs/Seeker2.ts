@@ -10,15 +10,9 @@ export const Seeker2: IProgram = {
   actions: [
     {
       name: "Poke",
-      description: "Deletes 2 Sectors From Target",
+      description: "Deletes 3 Sectors From Target",
       range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 2)],
-    },
-    {
-      name: "Seek & Destroy",
-      description: "Deletes 4 Sectors From Target & 2 From Seeker",
-      range: 2,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(selfID, 2), ac.damageTarget(targetID, 4)],
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
     },
   ],
   maxSize: 3,
