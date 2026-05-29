@@ -7,8 +7,8 @@ export const LaserSatellite: IProgram = {
   color: "rgb(0,252,203)",
   iconImageFile: resolveImage("programs/LaserSatellite.png"),
   name: "Laser Satellite",
-  description: "Long-Range Hard-Hitting Program",
-  actions: [attack("Megascramble", "Deletes 4 Sectors From Target", 4, { range: 3 })],
+  description: "Extreme-Range Faster-Moving Program",
+  actions: [attack("Megascramble", "Deletes 2 Sectors From Target", 2, { range: 5 })],
   maxSize: 1,
-  numMoves: 2,
+  numMoves: 4,
 };

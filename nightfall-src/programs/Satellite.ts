@@ -7,8 +7,8 @@ export const Satellite: IProgram = {
   color: "rgb(0,252,203)",
   iconImageFile: resolveImage("programs/Satellite.png"),
   name: "Satellite",
-  description: "Short-Range Hard-Hitting Program",
-  actions: [attack("Scramble", "Deletes 4 Sectors From Target", 4, { range: 2 })],
+  description: "Extreme-Range Fast-Moving Program",
+  actions: [attack("Scramble", "Deletes 1 Sector From Target", 1, { range: 5 })],
   maxSize: 1,
-  numMoves: 1,
+  numMoves: 3,
 };

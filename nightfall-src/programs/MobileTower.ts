@@ -4,11 +4,11 @@ import { attack } from "./_helpers";
 
 export const MobileTower: IProgram = {
   id: "MobileTower",
-  color: "rgb(0,252,149)",
+  color: "rgb(0,252,203)",
   iconImageFile: resolveImage("programs/MobileTower.png"),
   name: "MOBILE TOWER",
-  description: "Slow-Moving Long-Range Program",
-  actions: [attack("Spot", "Deletes 1 Sector From Target", 1, { range: 6 })],
+  description: "Slow-Moving Extreme-Range Program",
+  actions: [attack("Spot", "Deletes 2 Sectors From Target", 2, { range: 5 })],
   maxSize: 1,
   numMoves: 1,
 };

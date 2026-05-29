@@ -11,7 +11,7 @@ const warez: IWarezData = {
     [P.LogicBomb.id]: 3500,
     [P.Sumo.id]: 4500,
     [P.Seeker3.id]: 4500,
-    [P.LaserSatellite.id]: 5000,
+    [P.LaserSatellite.id]: 3000,
     [P.Catapult.id]: 4000,
     [P.Clog3.id]: 3500,
     [P.Guru.id]: 4000,

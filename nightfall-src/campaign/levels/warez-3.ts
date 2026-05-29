@@ -13,7 +13,7 @@ const warez: IWarezData = {
     [P.Fiddle.id]: 2400,
     [P.Seeker2.id]: 2500,
     [P.MobileTower.id]: 1800,
-    [P.Satellite.id]: 3500,
+    [P.Satellite.id]: 1800,
     [P.Ballista.id]: 3000,
     [P.DataDoctorPro.id]: 1500,
     [P.Clog2.id]: 2000,
