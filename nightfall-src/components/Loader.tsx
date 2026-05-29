@@ -38,6 +38,7 @@ interface LoaderState {
   muted: boolean;
   player: IAudioPlayer | null;
   allAudioLoaded: boolean;
+  allImagesLoaded: boolean;
   showLanding: boolean;
   deleteModal: ModalConfig | null;
   showCredits: boolean;
@@ -52,6 +53,7 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
       saves: {},
       selectedSave: null,
       allAudioLoaded: false,
+      allImagesLoaded: false,
       player: null,
       muted: false,
       showLanding: true,
@@ -151,11 +153,11 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
   };
 
   isReady = () => {
-    return this.state.player !== null && this.state.allAudioLoaded;
+    return this.state.player !== null && this.state.allAudioLoaded && this.state.allImagesLoaded;
   };
 
   onLoadedImages = () => {
-    // TODO
+    this.setStateP(() => ({ allImagesLoaded: true }));
   };
 
   dismissModal = async () => {
@@ -178,7 +180,7 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
   };
 
   getContents = () => {
-    const { saves, selectedSave, allAudioLoaded, showLanding } = this.state;
+    const { saves, selectedSave, allAudioLoaded, allImagesLoaded, showLanding } = this.state;
     if (showLanding) {
       return (
         <Landing
@@ -188,7 +190,7 @@ export default class Loader extends PComponent<LoaderProps, LoaderState> {
         />
       );
     }
-    if (saves === null || !allAudioLoaded) {
+    if (saves === null || !allAudioLoaded || !allImagesLoaded) {
       return null;
     }
 

@@ -37,7 +37,8 @@ class Landing extends React.Component<LandingProps, LandingState> {
       animationDuration: this.props.duration + "ms",
     };
     const startStyle: CSSProperties = {
-      opacity: ready ? 1 : 0.35,
+      opacity: ready ? 1 : 0,
+      pointerEvents: ready ? "auto" : "none",
       cursor: ready ? "pointer" : "default",
     };
     return (
