@@ -160,6 +160,12 @@ export const DisarrayIntro: IAudioSource = {
   name: "disarray-intro",
 };
 
+export const TANGIntro: IAudioSource = {
+  solo: true,
+  srcUrl: u("tang-intro.mp3"),
+  name: "tang-intro",
+};
+
 export const IntroNoise: IAudioSource = {
   solo: false,
   srcUrl: u("intro-noise.mp3"),

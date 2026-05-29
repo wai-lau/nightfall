@@ -119,7 +119,7 @@ export const tang: Pick<
     warningText: standardWarning("Territorial Ancestry Negotiation Group"),
     battleLogoImage: resolveImage("bg/tang-logo.png"),
     bgImage: resolveImage("bg/tang.png"),
-    introAudio: AudioSources.PHIntro,
+    introAudio: AudioSources.TANGIntro,
   },
 };
 
