@@ -258,7 +258,18 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
         continue;
       }
       let offset = 0;
-      const startTime = reveal.startTimeMs.get(tile.owner);
+      // Key the rise on the earliest reveal among the owner and any encircling
+      // member: a shared-ring tile can be made visible by a neighbor's reveal
+      // while its owner is still hidden, so owner alone misses those tiles.
+      let startTime = reveal.startTimeMs.get(tile.owner);
+      if (tile.vis) {
+        for (const m of tile.vis) {
+          const t = reveal.startTimeMs.get(m);
+          if (t !== undefined && (startTime === undefined || t < startTime)) {
+            startTime = t;
+          }
+        }
+      }
       if (startTime !== undefined) {
         const elapsed = now - startTime;
         if (elapsed < REVEAL_HOLD_MS) {
