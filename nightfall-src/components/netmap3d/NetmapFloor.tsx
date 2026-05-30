@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { TILE_SIZE, OFFSET_X, OFFSET_Z } from "../../util/netmap3d";
+import { TILE_SIZE, OFFSET_X, OFFSET_Z, toWorld } from "../../util/netmap3d";
 import { BAKED_TILES } from "../../campaign/netmap.baked";
+import netmap from "../../campaign/netmap";
 import { NodeStatus } from "../../types";
 import {
   RevealContext,
@@ -58,6 +59,18 @@ export const FLOOR_FRAME_MAT = new THREE.MeshBasicMaterial({
 });
 
 export const SEC_HEIGHT_STEP = 1.2;
+
+// sec-5 background tiles (those NOT under a node's 5x5 platform) get a small,
+// deterministic per-tile height jitter so the high-security expanse reads as
+// broken terrain instead of one flat mesa. Hash-based on col/row so it stays
+// fixed frame-to-frame.
+const SEC5_JITTER = 0.5; // peak-to-peak, world units
+function sec5Jitter(col: number, row: number): number {
+  let h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663)) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  return ((h % 1000) / 1000 - 0.5) * SEC5_JITTER;
+}
+const tileKey = (col: number, row: number) => col * 10000 + row;
 export const SEC_PALETTE: number[] = [
   0xc0c0c0,
   0xb0b0b0,
@@ -112,6 +125,22 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
 
   const instanceCount = BAKED_TILES.length;
 
+  // Tiles within +/-2 (the 5x5 footprint) of any node center are platform tiles
+  // and stay flat; sec-5 tiles outside every footprint get jittered.
+  const platformKeys = useMemo(() => {
+    const s = new Set<number>();
+    const pos = netmap.positions;
+    for (const id in pos) {
+      const [wx, , wz] = toWorld(pos[id], 1);
+      const nc = Math.round((wx + OFFSET_X - TILE_SIZE / 2) / TILE_SIZE);
+      const nr = Math.round((wz + OFFSET_Z - TILE_SIZE / 2) / TILE_SIZE);
+      for (let dc = -2; dc <= 2; dc++) {
+        for (let dr = -2; dr <= 2; dr++) s.add(tileKey(nc + dc, nr + dr));
+      }
+    }
+    return s;
+  }, []);
+
   // Morning (solid tiles): per-tile sec colors. (Dawn renders the wireframe
   // below instead.) nightfall is a dep so the colors re-apply when the solid
   // mesh remounts on the dawn->morning toggle.
@@ -150,7 +179,10 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     let lo = 0, fo = 0;
     for (const t of tiles) {
       const px = START_X + t.col * TILE_SIZE + TILE_SIZE / 2;
-      const py = (t.sec - 1) * SEC_HEIGHT_STEP;
+      let py = (t.sec - 1) * SEC_HEIGHT_STEP;
+      if (t.sec === 5 && !platformKeys.has(tileKey(t.col, t.row))) {
+        py += sec5Jitter(t.col, t.row);
+      }
       const pz = START_Z + t.row * TILE_SIZE + TILE_SIZE / 2;
       const hex = SEC_PALETTE[Math.max(0, Math.min(SEC_PALETTE.length - 1, t.sec - 1))] ?? SEC_COLOR_DEFAULT;
       c.set(hex).multiply(NIGHTFALL_TINT);
@@ -176,7 +208,7 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
     faceGeo.setAttribute("position", new THREE.BufferAttribute(facePos, 3));
     faceGeo.setAttribute("color", new THREE.BufferAttribute(faceCol, 3));
     return { lineGeo, faceGeo };
-  }, [netmapStatus, nightfall]);
+  }, [netmapStatus, nightfall, platformKeys]);
 
   // Dispose the previous merged geometries when they rebuild (status change) or
   // on unmount, so toggling/clearing in dawn doesn't leak GPU buffers.
@@ -238,7 +270,10 @@ export default function NetmapFloor({ netmapStatus, nightfall }: NetmapFloorProp
         }
       }
       const px = START_X + tile.col * TILE_SIZE + TILE_SIZE / 2;
-      const py = (tile.sec - 1) * SEC_HEIGHT_STEP + offset;
+      let py = (tile.sec - 1) * SEC_HEIGHT_STEP + offset;
+      if (tile.sec === 5 && !platformKeys.has(tileKey(tile.col, tile.row))) {
+        py += sec5Jitter(tile.col, tile.row);
+      }
       const pz = START_Z + tile.row * TILE_SIZE + TILE_SIZE / 2;
       dummy.position.set(px, py, pz);
       dummy.scale.set(1, 1, 1);
