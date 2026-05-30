@@ -61,6 +61,32 @@ const stageActionKeys: Record<number, string> = {
   1800: "action:0",
 };
 
+// Game shortcut keys the tutorial guards. Anything not in here (F5, devtools,
+// etc.) passes through untouched; these are blocked unless they are the
+// current stage's correct key.
+const GAME_KEYS = new Set([
+  "w", "a", "s", "d", "W", "A", "S", "D",
+  "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+  "q", "Q", "e", "E", "Tab", "Escape", " ", "Shift",
+]);
+
+// Raw key(s) that count as "correct" for each stage action.
+const ACTION_KEYS: Record<string, string[]> = {
+  "move:right": ["ArrowRight", "d", "D"],
+  "move:left": ["ArrowLeft", "a", "A"],
+  "move:up": ["ArrowUp", "w", "W"],
+  "move:down": ["ArrowDown", "s", "S"],
+  "action:0": ["q", "Q"],
+  "action:1": ["e", "E"],
+  undo: ["Escape"],
+};
+
+function allowedKeysFor(actionKey: string | null): Set<string> {
+  if (!actionKey) return new Set(); // click-only stage: block every game key
+  if (actionKey.startsWith("select:")) return new Set(["Tab"]);
+  return new Set(ACTION_KEYS[actionKey] ?? []);
+}
+
 export default class Tutorial extends React.Component<TutorialProps, TutorialState> {
   battleRef: React.RefObject<Battle>;
   dialogueRef: React.RefObject<Dialogue>;
@@ -70,6 +96,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   findTargetInterval: ReturnType<typeof setInterval> | null;
   expectedActionKey: string | null;
   advanceStage: (() => void) | null;
+  allowedKeys: Set<string>;
 
   constructor(props: TutorialProps) {
     super(props);
@@ -82,6 +109,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
     this.findTargetInterval = null;
     this.expectedActionKey = null;
     this.advanceStage = null;
+    this.allowedKeys = new Set();
   }
 
   componentDidMount = async () => {
@@ -105,6 +133,18 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
     this.battle.onTutorialAction = this.handleTutorialAction;
 
     window.addEventListener("click", this.captureMouseEvents, { capture: true });
+    window.addEventListener("keydown", this.captureKeyEvents, { capture: true });
+  };
+
+  // Block game-shortcut keys during the tutorial unless the pressed key is the
+  // current stage's correct key. Mirrors captureMouseEvents for the keyboard:
+  // stopPropagation in the capture phase keeps the event from reaching Battle's
+  // window keydown listener. Non-game keys pass through untouched.
+  captureKeyEvents = (evt: KeyboardEvent) => {
+    if (!GAME_KEYS.has(evt.key)) return;
+    if (this.allowedKeys.has(evt.key)) return;
+    evt.stopPropagation();
+    evt.preventDefault();
   };
 
   // Advance on a keyboard action that matches the current stage's expected key.
@@ -117,6 +157,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
 
   componentWillUnmount = () => {
     window.removeEventListener("click", this.captureMouseEvents, { capture: true });
+    window.removeEventListener("keydown", this.captureKeyEvents, { capture: true });
   };
 
   captureMouseEvents = (evt: MouseEvent) => {
@@ -168,14 +209,17 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
         this.findTargetInterval = null;
         this.expectedActionKey = null;
         this.advanceStage = null;
+        this.allowedKeys = new Set();
         this.setState({ targetEl: null });
         dialogue.forceNextStage();
       };
       const onClickTarget = () => advance();
 
       targetEl.addEventListener("click", onClickTarget);
-      // Keyboard path: arm the matching action key (if any) for this stage.
+      // Keyboard path: arm the matching action key (if any) for this stage, and
+      // restrict which game keys are allowed through to Battle.
       this.expectedActionKey = stageActionKeys[stage] ?? null;
+      this.allowedKeys = allowedKeysFor(this.expectedActionKey);
       this.advanceStage = advance;
     }, 100);
   };

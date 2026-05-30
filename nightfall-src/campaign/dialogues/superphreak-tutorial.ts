@@ -20,7 +20,7 @@ superphreak:tutorial:100-2300
 #700 All of your programs move and execute commands first, and then all of the enemy programs get their chance.
 >800 Next
 
-#800 Click on this program (or scroll) to select it.
+#800 Click on this program (or press Tab) to select it.
 
 #900 The highlighted grid squares show how far this program can move. Before we move it, let's see what it can do. \\n Hack is a simple battle program with only one command. Click on the command (or press Q) to see what it does.
 
@@ -37,7 +37,7 @@ superphreak:tutorial:100-2300
 
 #1500 To execute an attack command, click on any sector of an enemy program that is within range. \\n Click here to execute this command.
 
-#1600 Nice. Now let's move our other program. Click here (or scroll) to select it.
+#1600 Nice. Now let's move our other program. Click here (or press Tab) to select it.
 
 #1700 Good. Now click here (or use WASD) to move it closer.
 
