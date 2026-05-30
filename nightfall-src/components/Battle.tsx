@@ -132,7 +132,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       attackAnimation: null,
       hasSelectedUploadZone: false,
       hasUploadedProgram: false,
-      keyboardUploadIndex: 0,
+      keyboardUploadIndex: -1,
       programs,
       uploadZones,
       credits,
