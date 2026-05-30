@@ -4,7 +4,7 @@ import { attack } from "./_helpers";
 
 export const MobileTower: IProgram = {
   id: "MobileTower",
-  color: "rgb(0,252,203)",
+  color: "rgb(0,252,149)",
   iconImageFile: resolveImage("programs/MobileTower.png"),
   name: "MOBILE TOWER",
   description: "Slow-Moving Extreme-Range Program",

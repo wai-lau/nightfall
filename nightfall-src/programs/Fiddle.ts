@@ -4,7 +4,7 @@ import { resolveImage } from "../util/util";
 
 export const Fiddle: IProgram = {
   id: "Fiddle",
-  color: "rgb(0,144,252)",
+  color: "rgb(140,120,230)",
   iconImageFile: resolveImage("programs/Fiddle.png"),
   name: "Fiddle",
   description: "Twiddle and Tweak The Power of your Programs",

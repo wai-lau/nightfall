@@ -3,7 +3,7 @@ import { resolveImage } from "../util/util";
 
 export const Seeker2: IProgram = {
   id: "Seeker2",
-  color: "rgb(0,217,165)",
+  color: "rgb(120,200,180)",
   iconImageFile: resolveImage("programs/Seeker2.png"),
   name: "Seeker 2.0",
   description: "Bigger and Better than Seeker",

@@ -4,7 +4,7 @@ import { attack } from "./_helpers";
 
 export const Satellite: IProgram = {
   id: "Satellite",
-  color: "rgb(0,252,203)",
+  color: "rgb(160,110,255)",
   iconImageFile: resolveImage("programs/Satellite.png"),
   name: "Satellite",
   description: "Extreme-Range Fast-Moving Program",

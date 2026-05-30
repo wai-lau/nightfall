@@ -4,7 +4,7 @@ import { attack } from "./_helpers";
 
 export const Seeker: IProgram = {
   id: "Seeker",
-  color: "rgb(0,217,165)",
+  color: "rgb(120,200,180)",
   iconImageFile: resolveImage("programs/Seeker.png"),
   name: "Seeker",
   description: "Solid Distance Attack Program",
