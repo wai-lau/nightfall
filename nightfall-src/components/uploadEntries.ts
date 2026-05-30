@@ -16,18 +16,20 @@ export interface UploadEntry {
 // regardless of the colors enemy/corp programs happen to share. Order here is
 // the render order; the misc bucket is always appended last.
 export const PROGRAM_CATEGORIES: { key: string; ids: string[] }[] = [
-  { key: "seekers", ids: ["Seeker", "Seeker2", "Seeker3"] },
+  // Leading order is fixed: Hacks, Slings, Bugs, Golems, Spiders. The rest
+  // follow in any order.
+  { key: "hacks", ids: ["Hack", "Hack2", "Hack3"] },
   { key: "slings", ids: ["Slingshot", "Ballista", "Catapult"] },
+  { key: "bugs", ids: ["Bug", "Heisenbug", "Mandelbug"] },
+  { key: "golems", ids: ["GolemClay", "GolemMud", "GolemStone"] },
+  { key: "spiders", ids: ["BlackWidow", "Tarantula", "WolfSpider"] },
+  { key: "seekers", ids: ["Seeker", "Seeker2", "Seeker3"] },
   { key: "satellites", ids: ["Satellite", "LaserSatellite"] },
   { key: "clogs", ids: ["Clog", "Clog2", "Clog3"] },
   { key: "bombs", ids: ["Buzzbomb", "LogicBomb", "LogicBomb2"] },
   { key: "turbos", ids: ["Turbo", "TurboDX"] },
-  { key: "hacks", ids: ["Hack", "Hack2", "Hack3"] },
   { key: "towers", ids: ["Tower", "MobileTower"] },
-  { key: "golems", ids: ["GolemClay", "GolemMud", "GolemStone"] },
   { key: "medical", ids: ["DataDoctor", "DataDoctorPro", "Medic"] },
-  { key: "bugs", ids: ["Bug", "Heisenbug", "Mandelbug"] },
-  { key: "spiders", ids: ["BlackWidow", "Tarantula", "WolfSpider"] },
 ];
 
 // Catch-all for uncategorized programs AND for any category the player owns
