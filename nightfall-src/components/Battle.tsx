@@ -37,6 +37,7 @@ import ProgramMenu from "./ProgramMenu";
 import BattleIntro from "./BattleIntro";
 import UploadZone from "./UploadZone";
 import UploadMenu from "./UploadMenu";
+import { buildUploadEntries } from "./uploadEntries";
 import { ISelection, SelectionType } from "../types/Selection";
 import StaticMenu, { StaticMenuType } from "./StaticMenu";
 import Button, { ButtonColor } from "./Button";
@@ -713,6 +714,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }));
   };
 
+  // Tutorial hook: fired from keyboard-only action paths so the tutorial can
+  // advance on keyboard input the same way it does on a click. No-op outside
+  // the tutorial (which monkeypatches it, like autoAdvance below).
+  onTutorialAction = (_key: string): void => {};
+
   // Advance selection if more programs remain for current team, or end turn if all programs have acted
   autoAdvance = async () => {
     await this.waitForModal();
@@ -964,6 +970,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
     if (key === "Escape") {
       await this.undo();
+      this.onTutorialAction("undo");
       return;
     }
 
@@ -996,17 +1003,13 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   onWheel = (e: WheelEvent) => {
     if (this.state.modal) return;
+    // Pre-battle the program.list just scrolls natively — wheel no longer moves
+    // the upload selection. In-battle, wheel still cycles deployed programs.
+    if (!this.isDatabattleStarted()) return;
     const delta = e.deltaY > 0 ? 1 : -1;
-    if (this.isDatabattleStarted()) {
-      const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
-      if (!isPlayerTurn) return;
-      this.cycleToNextProgram(delta as 1 | -1);
-    } else {
-      if (!this.props.completedTutorial) return;
-      const entries = this.getUploadMenuEntries();
-      const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
-      this.setStateP(() => ({ keyboardUploadIndex: next }));
-    }
+    const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
+    if (!isPlayerTurn) return;
+    this.cycleToNextProgram(delta as 1 | -1);
   };
 
   onKeyDownUpload = async (e: KeyboardEvent) => {
@@ -1020,18 +1023,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       const delta = isUp ? -1 : 1;
       const next = Math.max(0, Math.min(entries.length - 1, this.state.keyboardUploadIndex + delta));
       this.setStateP(() => ({ keyboardUploadIndex: next }));
-      return;
-    }
-
-    if (key === " ") {
-      e.preventDefault();
-      const { selection } = this.state;
-      if (selection?.type !== SelectionType.UPLOAD_ZONE) return;
-      const entries = this.getUploadMenuEntries();
-      const entry = entries[this.state.keyboardUploadIndex];
-      if (!entry || !entry.filteredIndexes.length) return;
-      await this.playCue(AudioSources.UploadProgram);
-      this.onUploadProgram(entry.filteredIndexes[0]);
       return;
     }
   };
@@ -1055,6 +1046,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       if (!action) return;
       if (action.sizeReq && action.sizeReq > program.body.length) return;
       await this.onSelectAction(actionIndex);
+      this.onTutorialAction("action:" + actionIndex);
       return;
     }
 
@@ -1089,6 +1081,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
 
     await this.createOnMove(target)();
+    const dirName =
+      delta[0] === 1 ? "right" : delta[0] === -1 ? "left" : delta[1] === 1 ? "down" : "up";
+    this.onTutorialAction("move:" + dirName);
   };
 
   getUploadMenuEntries = () => {
@@ -1096,18 +1091,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     const selectedIndexes = this.state.uploadZones
       .map((z) => z.programIndex)
       .filter((n) => n !== null) as number[];
-    const seen: Record<string, number> = {};
-    const entries: { id: string; filteredIndexes: number[] }[] = [];
-    availablePrograms.forEach((p, i) => {
-      if (seen[p.id] === undefined) {
-        seen[p.id] = entries.length;
-        entries.push({ id: p.id, filteredIndexes: [] });
-      }
-      if (!selectedIndexes.includes(i)) {
-        entries[seen[p.id]].filteredIndexes.push(i);
-      }
-    });
-    return entries;
+    // Shared with UploadMenu so the color-grouped order (and thus the keyboard
+    // highlight index) is identical between this nav state and the rendered grid.
+    return buildUploadEntries(availablePrograms, selectedIndexes);
   };
 
   cycleToNextProgram = (direction: 1 | -1 = 1) => {
@@ -1119,7 +1105,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       const cur = unacted.findIndex((p) => p.id === selection.id);
       if (cur !== -1) nextIndex = (cur + direction + unacted.length) % unacted.length;
     }
-    this.createOnSelectProgram(unacted[nextIndex].id)();
+    const selected = unacted[nextIndex];
+    this.createOnSelectProgram(selected.id)();
+    this.onTutorialAction("select:" + selected.name);
   };
 
   // Hide the BattleIntro

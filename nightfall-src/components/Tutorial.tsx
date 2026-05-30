@@ -28,9 +28,9 @@ const battleStyle: IBattleStyle = {
 
 const stageSelectors: Record<number, string> = {
   200: ".grid-program.head[data-name='Upload Zone'][data-coord='3,4']",
-  300: ".ul-item[data-name='Hack']",
+  300: ".ul-cell[data-name='Hack']",
   400: ".grid-program.head[data-name='Upload Zone'][data-coord='2,2']",
-  500: ".ul-item[data-name='Slingshot']",
+  500: ".ul-cell[data-name='Slingshot']",
   600: ".begin-databattle > button",
   800: ".grid-program.head[data-name='Hack']",
   900: ".pm-actions > button:first-child",
@@ -45,6 +45,22 @@ const stageSelectors: Record<number, string> = {
   1900: ".action.attack[data-coord='6,2']",
 };
 
+// Keyboard equivalents of the stage targets above. Battle fires onTutorialAction
+// from its keyboard-only paths; a stage advances when the fired key matches.
+// Stages absent here are click-only (upload picks, the begin button which a
+// keyboard Enter already turns into a click, and the grid-click attacks).
+const stageActionKeys: Record<number, string> = {
+  800: "select:Hack",
+  900: "action:0",
+  1000: "undo",
+  1100: "move:right",
+  1300: "move:right",
+  1400: "action:0",
+  1600: "select:Slingshot",
+  1700: "move:right",
+  1800: "action:0",
+};
+
 export default class Tutorial extends React.Component<TutorialProps, TutorialState> {
   battleRef: React.RefObject<Battle>;
   dialogueRef: React.RefObject<Dialogue>;
@@ -52,6 +68,8 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   dialogue: Dialogue | null;
   initialBattleState: BattleState | null;
   findTargetInterval: ReturnType<typeof setInterval> | null;
+  expectedActionKey: string | null;
+  advanceStage: (() => void) | null;
 
   constructor(props: TutorialProps) {
     super(props);
@@ -62,6 +80,8 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
     this.dialogue = null;
     this.initialBattleState = null;
     this.findTargetInterval = null;
+    this.expectedActionKey = null;
+    this.advanceStage = null;
   }
 
   componentDidMount = async () => {
@@ -82,8 +102,17 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
     this.battle.uploadRect = null;
     this.battle.forceUpdate();
     this.dialogue.componentDidUpdate = this.updateDialogue;
+    this.battle.onTutorialAction = this.handleTutorialAction;
 
     window.addEventListener("click", this.captureMouseEvents, { capture: true });
+  };
+
+  // Advance on a keyboard action that matches the current stage's expected key.
+  // Mirrors clicking the highlighted target (same advance()/cleanup path).
+  handleTutorialAction = (key: string) => {
+    if (this.expectedActionKey && key === this.expectedActionKey && this.advanceStage) {
+      this.advanceStage();
+    }
   };
 
   componentWillUnmount = () => {
@@ -131,17 +160,23 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
         targetEl,
       });
 
-      const onClickTarget = () => {
-        dialogue.forceNextStage();
+      const advance = () => {
         targetEl.removeEventListener("click", onClickTarget);
         if (this.findTargetInterval) {
           clearInterval(this.findTargetInterval);
         }
         this.findTargetInterval = null;
+        this.expectedActionKey = null;
+        this.advanceStage = null;
         this.setState({ targetEl: null });
+        dialogue.forceNextStage();
       };
+      const onClickTarget = () => advance();
 
       targetEl.addEventListener("click", onClickTarget);
+      // Keyboard path: arm the matching action key (if any) for this stage.
+      this.expectedActionKey = stageActionKeys[stage] ?? null;
+      this.advanceStage = advance;
     }, 100);
   };
 
