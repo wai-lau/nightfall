@@ -669,7 +669,7 @@ const netmap: INetmap = {
       securityLevel: 5,
       type: Battle,
       prereq: Nodes.F7,
-      firstClearCredits: 1000,
+      firstClearCredits: 50000,
       onFirstLose: startDialogue(Dialogue.SuperphreakQ1Lose),
       onFirstClear: chain(setNightfallNodes(), startDialogue(Dialogue.SuperphreakQ1Win)),
     },
