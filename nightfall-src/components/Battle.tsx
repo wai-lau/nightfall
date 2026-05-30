@@ -149,7 +149,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     this.audioContext = this.context;
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
-    window.addEventListener("wheel", this.onWheel, { passive: true });
   }
 
   // Clone state if selection changed; check for guide text if battle is not yet begun
@@ -951,7 +950,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   componentWillUnmount() {
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
-    window.removeEventListener("wheel", this.onWheel);
   }
 
   shiftPure = false;
@@ -999,17 +997,6 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     if (this.getProgramByID(selection.id).team !== "P1") return;
     if (!isPlayerTurn) return;
     await this.onSelectNoAction();
-  };
-
-  onWheel = (e: WheelEvent) => {
-    if (this.state.modal) return;
-    // Pre-battle the program.list just scrolls natively — wheel no longer moves
-    // the upload selection. In-battle, wheel still cycles deployed programs.
-    if (!this.isDatabattleStarted()) return;
-    const delta = e.deltaY > 0 ? 1 : -1;
-    const isPlayerTurn = this.props.teams[this.state.teamIndex] === "P1";
-    if (!isPlayerTurn) return;
-    this.cycleToNextProgram(delta as 1 | -1);
   };
 
   onKeyDownUpload = async (e: KeyboardEvent) => {
