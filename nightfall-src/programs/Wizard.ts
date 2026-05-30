@@ -4,7 +4,7 @@ import { attack, slow } from "./_helpers";
 
 export const Wizard: IProgram = {
   id: "Wizard",
-  color: "rgb(0,252,149)",
+  color: "rgb(150,130,175)",
   iconImageFile: resolveImage("programs/Wizard.png"),
   name: "Wizard",
   description: "Pay No Attention to the Man Behind the Curtain",
