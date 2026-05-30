@@ -822,20 +822,84 @@ h3 {
   align-items: stretch;
 }
 
-.ul-item {
-  line-height: 1.25em;
-  color: #fff;
+/* program.list is a 3-column icon grid, grouped by program color. Each group
+   is a contiguous run of cells with a left accent bar in the shared color;
+   single-color programs collapse into the trailing misc group. */
+.ul-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4em;
+  padding: 0.4em 0 0.4em 0.5em;
+  margin-bottom: 0.5em;
+  border-left: 0.25em solid #888;
 }
 
-.ul-item.clickable {
+.ul-group-misc {
+  border-left-color: rgba(189, 189, 189, 0.5);
+}
+
+.ul-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 0.15em solid transparent;
+}
+
+.ul-cell.clickable {
   cursor: pointer;
 }
 
+.ul-cell-empty {
+  opacity: 0.3;
+}
+
+.ul-cell.keyboard-highlight {
+  border-color: #7df;
+}
+
+.ul-cell-icon-box {
+  position: relative;
+  width: 78%;
+  height: 78%;
+}
+
+.ul-cell-icon {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ul-cell-shadow {
+  position: absolute;
+  inset: 0;
+  margin-top: 8%;
+  margin-left: 8%;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.ul-cell-count {
+  position: absolute;
+  bottom: 0.05em;
+  right: 0.15em;
+  z-index: 3;
+  font-family: "04b25";
+  color: #fff;
+  font-size: 0.75em;
+  text-shadow: 0 0 0.2em #000;
+}
+
+.ul-cell.clickable:active .ul-cell-icon {
+  transform: scale(0.92);
+}
+
 @media (pointer: coarse) {
-  .ul-item {
-    font-size: 1.4em;
-  }
-  .ul-item.clickable:active {
+  .ul-cell.clickable:active {
     background: rgba(125, 255, 255, 0.15);
   }
   .ul-menu-scroll {

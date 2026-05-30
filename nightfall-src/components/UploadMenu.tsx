@@ -4,6 +4,7 @@ import cn from "classnames";
 import { AudioContext, IAudioContext } from "../util/AudioContext";
 import * as AudioSources from "../audio/audioSources";
 import { IProgram } from "../types";
+import { buildUploadEntries, groupUploadEntries, MISC_GROUP } from "./uploadEntries";
 
 import "./UploadMenu.css";
 
@@ -37,52 +38,42 @@ export default class UploadMenu extends React.Component<UploadMenuProps, UploadM
     this.audioContext = this.context;
   };
 
-  getCounts = () => {
-    const { programs } = this.props;
-    // TODO rename
-    const filteredPrograms = programs.map((p, i) => ({ program: p, i }));
-    let counts: { [id: string]: number[] } = {};
-    filteredPrograms.forEach((entry) => {
-      const { program, i } = entry;
-      const { id } = program;
-      if (counts[id]) {
-        counts[id].push(i);
-      } else {
-        counts[id] = [i];
-      }
-    });
-    return counts;
-  };
-
   renderProgramEntries = () => {
     const { programs, onSelectProgram, selectedIndexes = [], keyboardHighlightIndex } = this.props;
-    const counts = this.getCounts();
-    return Object.entries(counts).map(([id, indexes], entryIndex) => {
-      const program = programs.find((p) => p.id === id);
-      if (!program) {
-        throw new Error("Invalid program ID " + id);
-      }
-      if (!indexes) {
-        throw new Error("ID " + id + " was listed with no indexes");
-      }
-      const filteredIndexes = indexes.filter((i) => !selectedIndexes.includes(i));
-      const onClick = filteredIndexes.length
-        ? async () => {
-            await this.audioContext.player.playAudio(AudioSources.UploadProgram);
-            onSelectProgram(filteredIndexes[0]);
-          }
-        : () => {};
-      const className = cn([
-        "ul-item",
-        { clickable: !!filteredIndexes.length },
-        { "keyboard-highlight": entryIndex === keyboardHighlightIndex },
-      ]);
-      return (
-        <div className={className} onClick={onClick} key={id} data-name={program.name}>
-          {program.name} x{filteredIndexes.length}
-        </div>
-      );
-    });
+    const groups = groupUploadEntries(buildUploadEntries(programs, selectedIndexes));
+    return groups.map((group) => (
+      <div
+        className={cn(["ul-group", { "ul-group-misc": group.key === MISC_GROUP }])}
+        key={group.key}
+        style={group.key === MISC_GROUP ? undefined : { borderColor: group.color }}
+      >
+        {group.entries.map(({ entry, flatIndex }) => {
+          const { program, filteredIndexes } = entry;
+          const available = filteredIndexes.length;
+          const onClick = available
+            ? async () => {
+                await this.audioContext.player.playAudio(AudioSources.UploadProgram);
+                onSelectProgram(filteredIndexes[0]);
+              }
+            : () => {};
+          const className = cn([
+            "ul-cell",
+            { clickable: !!available },
+            { "ul-cell-empty": !available },
+            { "keyboard-highlight": flatIndex === keyboardHighlightIndex },
+          ]);
+          return (
+            <div className={className} onClick={onClick} key={program.id} title={program.name} data-name={program.name}>
+              <div className="ul-cell-icon-box">
+                <div className="ul-cell-shadow" style={{ backgroundColor: program.color }} />
+                <img className="ul-cell-icon" src={program.iconImageFile} alt={program.name} />
+              </div>
+              <span className="ul-cell-count">x{available}</span>
+            </div>
+          );
+        })}
+      </div>
+    ));
   };
 
   createOnScroll = (direction: "UP" | "DOWN") => () => {
