@@ -9,9 +9,9 @@ from PIL import Image
 # (different hue) are left untouched.
 
 JOBS = [
-    ("img/programs/Turbo.png", (140, 120, 230)),
-    ("img/programs/TurboDX.png", (140, 120, 230)),
-    ("img/programs/Fiddle.png", (140, 120, 230)),
+    ("img/programs/Turbo.png", (42, 137, 245)),
+    ("img/programs/TurboDX.png", (42, 137, 245)),
+    ("img/programs/Fiddle.png", (42, 137, 245)),
 ]
 
 HUE_TOL = 30.0 / 360.0  # within 30 degrees of the line hue

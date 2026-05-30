@@ -4,7 +4,7 @@ import { resolveImage } from "../util/util";
 
 export const TurboDX: IProgram = {
   id: "TurboDX",
-  color: "rgb(140,120,230)",
+  color: "rgb(42,137,245)",
   iconImageFile: resolveImage("programs/TurboDX.png"),
   name: "Turbo Deluxe",
   description: "Slow and Steady is for Losers",

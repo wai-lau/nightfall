@@ -4,7 +4,7 @@ import { resolveImage } from "../util/util";
 
 export const Turbo: IProgram = {
   id: "Turbo",
-  color: "rgb(140,120,230)",
+  color: "rgb(42,137,245)",
   iconImageFile: resolveImage("programs/Turbo.png"),
   name: "Turbo",
   description: "Speeds Up Your Programs",
