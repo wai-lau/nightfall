@@ -64,7 +64,7 @@ export const SEC_HEIGHT_STEP = 1.2;
 // deterministic per-tile height jitter so the high-security expanse reads as
 // broken terrain instead of one flat mesa. Hash-based on col/row so it stays
 // fixed frame-to-frame.
-const SEC5_JITTER = 0.5; // peak-to-peak, world units
+const SEC5_JITTER = 0; // peak-to-peak, world units (flat)
 function sec5Jitter(col: number, row: number): number {
   let h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663)) >>> 0;
   h = (h ^ (h >>> 13)) >>> 0;
