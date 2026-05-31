@@ -48,7 +48,7 @@ superphreak:tutorial:100-2300
 #2000 Way to go. You just won your first databattle.
 >2100 Next
 
-#2100 Of course, most databattles won't be as easy as this one. You'll need to pick up more powerful programs from warez nodes on the internet. \\n Some advanced programs have more than one command — press Q for the first or E for the second. Special commands can be used to increase the power of your own programs or even change the grid. \\n You can also click No Action (or press Space) to skip a program's turn.
+#2100 Of course, most databattles won't be as easy as this one. You'll need to pick up more powerful programs from warez nodes on the internet. \\n Some advanced programs have more than one command. Press Q for the first or E for the second. \\n You can also click No Action (or press Space) to skip a program's turn.
 >2200 Next
 
 #2200 OK, those are the basics. \\n When you get back to the netmap, you'll be on your own. Click on a node and see what you can find out there. Good luck!
