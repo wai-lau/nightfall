@@ -15,6 +15,10 @@ interface TutorialProps {
 }
 interface TutorialState {
   targetEl?: ReturnType<typeof document["querySelector"]>;
+  // True while the current stage waits on a board click (ring shown, board
+  // passthrough). False on dialogue-advance stages, which dim the screen.
+  // Derived per-stage so it doesn't flicker with targetEl churn.
+  boardStage?: boolean;
 }
 
 const battleStyle: IBattleStyle = {
@@ -178,6 +182,11 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   };
 
   updateDialogue = () => {
+    // Dialogue re-renders constantly while text types out, calling this each
+    // time. Clear the prior interval so they don't stack into a churn storm.
+    if (this.findTargetInterval) {
+      clearInterval(this.findTargetInterval);
+    }
     this.findTargetInterval = setInterval(() => {
       if (this.state.targetEl && document.body.contains(this.state.targetEl)) {
         return;
@@ -195,6 +204,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
 
       const selector = stageSelectors[stage];
       if (!selector) {
+        if (this.state.boardStage) this.setState({ boardStage: false });
         return;
       }
 
@@ -208,6 +218,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
       targetEl.classList.add("tutorial-target");
       this.setState({
         targetEl,
+        boardStage: true,
       });
 
       const advance = () => {
@@ -250,10 +261,11 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
           ref={this.dialogueRef}
           onEnd={this.props.onEnd}
           {...SuperphreakTutorial}
-          // Pass clicks through to the board only when a board target is armed.
-          // On dialogue-advance stages (no target) drop passthrough so the
-          // screen dims behind the message like a normal dialogue menu.
-          passthrough={!!this.state.targetEl}
+          // Pass clicks through to the board only on board stages. On
+          // dialogue-advance stages drop passthrough so the screen dims behind
+          // the message like a normal menu. Keyed off the stable per-stage
+          // flag, not targetEl, so it can't flicker.
+          passthrough={!!this.state.boardStage}
         />
       </>
     );
