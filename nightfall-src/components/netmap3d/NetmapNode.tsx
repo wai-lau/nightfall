@@ -42,6 +42,7 @@ const MODEL_XZ_SCALE: Partial<Record<string, number>> = {
 // Uniform per-corp scale multiplier applied to all 3 axes.
 const MODEL_SCALE_MUL: Partial<Record<string, number>> = {
   tang: 1.15,
+  glad: 0.75,
 };
 
 const COLOR_UNCLEARED = 0xc8d8ec;
@@ -329,8 +330,9 @@ function NodeModel({ nodeId, corpKey, modelUrl, cleared, dimmed, selected, secur
       }
     });
 
-    const xzMul = MODEL_XZ_SCALE[corpKey] ?? 1;
-    const uniMul = MODEL_SCALE_MUL[corpKey] ?? 1;
+    const modelKey = modelUrl === GLB_URLS.glad ? "glad" : corpKey;
+    const xzMul = MODEL_XZ_SCALE[modelKey] ?? 1;
+    const uniMul = MODEL_SCALE_MUL[modelKey] ?? 1;
     const sy = MODEL_SCALE * uniMul;
     const sx = MODEL_SCALE * xzMul * uniMul;
     if (corpKey === "donut") {
@@ -344,7 +346,7 @@ function NodeModel({ nodeId, corpKey, modelUrl, cleared, dimmed, selected, secur
       pos: [-center.x * sx, -box.min.y * sy + FLOOR_Y + (securityLevel - 1) * SEC_HEIGHT_STEP + (NODE_ID_Y_OFFSET[nodeId] ?? 0), -center.z * sx + (NODE_ID_Z_OFFSET[nodeId] ?? 0)] as [number, number, number],
       scale: [sx, sy, sx] as [number, number, number],
     };
-  }, [scene, nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked, nightfall]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scene, nodeId, corpKey, modelUrl, cleared, dimmed, selected, securityLevel, blocked, nightfall]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <primitive object={obj} scale={scale} position={pos} />;
 }
