@@ -54,7 +54,7 @@ function FsCanvasSize() {
 // Ground fog: patch three.js fog shader chunks to be y-based instead of distance-based.
 // Columns below GROUND_FOG_BOTTOM_Y fully fogged; above GROUND_FOG_TOP_Y unfogged.
 const GROUND_FOG_BOTTOM_Y = FLOOR_Y - 8;
-const GROUND_FOG_TOP_Y = FLOOR_Y - 1;
+const GROUND_FOG_TOP_Y = FLOOR_Y;
 
 THREE.ShaderChunk.fog_pars_vertex = `
 #ifdef USE_FOG
@@ -81,8 +81,9 @@ THREE.ShaderChunk.fog_pars_fragment = `
 `;
 THREE.ShaderChunk.fog_fragment = `
 #ifdef USE_FOG
-  float fogT = clamp((vFogWorldY - float(${GROUND_FOG_BOTTOM_Y})) / float(${GROUND_FOG_TOP_Y - GROUND_FOG_BOTTOM_Y}), 0.0, 1.0);
-  float fogFactor = pow(1.0 - fogT, 0.5);
+  // smoothstep eases to zero slope at both ends, so the fog tapers off
+  // gradually near the top instead of stopping abruptly.
+  float fogFactor = 1.0 - smoothstep(float(${GROUND_FOG_BOTTOM_Y}), float(${GROUND_FOG_TOP_Y}), vFogWorldY);
   gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fogFactor);
 #endif
 `;
