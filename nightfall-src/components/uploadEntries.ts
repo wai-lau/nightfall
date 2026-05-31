@@ -1,4 +1,20 @@
 import { IProgram } from "../types";
+import warez1 from "../campaign/levels/warez-1";
+import warez2 from "../campaign/levels/warez-2";
+import warez3 from "../campaign/levels/warez-3";
+import warez4 from "../campaign/levels/warez-4";
+
+// program id -> warez tier (0 = warez-1 ... 3 = warez-4), for ordering within a
+// group by which warez node a program was acquired from (lowest tier on the
+// left). Programs from no warez node sort last. First warez to list a program
+// wins, so a program offered by multiple nodes keys off its earliest source.
+const WAREZ_ORDER: Record<string, number> = {};
+[warez1, warez2, warez3, warez4].forEach((w, tier) => {
+  w.programs.forEach((p) => {
+    if (WAREZ_ORDER[p.id] === undefined) WAREZ_ORDER[p.id] = tier;
+  });
+});
+const warezTier = (id: string) => WAREZ_ORDER[id] ?? Number.MAX_SAFE_INTEGER;
 
 // One row in the program.list: a distinct program id, plus the programs[]
 // indexes it occupies (filteredIndexes = those not already placed/selected).
@@ -73,6 +89,12 @@ export function buildUploadEntries(programs: IProgram[], selectedIndexes: number
   entries.forEach((entry) => {
     (buckets[entry.groupKey] ??= []).push(entry);
   });
+
+  // Order within each group by warez node acquired (lowest tier on the left).
+  // Stable: programs from the same warez node keep acquisition order.
+  Object.values(buckets).forEach((b) =>
+    b.sort((a, c) => warezTier(a.id) - warezTier(c.id))
+  );
 
   // A real category needs >=2 distinct owned programs; otherwise its lone entry
   // drops into the misc bucket. The misc bucket itself always shows.
