@@ -9,7 +9,8 @@ from PIL import Image
 # (different hue) are left untouched.
 
 JOBS = [
-    ("img/programs/Wizard.png", (150, 130, 175)),
+    ("img/programs/Satellite.png", (0, 252, 203)),
+    ("img/programs/LaserSatellite.png", (0, 252, 203)),
 ]
 
 HUE_TOL = 30.0 / 360.0  # within 30 degrees of the line hue
