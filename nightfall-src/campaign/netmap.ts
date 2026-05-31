@@ -113,7 +113,7 @@ const positions: Record<string, NetmapPosition> = {
   [Nodes.P6]: [1373, 1014],
   [Nodes.P7]: [1223, 1104],
   [Nodes.F8]: [1172, 939],
-  [Nodes.Q1]: [1675, 1405],
+  [Nodes.Q1]: [1575, 1505],
   [Nodes.T1]: [998, 1097],
   [Nodes.T2]: [1086, 824],
   [Nodes.T3]: [950, 380],
