@@ -226,7 +226,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
 
   render() {
     const rectEl = this.state.targetEl && (
-      <GuideArrow rect={this.state.targetEl.getBoundingClientRect()} />
+      <GuideArrow target={this.state.targetEl} />
     );
     return (
       <>

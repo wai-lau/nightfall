@@ -3,21 +3,39 @@ import React from "react";
 import "./GuideArrow.css";
 
 interface GuideArrowProps {
-  rect: DOMRect;
+  // The element the arrow points at. We track its live position every frame
+  // (rect captured once goes stale on scroll, board animations, and mobile
+  // orientation changes, leaving the arrow pointing at empty space).
+  target: Element;
 }
 
-const GuideArrow: React.FunctionComponent<GuideArrowProps> = (props) => {
-  const { top, right, height } = props.rect;
-  const arrowHeight = 80;
-  const arrowTop = top - (arrowHeight - height) / 2;
-  const style = {
-    top: arrowTop,
-    left: right,
-    height: arrowHeight,
-    width: arrowHeight,
-  };
+const ARROW_SIZE = 80;
 
-  return <div className="highlight-rect" style={style} />;
+const GuideArrow: React.FunctionComponent<GuideArrowProps> = ({ target }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const el = ref.current;
+      if (el) {
+        const { top, right, height } = target.getBoundingClientRect();
+        el.style.top = `${top - (ARROW_SIZE - height) / 2}px`;
+        el.style.left = `${right}px`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  return (
+    <div
+      ref={ref}
+      className="highlight-rect"
+      style={{ height: ARROW_SIZE, width: ARROW_SIZE }}
+    />
+  );
 };
 
 export default GuideArrow;
