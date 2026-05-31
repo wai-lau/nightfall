@@ -250,7 +250,10 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
           ref={this.dialogueRef}
           onEnd={this.props.onEnd}
           {...SuperphreakTutorial}
-          passthrough
+          // Pass clicks through to the board only when a board target is armed.
+          // On dialogue-advance stages (no target) drop passthrough so the
+          // screen dims behind the message like a normal dialogue menu.
+          passthrough={!!this.state.targetEl}
         />
       </>
     );
