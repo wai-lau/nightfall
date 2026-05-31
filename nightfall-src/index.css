@@ -1794,6 +1794,12 @@ body.tutorial-active .grid-program[data-name="Upload Zone"].head.active {
   pointer-events: none;
 }
 
+/* Dim the rest of the screen behind a dialogue menu. Skipped for passthrough
+   (tutorial) dialogues, which must keep the board visible and clickable. */
+.dialogue-container:not(.passthrough) {
+  background: rgba(0, 0, 0, 0.6);
+}
+
 .dialogue-content {
   height: 100%;
   display: flex;
