@@ -16,7 +16,7 @@ import {
 import { matchFlag } from "../../util/util";
 import { TILE_SIZE } from "../../util/netmap3d";
 import { FLOOR_COLUMN_GEO, DAWN_TOP_EDGES, DAWN_TOP_FACE, FLOOR_FRAME_GEO, FLOOR_FRAME_MAT, FLOOR_Y, NIGHTFALL_TINT, NIGHTFALL_OPACITY, secColor, SEC_HEIGHT_STEP } from "./NetmapFloor";
-import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_LOW_Y } from "./RevealContext";
+import { RevealContext, REVEAL_HOLD_MS, REVEAL_RISE_MS, REVEAL_NODE_LOW_Y } from "./RevealContext";
 
 const GLB_URLS: Record<string, string> = {
   ph:    require("../../img/nodes/3d/ph.glb"),
@@ -430,41 +430,30 @@ export default function NetmapNode({
 
     if (hovering) yRef.current += (targetY - yRef.current) * LERP;
 
+    // Reveal: the node spawns below the ground fog (fully fogged) and rises up
+    // out of it. No opacity fade — it stays opaque and the fog alone hides it
+    // while submerged, so it emerges by rising rather than popping into view.
     let revealYOffset = 0;
-    let revealOpacity = 1;
     let active = false;
     if (startTime !== undefined) {
       if (elapsed < REVEAL_HOLD_MS) {
-        revealYOffset = REVEAL_LOW_Y;
-        revealOpacity = 0;
+        revealYOffset = REVEAL_NODE_LOW_Y;
         active = true;
       } else if (elapsed < REVEAL_HOLD_MS + REVEAL_RISE_MS) {
         const r = (elapsed - REVEAL_HOLD_MS) / REVEAL_RISE_MS;
         const eased = 1 - Math.pow(1 - r, 3);
-        revealYOffset = REVEAL_LOW_Y * (1 - eased);
-        revealOpacity = Math.min(1, r * 1.6);
+        revealYOffset = REVEAL_NODE_LOW_Y * (1 - eased);
         active = true;
       }
     }
 
     if (meshGroupRef.current) {
       meshGroupRef.current.position.y = yRef.current + revealYOffset;
-      meshGroupRef.current.visible = !(active && revealOpacity <= 0);
-      if (active || revealActiveRef.current) {
-        meshGroupRef.current.traverse((child) => {
-          const mat = (child as unknown as { material?: THREE.Material | THREE.Material[] }).material;
-          if (!mat) return;
-          const apply = (m: THREE.Material) => {
-            const base = (m.userData?.__baseOpacity as number | undefined) ?? 1;
-            (m as unknown as { opacity: number }).opacity = base * revealOpacity;
-          };
-          if (Array.isArray(mat)) mat.forEach(apply); else apply(mat);
-        });
-      }
+      meshGroupRef.current.visible = true;
     }
     if (platformRef.current) {
       platformRef.current.position.y = NODE_Y + yRef.current + PLATFORM_Y_OFFSET + (node.securityLevel - 1) * SEC_HEIGHT_STEP + revealYOffset;
-      platformRef.current.visible = !(active && revealOpacity <= 0);
+      platformRef.current.visible = true;
     }
     revealActiveRef.current = active;
   });
