@@ -42,7 +42,6 @@ const MODEL_XZ_SCALE: Partial<Record<string, number>> = {
 // Uniform per-corp scale multiplier applied to all 3 axes.
 const MODEL_SCALE_MUL: Partial<Record<string, number>> = {
   tang: 1.15,
-  glad: 0.75,
 };
 
 const COLOR_UNCLEARED = 0xc8d8ec;
@@ -54,6 +53,7 @@ const MODEL_ROTATION_Y: Partial<Record<string, number>> = {
   warez: 0,
   car:   0,
   lmm:   0,
+  glad:  -Math.PI / 2, // 90 deg clockwise (viewed top-down)
 };
 
 const NODE_Y = 0;
@@ -189,7 +189,8 @@ function NodeModel({ nodeId, corpKey, modelUrl, cleared, dimmed, selected, secur
 
   const { obj, pos, scale } = useMemo(() => {
     const c = scene.clone(true);
-    c.rotation.y = MODEL_BASE_ROTATION_Y + (MODEL_ROTATION_Y[corpKey] ?? 0) + (NODE_ID_ROTATION_Y[nodeId] ?? 0);
+    const modelKey = modelUrl === GLB_URLS.glad ? "glad" : corpKey;
+    c.rotation.y = MODEL_BASE_ROTATION_Y + (MODEL_ROTATION_Y[modelKey] ?? 0) + (NODE_ID_ROTATION_Y[nodeId] ?? 0);
 
     c.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(c);
@@ -330,7 +331,6 @@ function NodeModel({ nodeId, corpKey, modelUrl, cleared, dimmed, selected, secur
       }
     });
 
-    const modelKey = modelUrl === GLB_URLS.glad ? "glad" : corpKey;
     const xzMul = MODEL_XZ_SCALE[modelKey] ?? 1;
     const uniMul = MODEL_SCALE_MUL[modelKey] ?? 1;
     const sy = MODEL_SCALE * uniMul;
