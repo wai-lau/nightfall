@@ -63,7 +63,14 @@ THREE.ShaderChunk.fog_pars_vertex = `
 `;
 THREE.ShaderChunk.fog_vertex = `
 #ifdef USE_FOG
-  vFogWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
+  #ifdef USE_INSTANCING
+    // Floor tiles are instanced; their per-tile sec height lives in
+    // instanceMatrix. Apply it or the fog reads the un-raised base Y and
+    // appears to climb with security level.
+    vFogWorldY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;
+  #else
+    vFogWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
+  #endif
 #endif
 `;
 THREE.ShaderChunk.fog_pars_fragment = `
