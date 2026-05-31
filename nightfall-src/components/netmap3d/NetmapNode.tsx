@@ -28,6 +28,7 @@ const GLB_URLS: Record<string, string> = {
   smart: require("../../img/nodes/3d/smart.glb"),
   warez: require("../../img/nodes/3d/warez.glb"),
   tang:  require("../../img/nodes/3d/tang.glb"),
+  glad:  require("../../img/nodes/3d/glad.glb"),
 };
 
 for (const url of Object.values(GLB_URLS)) {
@@ -140,6 +141,8 @@ const NODE_ID_Z_OFFSET: Partial<Record<string, number>> = {};
 interface NodeModelProps {
   nodeId: string;
   corpKey: string;
+  // Overrides the corp glb when set (Q1 swaps to the GLaD model once cleared).
+  modelUrl?: string;
   cleared: boolean;
   dimmed: boolean;
   selected: boolean;
@@ -174,8 +177,8 @@ function getClearedMat(color: number): THREE.MeshStandardMaterial {
   return m;
 }
 
-function NodeModel({ nodeId, corpKey, cleared, dimmed, selected, securityLevel, blocked, nightfall }: NodeModelProps) {
-  const { scene } = useGLTF(GLB_URLS[corpKey] ?? GLB_URLS.hq);
+function NodeModel({ nodeId, corpKey, modelUrl, cleared, dimmed, selected, securityLevel, blocked, nightfall }: NodeModelProps) {
+  const { scene } = useGLTF(modelUrl ?? GLB_URLS[corpKey] ?? GLB_URLS.hq);
   const fpMap = useContext(NodeFootprintContext);
   const fpRef = useRef<{ halfX: number; halfZ: number }>({ halfX: 0, halfZ: 0 });
   useEffect(() => {
@@ -477,6 +480,9 @@ export default function NetmapNode({
   // mesh — instead of the old dark fade.
   const nfCleared = isNightfallDimmed ? false : cleared;
   const nfBlocked = isNightfallDimmed ? true : blocked;
+  // Once Q1 is cleared, render it with the GLaD geometry instead of the hq model.
+  // Keyed off real cleared (not nfCleared) since clearing Q1 triggers nightfall.
+  const modelUrl = node.id === Nodes.Q1 && cleared ? GLB_URLS.glad : undefined;
 
   return (
     <>
@@ -492,7 +498,7 @@ export default function NetmapNode({
         </mesh>
         <group ref={meshGroupRef}>
           {node.id !== Nodes.S1R && (
-            <NodeModel nodeId={node.id} corpKey={corpKey} cleared={nfCleared} dimmed={false} selected={isSelected} securityLevel={node.securityLevel} blocked={nfBlocked} nightfall={isNightfallDimmed} />
+            <NodeModel nodeId={node.id} corpKey={corpKey} modelUrl={modelUrl} cleared={nfCleared} dimmed={false} selected={isSelected} securityLevel={node.securityLevel} blocked={nfBlocked} nightfall={isNightfallDimmed} />
           )}
           {node.id === Nodes.S1R && (() => {
             const w = 3 * TILE_SIZE;
