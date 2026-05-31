@@ -1262,6 +1262,34 @@ h3 {
   z-index: 9999999;
 }
 
+/* Tutorial: pulsing white ring riveted to the element that needs clicking.
+   Attached to the node itself (not a floating overlay) so it can never drift
+   on reflow or mobile orientation change. Outset + inset rings so an ancestor
+   with overflow:hidden can't fully clip it. */
+.tutorial-target {
+  position: relative;
+  z-index: 300; /* above .grid-program (200) so the ring is never occluded */
+  border-radius: inherit;
+  animation: tutorial-pulse 1s ease-in-out infinite alternate;
+}
+
+/* During the tutorial, suppress the built-in white "selected" outline on upload
+   zones so only the pulsing ring marks the spot to click. */
+body.tutorial-active .grid-program[data-name="Upload Zone"].head.active {
+  outline-color: transparent;
+  animation: none;
+}
+
+@keyframes tutorial-pulse {
+  from {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35),
+      inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+  to {
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 1), inset 0 0 0 3px rgba(255, 255, 255, 1);
+  }
+}
+
 @keyframes arrow {
   0% {
     transform: translateX(0);

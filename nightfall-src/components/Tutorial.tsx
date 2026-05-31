@@ -9,7 +9,6 @@ import { resolveImage } from "../util/util";
 import tutorialLevel from "../campaign/levels/tutorial";
 import { SuperphreakTutorial } from "../campaign/dialogues";
 import Dialogue from "./Dialogue";
-import GuideArrow from "./GuideArrow";
 
 interface TutorialProps {
   onEnd: () => void;
@@ -121,19 +120,24 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
     this.dialogue = this.dialogueRef.current!;
 
     await this.battle.dismissIntro();
+    // dismissIntro auto-selects the first upload zone; undo that so the tutorial
+    // opens with nothing selected and only the pulsing ring marks the target.
+    // Done before snapshotting initialBattleState so a stage-100 reset stays clean.
+    await this.battle.setStateP(() => ({ selection: null, hasSelectedUploadZone: false }));
     this.initialBattleState = this.battle.state;
 
     this.battle.autoAdvance = async () => {};
     this.battle.checkForVictory = async () => {};
     this.battle.renderGuideText = () => undefined;
-    this.battle.uzRect = null;
-    this.battle.uploadRect = null;
+    this.battle.uzEl = null;
+    this.battle.uploadEl = null;
     this.battle.forceUpdate();
     this.dialogue.componentDidUpdate = this.updateDialogue;
     this.battle.onTutorialAction = this.handleTutorialAction;
 
     window.addEventListener("click", this.captureMouseEvents, { capture: true });
     window.addEventListener("keydown", this.captureKeyEvents, { capture: true });
+    document.body.classList.add("tutorial-active");
   };
 
   // Block game-shortcut keys during the tutorial unless the pressed key is the
@@ -158,6 +162,7 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   componentWillUnmount = () => {
     window.removeEventListener("click", this.captureMouseEvents, { capture: true });
     window.removeEventListener("keydown", this.captureKeyEvents, { capture: true });
+    document.body.classList.remove("tutorial-active");
   };
 
   captureMouseEvents = (evt: MouseEvent) => {
@@ -197,11 +202,16 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
       if (!targetEl) {
         throw new Error("Selector did not match any element: " + selector);
       }
+      // Pulse a white ring on the element itself rather than floating an arrow
+      // beside it — a ring riveted to the node can't drift on reflow or mobile
+      // orientation change.
+      targetEl.classList.add("tutorial-target");
       this.setState({
         targetEl,
       });
 
       const advance = () => {
+        targetEl.classList.remove("tutorial-target");
         targetEl.removeEventListener("click", onClickTarget);
         if (this.findTargetInterval) {
           clearInterval(this.findTargetInterval);
@@ -225,9 +235,6 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   };
 
   render() {
-    const rectEl = this.state.targetEl && (
-      <GuideArrow target={this.state.targetEl} />
-    );
     return (
       <>
         <Battle
@@ -245,7 +252,6 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
           {...SuperphreakTutorial}
           passthrough
         />
-        {rectEl}
       </>
     );
   }

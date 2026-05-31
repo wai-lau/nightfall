@@ -99,8 +99,8 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   guideTextCheckTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  uzRect: DOMRect | null = null;
-  uploadRect: DOMRect | null = null;
+  uzEl: Element | null = null;
+  uploadEl: Element | null = null;
 
   aiController: AIController;
   actionDelay: number = 250;
@@ -176,21 +176,21 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       this.guideTextCheckTimeout = null;
     }
     if (!this.state.showIntro) {
-      if (!this.state.hasSelectedUploadZone && !this.uzRect) {
+      if (!this.state.hasSelectedUploadZone && !this.uzEl) {
         const uploadZoneEl = document.querySelector('.grid-program[data-name="Upload Zone"]');
         if (!uploadZoneEl) {
           this.guideTextCheckTimeout = setTimeout(this.checkForGuideText, 100);
           return;
         }
-        this.uzRect = uploadZoneEl.getBoundingClientRect();
-        this.forceUpdate(); // Ugly, but clone doesn't like having a DOMRect in state.
-      } else if (!this.state.hasUploadedProgram && !this.uploadRect) {
+        this.uzEl = uploadZoneEl;
+        this.forceUpdate(); // Ugly, but clone doesn't like having an Element in state.
+      } else if (!this.state.hasUploadedProgram && !this.uploadEl) {
         const programEl = document.querySelector(".upload-list");
         if (!programEl) {
           this.guideTextCheckTimeout = setTimeout(this.checkForGuideText, 100);
           return;
         }
-        this.uploadRect = programEl.getBoundingClientRect();
+        this.uploadEl = programEl;
         this.forceUpdate();
       }
     }
@@ -1435,20 +1435,20 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Render guide arrow
   renderGuideText = () => {
-    const { uzRect, uploadRect } = this;
+    const { uzEl, uploadEl } = this;
     const { hasSelectedUploadZone, hasUploadedProgram } = this.state;
-    if (!hasSelectedUploadZone && uzRect) {
+    if (!hasSelectedUploadZone && uzEl) {
       return (
         <GuideText
-          rect={uzRect}
+          target={uzEl}
           text={"Click on an upload spot to begin            ".toUpperCase()}
         />
       );
     }
-    if (!hasUploadedProgram && uploadRect) {
+    if (!hasUploadedProgram && uploadEl) {
       return (
         <GuideText
-          rect={uploadRect}
+          target={uploadEl}
           text={"Select a program to upload to this location            ".toUpperCase()}
         />
       );
