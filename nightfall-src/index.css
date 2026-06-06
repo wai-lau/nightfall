@@ -1798,9 +1798,18 @@ body.tutorial-active .grid-program[data-name="Upload Zone"].head.active {
 }
 
 /* Dim the rest of the screen behind a dialogue menu. Skipped for passthrough
-   (tutorial) dialogues, which must keep the board visible and clickable. */
-.dialogue-container:not(.passthrough) {
+   (tutorial) dialogues, which must keep the board visible and clickable.
+   Uses a position:fixed pseudo so the dim covers the whole viewport -- not just
+   the letterboxed .container -- which matters in fullscreen on mobile, where the
+   container is narrower than the (rotated) screen and the netmap sides would
+   otherwise show through. z-index:-1 keeps it behind the message box but above
+   the board (the .dialogue-container z-index:1000 establishes the context). */
+.dialogue-container:not(.passthrough)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
 }
 
 .dialogue-content {
