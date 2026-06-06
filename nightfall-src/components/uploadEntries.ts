@@ -54,10 +54,30 @@ export const MISC_GROUP = "everything-else";
 
 const CATEGORY_OF: Record<string, string> = {};
 const CATEGORY_ORDER: Record<string, number> = {};
+// Within-line slot. A program not sold at any warez node (e.g. the starter
+// Clog.01) would otherwise sort last; instead it inherits the tier of the
+// preceding program in its canonical id list (carry-forward, starting -1), so
+// starters land first and upgrade variants like LogicBomb2 stay after their
+// base. IDS_INDEX is the canonical line order used as the tie-break.
+const EFFECTIVE_TIER: Record<string, number> = {};
+const IDS_INDEX: Record<string, number> = {};
 PROGRAM_CATEGORIES.forEach((c, i) => {
   CATEGORY_ORDER[c.key] = i;
-  c.ids.forEach((id) => (CATEGORY_OF[id] = c.key));
+  let carry = -1;
+  c.ids.forEach((id, idx) => {
+    CATEGORY_OF[id] = c.key;
+    IDS_INDEX[id] = idx;
+    const t = WAREZ_ORDER[id];
+    if (t !== undefined) carry = t;
+    EFFECTIVE_TIER[id] = t ?? carry;
+  });
 });
+// Sort key within a group: effective warez tier, then canonical line order.
+// Misc/uncategorized programs fall back to raw warez tier.
+const groupSortKey = (id: string): [number, number] => [
+  EFFECTIVE_TIER[id] ?? warezTier(id),
+  IDS_INDEX[id] ?? 0,
+];
 
 // Build the ordered, category-grouped entry list shared by UploadMenu (render)
 // and Battle (keyboard nav). Order MUST match between the two or the keyboard
@@ -90,10 +110,15 @@ export function buildUploadEntries(programs: IProgram[], selectedIndexes: number
     (buckets[entry.groupKey] ??= []).push(entry);
   });
 
-  // Order within each group by warez node acquired (lowest tier on the left).
-  // Stable: programs from the same warez node keep acquisition order.
+  // Order within each group by warez node acquired (lowest tier on the left),
+  // then by canonical line order. Non-warez starters carry forward (see
+  // groupSortKey) so e.g. Clog.01 leads its line.
   Object.values(buckets).forEach((b) =>
-    b.sort((a, c) => warezTier(a.id) - warezTier(c.id))
+    b.sort((a, c) => {
+      const [ka0, ka1] = groupSortKey(a.id);
+      const [kc0, kc1] = groupSortKey(c.id);
+      return ka0 - kc0 || ka1 - kc1;
+    })
   );
 
   // A real category needs >=2 distinct owned programs; otherwise its lone entry
