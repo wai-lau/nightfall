@@ -7,26 +7,18 @@ Live at **[wai-lau.net/nightfall](https://wai-lau.net/nightfall)**.
 
 ## Deploy ＼(＾O＾)／
 
-Host path: `/exec-fn/nightfall-incident/` (volume-mounted into exec-fn at `/app/nightfall/`).
-
-### Source/asset changes only
-
-```bash
-git add <files> && git commit && git push
-ssh root@wai-lau.net "git -C /exec-fn/nightfall-incident pull"
-```
-
-### Compiled bundle changes `(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧`
-
-`static/js/` and `static/css/` are gitignored — must scp.
+This repo lives at `/exec-fn/nightfall-incident/` **on the production server**,
+volume-mounted into exec-fn at `/app/nightfall/`. FastAPI serves `static/` from
+the volume, so building writes the live files — no ssh / scp / push-pull.
 
 ```bash
-cd nightfall-src && npm run build
-scp -r static/js/ static/css/ root@wai-lau.net:/exec-fn/nightfall-incident/static/
-git add <source files> && git commit && git push
+cd /exec-fn/nightfall-incident/nightfall-src
+NODE_ENV=production npm run build   # webpack → ../static/ (live); ~45s
 ```
 
-No container restart needed — StaticFiles serves live from the volume.
+`NODE_ENV=production` is required (else asset paths break → black screen).
+`static/js/` + `static/css/` are gitignored — building IS the deploy; commit the
+source separately. No container restart needed.
 
 ### Verify
 

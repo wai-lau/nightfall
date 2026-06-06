@@ -27,83 +27,68 @@ nightfall/
 
 ---
 
-## Build
+## Build & deploy
+
+**WE ARE ON THE SERVER.** This repo lives at `/exec-fn/nightfall-incident` on
+production, volume-mounted into the exec-fn container at `/app/nightfall`.
+FastAPI serves `static/` straight from the volume — building writes to the live
+files. **No ssh / scp / push-pull needed.** (The old remote-dev workflow with
+scp to `root@wai-lau.net` is obsolete — ignore it.)
 
 ```bash
-cd nightfall-src
-npm run build          # webpack → outputs to ../static/
+cd /exec-fn/nightfall-incident/nightfall-src
+NODE_ENV=production npm run build     # webpack → ../static/ (live)
 ```
 
-Compiled JS/CSS are gitignored — only source is tracked.
+- **`NODE_ENV=production` is required** — without it the compiled asset paths
+  are wrong and the game loads to a silent black screen (assets 404).
+- Run the build with `run_in_background: true` — it takes ~45s.
+- `static/js/` and `static/css/` are **gitignored** — only source is tracked.
+  Building locally on the server IS the deploy; commit the source separately.
+- `*.png` under `web/`/here are gitignored too; nav icons are whitelisted.
+- Verify: `curl -sf https://wai-lau.net/nightfall | head -c 200` (200 = healthy).
+- `index.html` loads `./static/css/bundle.css` + `./static/js/bundle.js` (not
+  hashed) — no cache-bust needed.
+
+Served at `/nightfall` as an unauthenticated static mount (exec-fn mounts
+`./nightfall-incident → /app/nightfall` in `docker-compose.yml`).
 
 ---
 
-## Deploy
+## Gameplay conventions (non-obvious)
 
-**DEPLOY = BACKGROUND AGENT. ALWAYS. NO EXCEPTIONS.**
+**Programs** (`nightfall-src/programs/*.ts`, `IProgram`): `actions[].run(ac, tc,
+selfID, targetID)` returns an array of `ac.*` effect promises, all awaited.
+`targetID` is the program id at the targeted cell, or **null** for empty space —
+gate effects on it (e.g. Kuang-12/13 Devour only `growTarget(self)` when
+`targetID` is set, so it grows only on a real hit). Variant pairs (Kuang-12 enemy
+/ Kuang-13 player, LogicBomb / LogicBomb2) share stats + behaviour and differ
+only in art (`id` / `color` / `iconImageFile`).
 
-Host path: `/exec-fn/nightfall-incident/` (volume-mounted into exec-fn container at `/app/nightfall/`).
-StaticFiles serves live from the volume — no container restart needed.
+**program.list ordering** (`components/uploadEntries.ts`): programs group by line
+(`PROGRAM_CATEGORIES`), groups render in that order; within a group order is by
+**warez tier** (which warez node sells it, lowest-left). A program sold at no
+warez node (e.g. starter Clog.01) carries forward the preceding line member's
+tier so starters lead and upgrade variants trail their base; tie-break by
+canonical line index. `buildUploadEntries` is the single source of truth shared
+by render + keyboard nav (`Battle.keyboardUploadIndex`, init **-1** = nothing
+highlighted; first nav clamps to row 0).
 
-Two cases:
+**Move undo** (`components/Battle.tsx`, `undoState`): snapshot of full state taken
+**before each move** (`createOnMove`); restored by `undo()`, then nulled. Cleared
+after an action commits (`createOnAct`) and at `nextTurn` — never undo past an
+attack or across a turn. NOT captured on selection change, so moving a unit then
+selecting another keeps the last move undoable.
 
-### Source/asset changes only (no compiled JS/CSS)
+**Tutorial** (`components/Tutorial.tsx` + `index.css`): blocks input via a
+window-capture click/keydown listener (no overlay) — only clicks whose path
+includes the highlighted `.tutorial-target`, the `.dialogue-buttons`, or the
+exec-fn wrapper's `#wai-fs-btn` (fullscreen) pass through. `body.tutorial-active`
+suppresses the white selected-unit outline flash on every unit so the only
+flashing outline is the tutorial ring (`tutorial-pulse`, 0.25s, Superphreak-hair
+gold `#f8b308`). State toggled by the `body.tutorial-active` class.
 
-```bash
-# 1. commit + push locally
-git add <files> && git commit && git push
-
-# 2. pull on host
-ssh root@wai-lau.net "git -C /exec-fn/nightfall-incident pull"
-
-# 3. verify
-curl -sf https://wai-lau.net/nightfall | head -c 200
-```
-
-### Compiled bundle changes (anything in static/js/ or static/css/)
-
-`static/js/` and `static/css/` are gitignored — must scp.
-
-```bash
-# 1. build
-cd nightfall-src && npm run build
-
-# 2. scp compiled output
-scp -r static/js/ static/css/ root@wai-lau.net:/exec-fn/nightfall-incident/static/
-
-# 3. scp any other changed files (index.html, wai-*.js, audio, etc.)
-scp index.html root@wai-lau.net:/exec-fn/nightfall-incident/
-
-# 4. commit + push source changes
-git add <source files> && git commit && git push
-
-# 5. verify
-curl -sf https://wai-lau.net/nightfall | head -c 200
-```
-
-No restart needed — volume mount serves files directly.
-
-### Deploy agent prompt template
-
-```
-Deploy nightfall changes to production.
-
-WHAT CHANGED:
-<summary>
-
-DEPLOY:
-1. cd /home/wai/src/nightfall && npm run build (if JS/CSS changed)
-2. scp static/js/ static/css/ root@wai-lau.net:/exec-fn/nightfall-incident/static/ (if compiled)
-   OR ssh root@wai-lau.net "git -C /exec-fn/nightfall-incident pull" (source/assets only)
-3. Verify: WebFetch https://wai-lau.net/nightfall — 200 = healthy
-4. git add <source files> && git commit && git push
-
-Report what was deployed and health check result.
-```
-
----
-
-## How it's served
-
-exec-fn mounts `./nightfall-incident → /app/nightfall` in `docker-compose.yml`.
-FastAPI serves `/nightfall` as a static mount — no auth required.
+**Recolour rule:** recolouring a program means updating BOTH its `.ts` `color`
+AND its icon PNG (`bin`/`recolor_icons.py`). See also: only `Netmap3D.tsx` is
+rendered (the 2D `Netmap.tsx` is dead code); match canon character pronouns
+(Superphreak stays ungendered).
