@@ -14,9 +14,9 @@
   /* Centered frame matching .container's letterboxed game window so the
      boot-bar lives inside the game window, not pinned to the viewport. */
   #boot-frame {
-    position:fixed; inset:0;
+    position:fixed; inset:0 0 var(--nav-h,0px) 0;
     display:flex; align-items:center; justify-content:center;
-    pointer-events:none; z-index:9999;
+    pointer-events:none; z-index:1000;
   }
   #boot-window {
     --aspect-ratio:1.5;
