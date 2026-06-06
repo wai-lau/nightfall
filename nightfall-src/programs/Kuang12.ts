@@ -12,10 +12,12 @@ export const Kuang12: IProgram = {
       name: "Devour",
       description: "Deletes 8 Sectors From Target & Heals 4 Self",
       range: 1,
-      run: (ac, tc, selfID, targetID) => [
-        ac.damageTarget(targetID, 8),
-        ac.growTarget(selfID, 4),
-      ],
+      run: (ac, tc, selfID, targetID) => {
+        const effects = [ac.damageTarget(targetID, 8)];
+        // only feed (grow self) when it actually bit something
+        if (targetID) effects.push(ac.growTarget(selfID, 4));
+        return effects;
+      },
     },
   ],
   maxSize: 12,
