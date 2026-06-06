@@ -10,9 +10,9 @@ export const Seeker3: IProgram = {
   actions: [
     {
       name: "Prod",
-      description: "Deletes 4 Sectors From Target",
+      description: "Deletes 3 Sectors From Target",
       range: 3,
-      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 4)],
+      run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
     },
   ],
   maxSize: 4,

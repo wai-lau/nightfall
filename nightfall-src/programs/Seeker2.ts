@@ -11,7 +11,7 @@ export const Seeker2: IProgram = {
     {
       name: "Poke",
       description: "Deletes 3 Sectors From Target",
-      range: 3,
+      range: 2,
       run: (ac, tc, selfID, targetID) => [ac.damageTarget(targetID, 3)],
     },
   ],
