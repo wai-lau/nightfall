@@ -1270,12 +1270,12 @@ h3 {
   position: relative;
   z-index: 300; /* above .grid-program (200) so the ring is never occluded */
   border-radius: inherit;
-  animation: tutorial-pulse 1s ease-in-out infinite alternate;
+  animation: tutorial-pulse 0.5s ease-in-out infinite alternate;
 }
 
-/* During the tutorial, suppress the built-in white "selected" outline on upload
-   zones so only the pulsing ring marks the spot to click. */
-body.tutorial-active .grid-program[data-name="Upload Zone"].head.active {
+/* During the tutorial, suppress the built-in white "selected" outline flash on
+   every unit so only the pulsing tutorial ring flashes. */
+body.tutorial-active .grid-program.head.active {
   outline-color: transparent;
   animation: none;
 }
