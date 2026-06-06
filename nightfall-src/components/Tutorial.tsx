@@ -172,9 +172,12 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
   captureMouseEvents = (evt: MouseEvent) => {
     const path = evt.composedPath();
     const dialogueButtons = document.querySelector(".dialogue-buttons");
+    // exec-fn wrapper fullscreen toggle (absent in standalone dev) — always allowed
+    const fsBtn = document.getElementById("wai-fs-btn");
     const pathMissesTarget = !this.state.targetEl || !path.includes(this.state.targetEl);
     const pathMissesDialogue = !dialogueButtons || !path.includes(dialogueButtons);
-    if (pathMissesTarget && pathMissesDialogue) {
+    const pathMissesFsBtn = !fsBtn || !path.includes(fsBtn);
+    if (pathMissesTarget && pathMissesDialogue && pathMissesFsBtn) {
       evt.stopPropagation();
       return false;
     }
