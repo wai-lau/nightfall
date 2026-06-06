@@ -151,17 +151,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     window.addEventListener("keyup", this.onKeyUp);
   }
 
-  // Clone state if selection changed; check for guide text if battle is not yet begun
-  componentDidUpdate = (_: BattleProps, prevState: BattleState) => {
-    if (
-      !(
-        (this.state.selection ? this.state.selection.id : null) ===
-        (prevState.selection ? prevState.selection.id : null)
-      )
-    ) {
-      this.undoState = clone(this.state);
-    }
-
+  // Check for guide text if battle is not yet begun. (The undo snapshot is no
+  // longer taken on selection change — see createOnMove: it is captured before
+  // a move and cleared after an action, so switching units keeps the last move
+  // undoable.)
+  componentDidUpdate = () => {
     if (!this.isDatabattleStarted()) {
       this.checkForGuideText();
     }
@@ -509,6 +503,11 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     const { body, maxSize } = selectedProgram;
     const movesRemaining = selectedProgram.movesRemaining - 1;
 
+    // Snapshot before applying the move so Undo reverts this move. Captured per
+    // move (not on selection change), so selecting another unit keeps the last
+    // move undoable. Cleared after an action commits (see createOnAct).
+    this.undoState = clone(this.state);
+
     const updatedSelectedProgram = {
       ...selectedProgram,
       head: c,
@@ -554,6 +553,8 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
     }
     await this.setProgramDone(selectedProgram);
     await Promise.all(selectedAction.run(actionCoordinator, c, selection.id, targetedID));
+    // Attack commits the turn — the move that preceded it can no longer be undone.
+    this.undoState = null;
     this.setAutoAdvance();
   };
 
@@ -756,6 +757,8 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Start next team's turn, allowing the next team's programs to act
   nextTurn = async () => {
+    // Turn is over — last move is committed; never undo across a turn boundary.
+    this.undoState = null;
     await this.setStateP(() => {
       const { programs, teamIndex } = this.state;
       const nextTeamIndex = (teamIndex + 1) % this.props.teams.length;
@@ -1129,7 +1132,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       return;
     }
     if (!this.undoState) return;
-    await this.setStateP(() => this.undoState);
+    const snapshot = this.undoState;
+    this.undoState = null;
+    await this.setStateP(() => snapshot);
   };
 
   selectLastP1Program = async () => {
