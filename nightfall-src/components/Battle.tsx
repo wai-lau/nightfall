@@ -94,7 +94,12 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
   autoAdvanceDelay: number;
   audioContext: IAudioContext;
   modalWaitCallbacks: (() => void)[];
-  undoState: BattleState | null = null;
+  // Pristine snapshot of the whole battle taken when each program is first
+  // selected this turn, keyed by program id. Undo restores the snapshot for the
+  // currently selected program. Cleared each turn in nextTurn. Keyed (not a
+  // single slot) so peeking at an enemy program and coming back does not corrupt
+  // the baseline.
+  undoStates: { [id: string]: BattleState } = {};
   lastP1ProgramID: string | null = null;
 
   guideTextCheckTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -153,13 +158,22 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Clone state if selection changed; check for guide text if battle is not yet begun
   componentDidUpdate = (_: BattleProps, prevState: BattleState) => {
+    const selectionID = this.state.selection ? this.state.selection.id : null;
+    const prevSelectionID = prevState.selection ? prevState.selection.id : null;
+    // Snapshot a program's pristine state the first time it is selected this
+    // turn, so Undo reverts ALL of that program's moves -- not just the last
+    // one. Re-selecting a partially-moved program (e.g. after peeking at an
+    // enemy) must NOT overwrite its snapshot, or Undo would only roll back to
+    // the re-selection point.
     if (
-      !(
-        (this.state.selection ? this.state.selection.id : null) ===
-        (prevState.selection ? prevState.selection.id : null)
-      )
+      selectionID !== prevSelectionID &&
+      this.state.selection?.type === SelectionType.PROGRAM &&
+      !this.undoStates[selectionID!]
     ) {
-      this.undoState = clone(this.state);
+      const program = this.getProgramByID(selectionID!);
+      if (program.movesRemaining === program.numMoves && !program.hasActed) {
+        this.undoStates[selectionID!] = clone(this.state);
+      }
     }
 
     if (!this.isDatabattleStarted()) {
@@ -756,6 +770,9 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Start next team's turn, allowing the next team's programs to act
   nextTurn = async () => {
+    // Undo snapshots are per-activation; drop them when the turn ends so a
+    // refreshed program does not restore a stale snapshot from last turn.
+    this.undoStates = {};
     await this.setStateP(() => {
       const { programs, teamIndex } = this.state;
       const nextTeamIndex = (teamIndex + 1) % this.props.teams.length;
@@ -1128,8 +1145,12 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
       await this.setStateP(() => ({ actionIndex: null }));
       return;
     }
-    if (!this.undoState) return;
-    await this.setStateP(() => this.undoState);
+    const current = this.state.selection;
+    if (current?.type !== SelectionType.PROGRAM) return;
+    const snapshot = this.undoStates[current.id];
+    if (!snapshot) return;
+    // Restore a fresh clone so the snapshot survives for repeat undos.
+    await this.setStateP(() => clone(snapshot));
   };
 
   selectLastP1Program = async () => {
