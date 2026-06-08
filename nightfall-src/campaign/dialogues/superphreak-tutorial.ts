@@ -33,11 +33,12 @@ superphreak:tutorial:100-2300
 
 #1300 We're still out of range. Click this square (or use WASD) to move the program again.
 
-#1400 Okay, now that we're next to the program, let's use that attack command. \\n Click on the command button (or press Q).
+#1400 Okay, now that we're next to the program. \\n When a program uses up all its movement, its first action gets selected automatically. You can switch to a different action, but for now, just click on the enemy sector to attack.
 
-#1500 To execute an attack command, click on any sector of an enemy program that is within range. \\n Click here to execute this command.
+#1500 Nice. That's a basic attack.
+>1600 Next
 
-#1600 Nice. Now let's move our other program. Click here (or press Tab) to select it.
+#1600 Now let's move our other program. Click here (or press Tab) to select it.
 
 #1700 Good. Now click here (or use WASD) to move it closer.
 
