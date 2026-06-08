@@ -1270,25 +1270,28 @@ h3 {
   position: relative;
   z-index: 300; /* above .grid-program (200) so the ring is never occluded */
   border-radius: inherit;
-  animation: tutorial-pulse 0.25s ease-in-out infinite alternate;
+  animation: tutorial-pulse 0.08s ease-in-out infinite alternate;
 }
 
-/* During the tutorial, suppress the built-in white "selected" outline flash on
-   every unit so only the pulsing tutorial ring flashes. */
+/* During the tutorial, kill every other flashing/pulsing outline so the only
+   thing blinking is the tutorial ring. Covers the white "selected" outline
+   flash on any unit (head), not just grid programs; !important so it wins over
+   the .head.active animation. */
+body.tutorial-active .head.active,
 body.tutorial-active .grid-program.head.active {
-  outline-color: transparent;
-  animation: none;
+  outline-color: transparent !important;
+  animation: none !important;
 }
 
-/* Superphreak-hair gold (#f8b308) */
+/* Superphreak yellow (#f5d71e) */
 @keyframes tutorial-pulse {
   from {
-    box-shadow: 0 0 10px 4px rgba(248, 179, 8, 0.4),
-      0 0 0 3px rgba(255, 214, 90, 0.4), inset 0 0 0 2px rgba(255, 214, 90, 0.4);
+    box-shadow: 0 0 10px 4px rgba(245, 215, 30, 0.4),
+      0 0 0 3px rgba(255, 240, 150, 0.4), inset 0 0 0 2px rgba(255, 240, 150, 0.4);
   }
   to {
-    box-shadow: 0 0 20px 8px rgba(248, 179, 8, 0.9),
-      0 0 0 7px rgba(255, 224, 120, 1), inset 0 0 0 3px rgba(255, 224, 120, 1);
+    box-shadow: 0 0 20px 8px rgba(245, 215, 30, 0.9),
+      0 0 0 7px rgba(255, 240, 150, 1), inset 0 0 0 3px rgba(255, 240, 150, 1);
   }
 }
 
