@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useRef } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Line as DreiLine } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 
@@ -208,7 +208,6 @@ function AnimatedEdge({
   fromCapIdx, toCapIdx, fromCenterX, fromCenterZ, toCenterX, toCenterZ,
   fromUnitX, fromUnitZ, toUnitX, toUnitZ,
 }: AnimatedEdgeProps) {
-  if (!render) return null;
   const map = useContext(PlatformYContext);
   const fpMap = useContext(NodeFootprintContext);
   const reveal = useContext(RevealContext);
@@ -229,19 +228,18 @@ function AnimatedEdge({
   const pulseDir = toStart !== undefined ? 1 : -1;
 
   // Detect blocked→unblocked transition with both endpoints already revealed:
-  // fire pulse along the edge without waiting for any node rise.
+  // fire pulse along the edge without waiting for any node rise. State, not a
+  // ref: the setState re-render is what mounts the pulse <Line>.
   const prevBlockedRef = useRef<boolean | undefined>(undefined);
-  const unblockStartRef = useRef<number | undefined>(undefined);
-  if (
-    prevBlockedRef.current === true &&
-    blocked === false &&
-    !usingReveal
-  ) {
-    unblockStartRef.current = performance.now();
-  }
-  prevBlockedRef.current = blocked;
+  const [unblockStart, setUnblockStart] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (prevBlockedRef.current === true && blocked === false && !usingReveal) {
+      setUnblockStart(performance.now());
+    }
+    prevBlockedRef.current = blocked;
+  }, [blocked, usingReveal]);
 
-  const pulseStart = usingReveal ? revealStart : unblockStartRef.current;
+  const pulseStart = usingReveal ? revealStart : unblockStart;
   const pulseDelay = usingReveal ? REVEAL_HOLD_MS + REVEAL_RISE_MS : 0;
 
   const prevRef = useRef({ f: NaN, t: NaN, fpFR: NaN, fpTR: NaN });
@@ -294,6 +292,8 @@ function AnimatedEdge({
       }
     }
   });
+
+  if (!render) return null;
 
   return (
     <>
