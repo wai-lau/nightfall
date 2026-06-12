@@ -248,9 +248,21 @@ h3 {
   pointer-events: none;
 }
 
-.move-up::after    { content: "W"; transform: rotate(90deg); }
-.move-left::after  { content: "A"; transform: rotate(180deg); }
-.move-down::after  { content: "S"; transform: rotate(270deg); }
+.move-up::after {
+  content: "W";
+  transform: rotate(90deg);
+}
+
+.move-left::after {
+  content: "A";
+  transform: rotate(180deg);
+}
+
+.move-down::after {
+  content: "S";
+  transform: rotate(270deg);
+}
+
 .move-right::after { content: "D"; }
 
 .upload-list {
@@ -293,18 +305,20 @@ h3 {
   grid-row: 2/3;
   grid-column: 1;
   color: #fff;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
 }
+
 .program-menu::-webkit-scrollbar {
   width: 6px;
 }
+
 .program-menu::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
 }
+
 .program-menu::-webkit-scrollbar-track {
   background: transparent;
 }
@@ -813,8 +827,7 @@ h3 {
 }
 
 .ul-menu-items {
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   -webkit-overflow-scrolling: touch;
   flex: 1 1;
   display: flex;
@@ -905,13 +918,16 @@ h3 {
   .ul-cell.clickable:active {
     background: rgba(125, 255, 255, 0.15);
   }
+
   .ul-menu-scroll {
     display: none;
   }
+
   .undo .Button,
   .begin-databattle .Button {
     font-size: 1.3em;
   }
+
   .pm-container {
     font-size: 1.3em;
   }
@@ -920,20 +936,25 @@ h3 {
 .ul-menu-scroll {
   display: none !important;
 }
+
 .ul-menu-items {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
 }
+
 .ul-menu-items::-webkit-scrollbar {
   width: 6px;
 }
+
 .ul-menu-items::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
 }
+
 .ul-menu-items::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .ul-menu-scroll-down,
 .ul-menu-scroll-up {
   flex: 1 1;
@@ -1289,6 +1310,7 @@ body.tutorial-active .grid-program.head.active {
     box-shadow: 0 0 10px 4px rgba(245, 215, 30, 0.4),
       0 0 0 3px rgba(255, 240, 150, 0.4), inset 0 0 0 2px rgba(255, 240, 150, 0.4);
   }
+
   to {
     box-shadow: 0 0 20px 8px rgba(245, 215, 30, 0.9),
       0 0 0 7px rgba(255, 240, 150, 1), inset 0 0 0 3px rgba(255, 240, 150, 1);
@@ -1352,14 +1374,15 @@ body.tutorial-active .grid-program.head.active {
 /* program.info scrolls natively like program.list (.ul-menu-items): vertical
    only, matching thin scrollbar — keeps the two panels the same width. */
 .current-programs-info .header-box-contents {
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
 }
+
 .current-programs-info .header-box-contents::-webkit-scrollbar {
   width: 6px;
 }
+
 .current-programs-info .header-box-contents::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 3px;
@@ -1510,9 +1533,21 @@ body.tutorial-active .grid-program.head.active {
   pointer-events: none;
 }
 
-.arrow-up::after    { content: "W"; transform: rotate(90deg); }
-.arrow-left::after  { content: "A"; transform: rotate(180deg); }
-.arrow-down::after  { content: "S"; transform: rotate(-90deg); }
+.arrow-up::after {
+  content: "W";
+  transform: rotate(90deg);
+}
+
+.arrow-left::after {
+  content: "A";
+  transform: rotate(180deg);
+}
+
+.arrow-down::after {
+  content: "S";
+  transform: rotate(-90deg);
+}
+
 .arrow-right::after { content: "D"; }
 
 .arrow-left {
@@ -1793,6 +1828,7 @@ body.tutorial-active .grid-program.head.active {
   display: flex;
   justify-content: stretch;
   align-items: stretch;
+
   /* Above the board units (grid-program z-index 200) so the dim covers them. */
   z-index: 1000;
 }
