@@ -1,9 +1,9 @@
 import React from "react";
-import { IGridCredit } from "../types";
+import { IGridActiveCredit } from "../types";
 
 import "./Credit.css";
 
-interface CreditProps extends IGridCredit {
+interface CreditProps extends IGridActiveCredit {
   onClick: () => void;
 }
 

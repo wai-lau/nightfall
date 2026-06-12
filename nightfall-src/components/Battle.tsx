@@ -1183,7 +1183,7 @@ class Battle extends PComponent<BattleProps, BattleState> implements IActionCoor
 
   // Return a promise resolving when the modal (if any) is dismissed.
   waitForModal = () =>
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       if (this.state.modal) {
         this.modalWaitCallbacks.push(resolve);
       } else {

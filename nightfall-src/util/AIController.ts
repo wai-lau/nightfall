@@ -133,7 +133,7 @@ export default class AIController {
   };
 
   programFollowPath = (programID: string, path: CoordinateArray) => {
-    const followPromise = new Promise(async (resolve) => {
+    const followPromise = new Promise<void>(async (resolve) => {
       let current: Coordinate | undefined;
       this.game.createOnSelectProgram(programID)();
       while ((current = path.shift())) {

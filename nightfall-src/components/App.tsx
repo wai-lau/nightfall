@@ -459,7 +459,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
   };
 
   showPostVictory = () => {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       this.setStateP(() => ({
         onProceedAfterVictory: resolve,
       }));
@@ -578,7 +578,7 @@ class App extends PComponent<AppProps, AppState> implements IGameStatusCoordinat
   };
 
   waitForPopup = () =>
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       if (this.state.popup) {
         this.popupWaitCallbacks.push(resolve);
       } else {

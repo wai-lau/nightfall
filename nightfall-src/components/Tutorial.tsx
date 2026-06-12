@@ -256,6 +256,8 @@ export default class Tutorial extends React.Component<TutorialProps, TutorialSta
           battleStyle={battleStyle}
           availablePrograms={[Programs.Hack, Programs.Slingshot]}
           onFinishBattle={() => {}}
+          audioConfig={null}
+          completedTutorial={false}
           noModals
         />
         <Dialogue

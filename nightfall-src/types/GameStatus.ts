@@ -11,6 +11,7 @@ export interface IGameStatus {
   collectedCreditIDs: string[];
   securityLevel: number;
   completedTutorial: boolean;
+  nightfallAvailableNodes?: INetmapNode["id"][];
 }
 
 export interface IGameStatusCoordinator {
@@ -18,10 +19,7 @@ export interface IGameStatusCoordinator {
   addCredits(n: number): Promise<void>;
   getNodeStatus(id: string): NodeStatus | null;
   setNodeStatus(id: string, status: NodeStatus): Promise<void>;
-  setScrollPosition(pos: NetmapPosition): Promise<void>;
-  setFirstClearNode(node: { id: string; result: "clear" | "lose" } | null): Promise<void>;
   startDialogue(dialogue: IDialogue): Promise<boolean>;
-  openNode(id: string): Promise<void>;
   revealNode(id: string): Promise<void>;
   scrollToNode(id: string): Promise<void>;
   setLevel(l: number): Promise<void>;

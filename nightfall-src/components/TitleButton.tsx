@@ -1,5 +1,4 @@
 import React from "react";
-import CSS from "csstype";
 import cn from "classnames";
 import { AudioContext, IAudioContext } from "../util/AudioContext";
 import * as AudioSources from "../audio/audioSources";
@@ -8,7 +7,7 @@ import "./TitleButton.css";
 
 interface ButtonProps {
   className?: React.HTMLAttributes<HTMLButtonElement>["className"];
-  style?: CSS.Properties;
+  style?: React.CSSProperties;
   onClick: React.DOMAttributes<HTMLButtonElement>["onClick"];
   playSound?: boolean;
 }

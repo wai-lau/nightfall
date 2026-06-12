@@ -100,7 +100,7 @@ export default class WarezMenu extends React.Component<WarezProps, WarezState> {
   };
 
   waitForPopup = () =>
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       if (this.state.popup) {
         this.popupWaitCallbacks.push(resolve);
       } else {

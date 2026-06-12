@@ -11,7 +11,10 @@ console.warn = (...args: unknown[]) => {
   __origWarn.apply(console, args as []);
 };
 
-const Loader = require("./components/Loader").default;
+// require (not import) so the console.warn patch above is installed before
+// Loader pulls in fiber/drei. global.d.ts types require() as string (asset
+// URLs) — cast for the one module use.
+const Loader = (require("./components/Loader") as unknown as { default: React.ComponentType }).default;
 
 async function preloadFonts() {
   const families = ["1em bitlight", "1em jhtitles", '1em "04b25"'];

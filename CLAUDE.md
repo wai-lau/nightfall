@@ -67,6 +67,11 @@ to (re)install on a fresh clone.
 `graphify-out/` knowledge graph; log at `/root/.cache/graphify-rebuild.log`).
 Reinstall with `graphify hook install`.
 
+**Type-check** is NOT in the hook (whole-project, ~50s): run
+`npm run typecheck` (`tsc --noEmit`) in `nightfall-src/` before pushing
+type-touching changes. Neither ESLint (not type-aware) nor the build
+(`transpileOnly`) catches type errors.
+
 ---
 
 ## Gameplay conventions (non-obvious)
