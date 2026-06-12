@@ -9,4 +9,10 @@ node_modules/
 static/js/
 static/css/
 static/media/
-graphify-out/
+*.png
+*.jpg
+*.ico
+*.mp3
+*.wav
+package-lock.json
+precache-manifest.*.js
