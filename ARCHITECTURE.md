@@ -234,5 +234,10 @@ API — only the injected sync script does.
 | `npm run gen-dialogues` | regenerate `dialogues/index.ts` |
 | `npm test` | vitest (battle logic) |
 
+Git hooks: pre-commit lints staged `.ts/.tsx` (ESLint) and `.css`
+(stylelint) — errors block, warnings pass; install via
+`bash scripts/install-hooks.sh`. Post-commit/post-checkout rebuild the
+graphify knowledge graph (`graphify hook install`).
+
 `bin/recolor_icons.py` recolors program icon PNGs — recoloring a program
 means updating both its `.ts` `color` and its icon (see CLAUDE.md).

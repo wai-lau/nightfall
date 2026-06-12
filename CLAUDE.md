@@ -55,6 +55,20 @@ Served at `/nightfall` as an unauthenticated static mount (exec-fn mounts
 
 ---
 
+## Git hooks
+
+**Pre-commit** lints staged files: ESLint on `nightfall-src/**/*.ts(x)`,
+stylelint on `nightfall-src/**/*.css`. Errors block the commit; warnings
+print and pass. Source of truth is `scripts/pre-commit` (version-controlled);
+`.git/hooks/pre-commit` is a symlink — run `bash scripts/install-hooks.sh`
+to (re)install on a fresh clone.
+
+**Post-commit / post-checkout** belong to graphify (auto-rebuilds
+`graphify-out/` knowledge graph; log at `/root/.cache/graphify-rebuild.log`).
+Reinstall with `graphify hook install`.
+
+---
+
 ## Gameplay conventions (non-obvious)
 
 **Programs** (`nightfall-src/programs/*.ts`, `IProgram`): `actions[].run(ac, tc,
