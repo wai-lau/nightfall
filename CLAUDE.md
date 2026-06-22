@@ -64,8 +64,10 @@ selfID, targetID)` returns an array of `ac.*` effect promises, all awaited.
 `targetID` is the program id at the targeted cell, or **null** for empty space —
 gate effects on it (e.g. Kuang-12/13 Devour only `growTarget(self)` when
 `targetID` is set, so it grows only on a real hit). Variant pairs (Kuang-12 enemy
-/ Kuang-13 player, LogicBomb / LogicBomb2) share stats + behaviour and differ
-only in art (`id` / `color` / `iconImageFile`).
+/ Kuang-13 player, LogicBomb / LogicBomb2) share stats + behaviour and the `id`
+differs. LogicBomb / LogicBomb2 also differ in art (`color` / `iconImageFile`);
+Kuang-12 / Kuang-13 are now *identical* in art too (both = the `emet` sprite,
+`rgb(0,252,249)` golem-family cyan) — the captured-same-program merge.
 
 **program.list ordering** (`components/uploadEntries.ts`): programs group by line
 (`PROGRAM_CATEGORIES`), groups render in that order; within a group order is by

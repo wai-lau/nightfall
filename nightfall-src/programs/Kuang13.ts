@@ -1,12 +1,14 @@
 import { IProgram } from "../types";
 import { resolveImage } from "../util/util";
 
-// Player-side Kuang-12 (awarded at T5). Same name + behaviour as the enemy
-// Kuang12; different art/colour — the LogicBomb / LogicBomb2 pattern.
+// Player-side Kuang-12 (awarded at T5). Same name, behaviour, art (emet sprite)
+// AND colour as the enemy Kuang12 — it's the captured-same-program merge, so
+// the variant pair is now identical in appearance (unlike LogicBomb / LogicBomb2,
+// which still differ in art).
 export const Kuang13: IProgram = {
   id: "Kuang13",
-  color: "rgb(1,225,255)",
-  iconImageFile: resolveImage("programs/Kuang13.png"),
+  color: "rgb(0,252,249)",
+  iconImageFile: resolveImage("programs/emet.png"),
   name: "Kuang-12",
   description: "Military-Grade Program. Slow Viral Lattice. Has Teeth.",
   actions: [
