@@ -67,7 +67,8 @@ gate effects on it (e.g. Kuang-12/13 Devour only `growTarget(self)` when
 / Kuang-13 player, LogicBomb / LogicBomb2) share stats + behaviour and the `id`
 differs. LogicBomb / LogicBomb2 also differ in art (`color` / `iconImageFile`);
 Kuang-12 / Kuang-13 are now *identical* in art too (both = the `emet` sprite,
-`rgb(0,252,249)` golem-family cyan) — the captured-same-program merge.
+`rgb(48,48,51)` dark grey = the emet icon's tile bg) — the captured-same-program
+merge. Program icons follow tile-bg == `color`; emet's slate tile sets it.
 
 **program.list ordering** (`components/uploadEntries.ts`): programs group by line
 (`PROGRAM_CATEGORIES`), groups render in that order; within a group order is by
