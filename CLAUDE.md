@@ -79,6 +79,15 @@ canonical line index. `buildUploadEntries` is the single source of truth shared
 by render + keyboard nav (`Battle.keyboardUploadIndex`, init **-1** = nothing
 highlighted; first nav clamps to row 0).
 
+**Audio unlock** (`components/AudioPlayer.tsx`): all game audio is Web Audio
+(`new AudioContext()`), which iOS mutes under the Ring/Silent switch and starts
+suspended. `unlockAudio()` runs on the first user gesture (one-shot
+`pointerdown`/`touchend`/`keydown` listener in `componentDidMount`): resumes the
+context, fires a 1-sample blip, and loops `audio/silence.wav` through an
+`HTMLMediaElement` so the page's audio session becomes "playback" — which the
+switch does NOT mute, so audio plays in silent mode / DnD. Mirrors the /hosaka
+TTS page in exec-fn.
+
 **Move undo** (`components/Battle.tsx`, `undoState`): snapshot of full state taken
 **before each move** (`createOnMove`); restored by `undo()`, then nulled. Cleared
 after an action commits (`createOnAct`) and at `nextTurn` — never undo past an

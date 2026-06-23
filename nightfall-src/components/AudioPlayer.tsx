@@ -12,6 +12,8 @@ interface AudioPlayerState {
 
 const AudioContext = (window as Window & { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext || window.AudioContext;
 
+declare const AUDIO_BASE_URL: string;
+
 // Should be the type of AudioBufferSourceNode.buffer
 type DecodedBuffer = AudioBuffer;
 
@@ -31,8 +33,40 @@ class AudioPlayer extends PComponent<AudioPlayerProps, AudioPlayerState> impleme
 
   getID = () => this.ID_MONOTONIC++;
 
+  silentEl: HTMLAudioElement | null = null;
+
+  // iOS mutes the Web Audio API under the Ring/Silent switch, and the context
+  // starts suspended until a user gesture. On the first gesture, resume the
+  // context and loop a silent media element so the page's audio session becomes
+  // "playback" -- which the switch does NOT mute, so game audio plays in silent
+  // mode / DnD too. (Same approach as the /hosaka TTS page in exec-fn.)
+  unlockAudio = () => {
+    if (this.audioCtx.state === "suspended") this.audioCtx.resume();
+    if (!this.silentEl) {
+      this.silentEl = new Audio(`${AUDIO_BASE_URL}/silence.wav`);
+      this.silentEl.loop = true;
+    }
+    this.silentEl.play().catch(() => {
+      /* no gesture / unsupported -- audio still works with the switch off */
+    });
+    // 1-sample blip through the destination: the iOS WebAudio unlock kick.
+    const blip = this.audioCtx.createBufferSource();
+    blip.buffer = this.audioCtx.createBuffer(1, 1, this.audioCtx.sampleRate);
+    blip.connect(this.audioCtx.destination);
+    blip.start(0);
+  };
+
   componentDidMount() {
     this.props.onReady(this as IAudioPlayer);
+    const once = () => {
+      this.unlockAudio();
+      ["pointerdown", "touchend", "keydown"].forEach((e) =>
+        document.removeEventListener(e, once)
+      );
+    };
+    ["pointerdown", "touchend", "keydown"].forEach((e) =>
+      document.addEventListener(e, once, { passive: true })
+    );
   }
 
   loadAudio = async (source: IAudioSource) => {
