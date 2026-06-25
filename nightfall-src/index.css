@@ -1291,7 +1291,7 @@ h3 {
   position: relative;
   z-index: 300; /* above .grid-program (200) so the ring is never occluded */
   border-radius: inherit;
-  animation: tutorial-pulse 0.08s ease-in-out infinite alternate;
+  animation: tutorial-pulse 0.16s ease-in-out infinite alternate;
 }
 
 /* During the tutorial, kill every other flashing/pulsing outline so the only

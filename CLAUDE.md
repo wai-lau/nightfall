@@ -99,7 +99,7 @@ window-capture click/keydown listener (no overlay) — only clicks whose path
 includes the highlighted `.tutorial-target`, the `.dialogue-buttons`, or the
 exec-fn wrapper's `#wai-fs-btn` (fullscreen) pass through. `body.tutorial-active`
 suppresses the white selected-unit outline flash on every unit so the only
-flashing outline is the tutorial ring (`tutorial-pulse`, 0.25s, Superphreak-hair
+flashing outline is the tutorial ring (`tutorial-pulse`, 0.16s, Superphreak-hair
 gold `#f8b308`). State toggled by the `body.tutorial-active` class.
 
 **Recolour rule:** recolouring a program means updating BOTH its `.ts` `color`
