@@ -1,18 +1,10 @@
-nightfall_save*.json
-save*.json
-gamesave_*.json
-*.bak
-.claude/
-nightfall-src/.claude/
-nightfall-src/node_modules/
-node_modules/
-static/js/
-static/css/
-static/media/
-*.png
-*.jpg
-*.ico
-*.mp3
-*.wav
-package-lock.json
-precache-manifest.*.js
+# Keep vendored / minified third-party code out of the knowledge graph.
+# gitignore-style patterns; graphify reads this on every build.
+**/vendor/
+**/node_modules/
+**/dist/
+*.min.js
+*.min.css
+*.bundle.js
+*-bundle.js
+*.bundle.css
