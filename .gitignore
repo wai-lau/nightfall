@@ -9,4 +9,4 @@ node_modules/
 static/js/
 static/css/
 static/media/
-graphify-out/
+# graphify: artifacts tracked; extraction cache ignored via graphify-out/.gitignore

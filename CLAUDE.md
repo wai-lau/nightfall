@@ -6,24 +6,7 @@ Standalone browser RPG. Served at `wai-lau.net/nightfall` (unprotected route) vi
 
 ## Repo layout
 
-```
-nightfall/
-  nightfall-src/       # TypeScript/React source
-    components/        # React components + CSS
-    campaign/          # levels, dialogues, netmap, characters
-    audio/             # source audio files
-    img/               # source images
-    webpack.config.js
-    tsconfig.json
-    package.json
-  static/              # compiled output (gitignored: static/js/, static/css/)
-    media/             # compiled assets
-  audio/               # mp3 files served directly
-  index.html
-  wai-head.js          # injected into <head>
-  wai-body.html        # injected into <body>
-  wai-save-sync.js     # save sync logic
-```
+The file/symbol map now lives in the knowledge graph (built with `/graphify`): open `graphify-out/graph.html` in a browser, or read `graphify-out/GRAPH_REPORT.md`. Regenerate after structural changes with `/graphify`.
 
 ---
 
