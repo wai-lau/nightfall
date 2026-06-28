@@ -16,7 +16,7 @@ The file/symbol map now lives in the knowledge graph (built with `/graphify`): o
 production, volume-mounted into the exec-fn container at `/app/nightfall`.
 FastAPI serves `static/` straight from the volume — building writes to the live
 files. **No ssh / scp / push-pull needed.** (The old remote-dev workflow with
-scp to `root@wai-lau.net` is obsolete — ignore it.)
+scp to `wai-root@wai-lau.net` is obsolete — ignore it.)
 
 ```bash
 cd /exec-fn/nightfall-incident/nightfall-src
