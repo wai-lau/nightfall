@@ -11,16 +11,16 @@ serves the static bundle and provides a tiny save-sync API.
 | Layer | Tech | Notes |
 |-------|------|-------|
 | UI | React 17 (`react-dom`) | Class components throughout; `PComponent` base adds promisified `setState` (`setStateP`) |
-| Language | TypeScript 4.9 | `ts-loader` with `transpileOnly: true` (type-checking happens in editor/CI, not in the build) |
+| Language | TypeScript 5.9 | `ts-loader` with `transpileOnly: true` (type-checking is `npm run typecheck`, not part of the build or the hook) |
 | 3D | three.js 0.184 + `@react-three/fiber` 7 + `@react-three/drei` 8 | Only for the Netmap3D overworld; battles are DOM/CSS |
 | Persistence | `localforage` (IndexedDB) | Save slots; mirrored server-side via `wai-save-sync.js` |
 | Bundler | webpack 5 | Custom config, no CRA. `MiniCssExtractPlugin`, `DefinePlugin`, custom `NetmapBakeGuardPlugin` |
-| Tests | vitest | `util/battleLogic.test.ts` |
+| Tests | vitest 4 | `util/battleLogic.test.ts` |
 | Lint | ESLint 9 (`typescript-eslint`, react, react-hooks) + stylelint 16 | Configs in `nightfall-src/` |
 | Utilities | `classnames`, `clone`, `csstype` | `clone` does the deep state snapshots (move undo) |
 
-Legacy remnants: `serviceWorker.js` is the old CRA service worker, explicitly
-`unregister()`-ed at boot; root-level `precache-manifest.*.js` /
+Legacy remnants: `nightfall-src/serviceWorker.js` is the old CRA service worker, explicitly
+`unregister()`-ed at boot (`index.tsx`); root-level `precache-manifest.*.js` /
 `asset-manifest.json` are fossil CRA build output.
 
 ---
@@ -40,6 +40,8 @@ nightfall/
     util/                 # battleLogic, AIController, path, AudioContext/Shuffler, parseDialogue
     db/                   # localforage instance + gameStatus load/save
     scripts/              # bakeNetmap.js, genDialogueIndex.js
+    bin/                  # recolor_icons.py, image-list.ts
+    webpack/bootstrap     # webpack helper
     webpack.config.js
   static/                 # compiled output (gitignored js/css) — building IS deploying
   audio/                  # mp3s served directly
@@ -47,6 +49,9 @@ nightfall/
   wai-head.js             # AudioContext autoplay-unlock patch
   wai-body.html           # fullscreen wrapper (#wai-fs-btn, portrait rotation)
   wai-save-sync.js        # IndexedDB <-> /api/gamesave sync
+  scripts/                # pre-commit, install-hooks.sh, claude-hooks/
+  docs/superpowers/specs/ # design specs (netmap 3D)
+  graphify-out/           # GENERATED knowledge graph, gitignored, never committed
 ```
 
 ---
@@ -55,9 +60,10 @@ nightfall/
 
 The repo is volume-mounted into the exec-fn container; FastAPI serves
 `static/` straight off disk, so a production webpack build is the deploy.
-`NODE_ENV=production` is mandatory — it switches `publicPath` and
-`AUDIO_BASE_URL` to the `/nightfall-game/` mount; without it assets 404
-(silent black screen).
+`NODE_ENV=production` is mandatory — it switches `publicPath`
+(`/nightfall-game/static/`) and `AUDIO_BASE_URL` to the `/nightfall-game/`
+mount; without it assets 404 (silent black screen). `npm run build` sets it
+itself, but a bare `webpack` invocation does not.
 
 ```mermaid
 flowchart LR
@@ -89,10 +95,10 @@ flowchart LR
 Two invariants the build enforces:
 
 - **Bake guard** — `netmap.baked.ts` embeds a sha256 of `netmap.ts`;
-  webpack refuses to compile if they diverge. Re-bake with
+  webpack refuses to compile if they diverge (`NetmapBakeGuardPlugin`). Re-bake with
   `npm run bake-netmap`.
-- **Chunk hashing** — the entry `bundle.js` keeps a stable name (the server
-  cache-busts it with `?v=`), but lazy per-level chunks get a
+- **Chunk hashing** — the entry `bundle.js` keeps a stable name (exec-fn appends
+  `?v=<mtime>` at serve time), but lazy per-level chunks get a
   `[contenthash:8]` so a changed chunk can never serve stale.
 
 ---
@@ -155,7 +161,7 @@ flowchart TD
 node statuses, credits, owned programs). Levels are loaded with
 `await import("../campaign/levels/" + id)` — each level becomes its own
 webpack chunk, fetched on first entry. Only `Netmap3D.tsx` is live; the old
-2D `Netmap.tsx` is dead code kept for reference.
+2D `Netmap.tsx` has been removed (a Claude Code hook still denies recreating it).
 
 ---
 
@@ -220,7 +226,8 @@ sequenceDiagram
 ```
 
 Server slots live behind guest auth; the game itself never talks to the
-API — only the injected sync script does.
+API — only the injected sync script does. Server-side slot scoping (per-caller
+owner/guest buckets) is exec-fn's concern: its ARCHITECTURE.md §20f.
 
 ---
 
@@ -232,12 +239,30 @@ API — only the injected sync script does.
 | `npm start` | webpack-dev-server on :3000 |
 | `npm run bake-netmap` | regenerate `netmap.baked.ts` (required after editing `netmap.ts`) |
 | `npm run gen-dialogues` | regenerate `dialogues/index.ts` |
-| `npm test` | vitest (battle logic) |
+| `npm test` | vitest (`util/battleLogic.test.ts`) |
+| `npm run typecheck` | `tsc --noEmit` (~50s; not in the hook, run before pushing type changes) |
 
 Git hooks: pre-commit lints staged `.ts/.tsx` (ESLint) and `.css`
 (stylelint) — errors block, warnings pass; install via
 `bash scripts/install-hooks.sh`. Post-commit/post-checkout rebuild the
 graphify knowledge graph (`graphify hook install`).
 
-`bin/recolor_icons.py` recolors program icon PNGs — recoloring a program
+`nightfall-src/bin/recolor_icons.py` recolors program icon PNGs — recoloring a program
 means updating both its `.ts` `color` and its icon (see CLAUDE.md).
+
+Claude Code guard hooks (`scripts/claude-hooks/`, registered from exec-fn's
+`.claude/settings.json`, fail-open): `nightfall-build-guard.py` denies a webpack
+build without `NODE_ENV=production` or not in the background;
+`dead-file-guard.sh` denies recreating `components/Netmap.tsx`.
+
+---
+
+## Hosting contract (what exec-fn provides)
+
+The game assumes, and exec-fn supplies: `GET /nightfall` renders `index.html`
+with a `<base href="/nightfall-game/">`, the `wai-*` wrappers and `?v=` on the
+bundles; `/nightfall-game/*` is a static mount of this repo; `/api/gamesave/*`
+holds per-caller save slots; `nightfall-src/` is masked by an empty tmpfs inside
+the container (nothing at runtime reads source; webpack runs on the host).
+All of that lives in exec-fn (`api/routes_nightfall.py`, `gamesave_store.py`,
+`docker-compose.yml`); this repo is a git submodule of exec-fn.
