@@ -7,7 +7,7 @@ How the game works: **ARCHITECTURE.md** (history: **ARCHAEOLOGY.md**). How exec-
 
 ## Repo layout
 
-The file/symbol map lives in the knowledge graph (built with `/graphify`): open `graphify-out/graph.html` in a browser, or read `graphify-out/GRAPH_REPORT.md`. `graphify-out/` is a **generated local artifact** (gitignored since 2026-10-14, never committed; the graphify post-commit hook rebuilds it, or run `/graphify`). If it is absent, regenerate it before relying on it. The hand-written layout is in ARCHITECTURE.md.
+The file/symbol map lives in the knowledge graph (built with `/graphify`): open `graphify-out/graph.html` in a browser, or read `graphify-out/GRAPH_REPORT.md`. `graphify-out/` is a **generated local artifact** (gitignored since 2026-10-14, never committed; run `/graphify` to rebuild it -- the graphify post-commit hook is installed but inert, `GRAPHIFY_SKIP_HOOK=1` in `~/.zshenv`). If it is absent, regenerate it before relying on it. The hand-written layout is in ARCHITECTURE.md.
 
 ---
 
@@ -59,8 +59,9 @@ print and pass. Source of truth is `scripts/pre-commit` (version-controlled);
 `.git/hooks/pre-commit` is a symlink — run `bash scripts/install-hooks.sh`
 to (re)install on a fresh clone.
 
-**Post-commit / post-checkout** belong to graphify (auto-rebuilds the generated,
-untracked `graphify-out/`; `install-hooks.sh` manages only pre-commit).
+**Post-commit / post-checkout** belong to graphify (would rebuild the generated,
+untracked `graphify-out/`, but `GRAPHIFY_SKIP_HOOK=1` in `~/.zshenv` keeps them inert;
+`install-hooks.sh` manages only pre-commit).
 Reinstall with `graphify hook install`.
 
 **Type-check** is NOT in the hook (whole-project, ~50s): run

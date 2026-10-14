@@ -21,7 +21,7 @@ serves the static bundle and provides a tiny save-sync API.
 
 Legacy remnants: `nightfall-src/serviceWorker.js` is the old CRA service worker, explicitly
 `unregister()`-ed at boot (`index.tsx`); root-level `precache-manifest.*.js` /
-`asset-manifest.json` are fossil CRA build output.
+`asset-manifest.json` are fossil CRA build output. Game history (reverts, superseded designs): [ARCHAEOLOGY.md](ARCHAEOLOGY.md).
 
 ---
 
