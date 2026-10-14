@@ -9,7 +9,8 @@ node_modules/
 static/js/
 static/css/
 static/media/
-# graphify: artifacts tracked; extraction cache ignored via graphify-out/.gitignore
+# graphify: generated + disposable (post-commit hook rebuilds it) -- never committed
+/graphify-out/
 
 # archaeology: archived old plans + one-off/migration scripts, kept local only
 /.archaeology/
