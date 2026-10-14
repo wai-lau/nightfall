@@ -36,6 +36,13 @@ NODE_ENV=production npm run build     # webpack → ../static/ (live)
 Served at `/nightfall` as an unauthenticated static mount (exec-fn mounts
 `./nightfall-incident → /app/nightfall` in `docker-compose.yml`).
 
+**This repo is a git SUBMODULE of exec-fn** (since 2026-10-14; it was an
+untracked nested checkout before). Commit here as usual: exec-fn's push hook
+pushes this repo first, then bumps and pushes exec-fn's pointer, so a deploy
+(`scripts/deploy.sh` there, `git submodule update --init`) serves the same
+commit. An exec-fn deploy REFUSES while this repo holds a commit the parent
+has not recorded. `graphify-out/` is no longer tracked (generated).
+
 ---
 
 ## Git hooks
