@@ -68,9 +68,9 @@ Reinstall with `graphify hook install`.
 type-touching changes. Neither ESLint (not type-aware) nor the build
 (`transpileOnly`) catches type errors.
 
-**Claude Code guard hooks** live in `scripts/claude-hooks/` (version-controlled
-here) but are REGISTERED from exec-fn's `.claude/settings.json`; every one fails
-open. They only fire for Claude Code running in exec-fn:
+**Claude Code guard hooks** are exec-fn's (`.claude/hooks/` there — exec-fn owns
+every hook and check, ARCHITECTURE.md §1e there), registered in its
+`.claude/settings.json`; every one fails open. They only fire for Claude Code running in exec-fn:
 - `nightfall-build-guard.py` (PreToolUse Bash): denies a webpack build that lacks
   `NODE_ENV=production` or is not run in the background.
 - `dead-file-guard.sh` (PreToolUse Edit/Write): denies edits to

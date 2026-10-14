@@ -49,7 +49,7 @@ nightfall/
   wai-head.js             # AudioContext autoplay-unlock patch
   wai-body.html           # fullscreen wrapper (#wai-fs-btn, portrait rotation)
   wai-save-sync.js        # IndexedDB <-> /api/gamesave sync
-  scripts/                # pre-commit, install-hooks.sh, claude-hooks/
+  scripts/                # pre-commit, install-hooks.sh
   docs/superpowers/specs/ # design specs (netmap 3D)
   graphify-out/           # GENERATED knowledge graph, gitignored, never committed
 ```
@@ -250,8 +250,8 @@ graphify knowledge graph (`graphify hook install`).
 `nightfall-src/bin/recolor_icons.py` recolors program icon PNGs — recoloring a program
 means updating both its `.ts` `color` and its icon (see CLAUDE.md).
 
-Claude Code guard hooks (`scripts/claude-hooks/`, registered from exec-fn's
-`.claude/settings.json`, fail-open): `nightfall-build-guard.py` denies a webpack
+Claude Code guard hooks (exec-fn's `.claude/hooks/` — exec-fn owns every
+hook and check — registered in its `.claude/settings.json`, fail-open): `nightfall-build-guard.py` denies a webpack
 build without `NODE_ENV=production` or not in the background;
 `dead-file-guard.sh` denies recreating `components/Netmap.tsx`.
 
