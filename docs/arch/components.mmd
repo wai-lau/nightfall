@@ -1,0 +1,20 @@
+flowchart TD
+    boot["index.tsx<br/>font preload"] --> loader["Loader<br/>load save via db/"]
+    loader --> sel["SaveSelector / Landing"]
+    loader --> app["App<br/>owns IGameStatus"]
+    app --> netmap["Netmap3D<br/>overworld, r3f canvas"]
+    app --> battle["Battle<br/>grid combat"]
+    app --> dialogue["Dialogue"]
+    app --> warez["WarezMenu"]
+    app --> smart["SMART<br/>corp HQ minigame"]
+    app --> misc["BattleIntro / PostVictory / GameCredits"]
+    netmap -->|"node click: import levels/id"| battle
+    battle -->|IBattleResult| app
+    dialogue -->|parseDialogue scripts| app
+    subgraph n3d["components/netmap3d/"]
+        cam["CameraController"]
+        node3d["NetmapNode"]
+        edges["NetmapEdges + RevealContext"]
+        floor["NetmapFloor"]
+    end
+    netmap --- n3d

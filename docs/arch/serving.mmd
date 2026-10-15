@@ -1,0 +1,9 @@
+flowchart LR
+    browser["Browser"] -->|HTTPS| nginx["nginx<br/>wai-lau.net"]
+    nginx -->|"proxy :8080"| fastapi["FastAPI<br/>exec-fn container"]
+    fastapi -->|"GET /nightfall"| builder["build_nightfall_html()<br/>per request"]
+    fastapi -->|"/nightfall-game/*"| mount["StaticFiles /app/nightfall<br/>= this repo, bind mount"]
+    fastapi -->|"/api/gamesave"| saves["gamesave API<br/>guest tier, per-caller slots"]
+    builder -.reads.-> indexhtml["index.html<br/>+ wai-head.js, wai-body.html,<br/>wai-save-sync.js"]
+    mount -.-> assets["static/js, css, media<br/>audio/*.mp3"]
+    mask["tmpfs mask<br/>nightfall-src/ empty in container"] -.-> mount

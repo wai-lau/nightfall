@@ -61,36 +61,11 @@ nightfall/
 The repo is volume-mounted into the exec-fn container; FastAPI serves
 `static/` straight off disk, so a production webpack build is the deploy.
 `NODE_ENV=production` is mandatory — it switches `publicPath`
-(`/nightfall-game/static/`) and `AUDIO_BASE_URL` to the `/nightfall-game/`
+(`/nightfall-game/static/`, dev `/static/`) and `AUDIO_BASE_URL` to the `/nightfall-game/`
 mount; without it assets 404 (silent black screen). `npm run build` sets it
 itself, but a bare `webpack` invocation does not.
 
-```mermaid
-flowchart LR
-    subgraph generated["generated sources (committed)"]
-        netmap["campaign/netmap.ts<br/>(hand-edited map)"]
-        bake["scripts/bakeNetmap.js<br/>aStar, convexHull, secMap"]
-        baked["campaign/netmap.baked.ts<br/>+ NETMAP_SOURCE_HASH"]
-        dlg["campaign/dialogues/*.ts"]
-        gendlg["scripts/genDialogueIndex.js"]
-        dlgidx["dialogues/index.ts"]
-        netmap --> bake --> baked
-        dlg --> gendlg --> dlgidx
-    end
-
-    subgraph webpack["webpack 5 (NODE_ENV=production)"]
-        guard["NetmapBakeGuardPlugin<br/>fails build if baked hash stale"]
-        ts["ts-loader (transpileOnly)"]
-        css["MiniCssExtractPlugin"]
-        def["DefinePlugin: AUDIO_BASE_URL"]
-    end
-
-    src["nightfall-src/**"] --> webpack
-    baked --> guard
-    webpack --> bundle["static/js/bundle.js<br/>static/css/bundle.css"]
-    webpack --> chunks["static/js/[name].[hash].bundle.js<br/>per-level lazy chunks"]
-    webpack --> media["static/media/* (png, fonts, gltf)"]
-```
+![Build pipeline](docs/arch/build.svg)
 
 Two invariants the build enforces:
 
@@ -105,24 +80,14 @@ Two invariants the build enforces:
 
 ## Serving topology
 
-```mermaid
-flowchart LR
-    browser["Browser"] -->|HTTPS| nginx["nginx<br/>wai-lau.net"]
-    nginx -->|proxy :8080| fastapi["FastAPI (exec-fn container)"]
-
-    fastapi -->|"GET /nightfall"| builder["build_nightfall_html()<br/>injects base href=/nightfall-game/,<br/>SW unregister, wai-* wrappers"]
-    fastapi -->|"/nightfall-game/*"| mount["StaticFiles mount<br/>/app/nightfall (this repo)"]
-    fastapi -->|"/api/gamesave/{slot}"| saves["gamesave API<br/>(guest-auth JSON slots)"]
-
-    builder -.serves patched.-> indexhtml["index.html"]
-    mount -.-> bundle["static/js + css + media"]
-    mount -.-> audio["audio/*.mp3"]
-```
+![Serving topology](docs/arch/serving.svg)
 
 The page route is `/nightfall`; all assets resolve through the injected
 `<base href="/nightfall-game/">` against the static mount. The wrapper files
-(`wai-head.js`, `wai-body.html`, `wai-save-sync.js`) are exec-fn-side
-augmentations injected at serve time — game source never references them.
+(`wai-head.js`, `wai-body.html`, `wai-save-sync.js`) live in this repo but are injected
+by exec-fn at serve time (`build_nightfall_html()`); game source never references them.
+The bundle `<script>` tags are stripped from `index.html` and loaded by the sync script
+after the save restore, each with `?v=<mtime>`.
 
 ---
 
@@ -131,31 +96,7 @@ augmentations injected at serve time — game source never references them.
 Boot: `index.html` paints a progress bar (`window.__nfProgress`),
 `index.tsx` preloads the three bitmap fonts, then mounts `Loader`.
 
-```mermaid
-flowchart TD
-    boot["index.tsx<br/>font preload"] --> loader["Loader<br/>load save via db/ (localforage)"]
-    loader --> sel["SaveSelector / Landing"]
-    loader --> app["App (PComponent)<br/>owns IGameStatus state machine"]
-
-    app --> netmap["Netmap3D<br/>overworld (r3f canvas)"]
-    app --> battle["Battle<br/>grid combat"]
-    app --> dialogue["Dialogue<br/>character conversations"]
-    app --> warez["WarezMenu<br/>program shop (warez-1..4)"]
-    app --> smart["SMART<br/>corp HQ minigame"]
-    app --> intro["BattleIntro / PostVictory / GameCredits"]
-
-    netmap -- "node click -> dynamic import(levels/{id})" --> battle
-    battle -- "IBattleResult" --> app
-    dialogue -- "parseDialogue.ts scripts" --> app
-
-    subgraph netmap3d["components/netmap3d/"]
-        cam["CameraController<br/>fixed isometric, WASD pan,<br/>scrollToPosition promise"]
-        node3d["NetmapNode<br/>status materials, corp geometry"]
-        edges["NetmapEdges + RevealContext"]
-        floor["NetmapFloor"]
-    end
-    netmap --- netmap3d
-```
+![Component tree](docs/arch/components.svg)
 
 `App` is the single source of truth for game progression (`IGameStatus`:
 node statuses, credits, owned programs). Levels are loaded with
@@ -167,16 +108,7 @@ webpack chunk, fetched on first entry. Only `Netmap3D.tsx` is live; the old
 
 ## Battle engine
 
-```mermaid
-flowchart LR
-    leveldef["campaign/levels/*.ts<br/>defineLevel(): grid, enemies, creditValues"] --> battle["Battle.tsx<br/>BattleState, undoState snapshot,<br/>keyboard nav"]
-    battle --> logic["util/battleLogic.ts<br/>validMoves, validTargets,<br/>passableCells, grownBody"]
-    battle --> ai["util/AIController.ts<br/>+ util/path.ts (greedy/aStar)"]
-    battle --> entries["uploadEntries.ts<br/>warez-tier program ordering"]
-    programs["programs/*.ts (64)<br/>IProgram.actions[].run(ac, tc, selfID, targetID)"] --> battle
-    programs --> logic
-    battle --> gridui["GridProgram / UploadZone /<br/>AttackAnimation / CurrentPrograms"]
-```
+![Battle engine](docs/arch/battle.svg)
 
 Key conventions (see CLAUDE.md for the full list):
 
@@ -205,27 +137,17 @@ wrapper variant tracks `window._waiAudioContexts`).
 ## Saves
 
 Local-first: `db/` wraps a `localforage` IndexedDB instance
-(`nightfall/nightfall-save`); `db/gameStatus.ts` serializes `IGameStatus`
-per slot. The exec-fn wrapper syncs slots to the server so saves roam
-across devices:
+(db `nightfall`, store `nightfall-save`; slots `save1`..`save3`); `db/gameStatus.ts`
+serializes `IGameStatus` per slot. The exec-fn wrapper (`wai-save-sync.js`) syncs
+slots so saves roam across devices. On load it fire-and-forgets every local slot to
+the server, then GETs `/api/gamesave` and **overwrites** IndexedDB with whatever the
+server holds (server wins; no newer-wins merge), and only then loads the bundle
+scripts. Every `IDBObjectStore.put` on the store is intercepted and POSTed as
+`{save: <value>}`.
 
-```mermaid
-sequenceDiagram
-    participant Game as Game (localforage)
-    participant Sync as wai-save-sync.js
-    participant API as FastAPI /api/gamesave
+![Save sync sequence](docs/arch/save-sync.svg)
 
-    Note over Sync: page load
-    Sync->>API: GET /api/gamesave (all slots)
-    API-->>Sync: { save1: ..., ... }
-    Sync->>Game: dbSet(slot) for missing/newer server slots
-    Note over Game: play; saves write to IndexedDB
-    Game-->>Sync: (IndexedDB writes observed)
-    Sync->>API: POST /api/gamesave/{slot}
-    Note over API: JSON blobs on the exec-fn data volume
-```
-
-Server slots live behind guest auth; the game itself never talks to the
+Server slots live behind guest auth (64KB cap per POST); the game itself never talks to the
 API — only the injected sync script does. Server-side slot scoping (per-caller
 owner/guest buckets) is exec-fn's concern: its ARCHITECTURE.md §20f.
 
@@ -244,8 +166,7 @@ owner/guest buckets) is exec-fn's concern: its ARCHITECTURE.md §20f.
 
 Git hooks: pre-commit lints staged `.ts/.tsx` (ESLint) and `.css`
 (stylelint) — errors block, warnings pass; install via
-`bash scripts/install-hooks.sh`. Post-commit/post-checkout rebuild the
-graphify knowledge graph (`graphify hook install`).
+`bash scripts/install-hooks.sh`. Post-commit/post-checkout graphify hooks are installed but inert (`GRAPHIFY_SKIP_HOOK=1`); `graphify-out/` is regenerated by hand.
 
 `nightfall-src/bin/recolor_icons.py` recolors program icon PNGs — recoloring a program
 means updating both its `.ts` `color` and its icon (see CLAUDE.md).

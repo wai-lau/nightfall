@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph gen["generated sources (committed)"]
+        netmap["campaign/netmap.ts<br/>hand-edited map"]
+        bake["scripts/bakeNetmap.js"]
+        baked["campaign/netmap.baked.ts<br/>+ NETMAP_SOURCE_HASH"]
+        dlg["campaign/dialogues/*.ts"]
+        gendlg["scripts/genDialogueIndex.js"]
+        dlgidx["dialogues/index.ts"]
+        netmap --> bake --> baked
+        dlg --> gendlg --> dlgidx
+    end
+    subgraph wp["webpack 5, NODE_ENV=production"]
+        guard["NetmapBakeGuardPlugin<br/>fails if baked hash stale"]
+        ts["ts-loader, transpileOnly"]
+        css["MiniCssExtractPlugin"]
+        def["DefinePlugin AUDIO_BASE_URL"]
+    end
+    src["nightfall-src/**"] --> wp
+    baked --> guard
+    wp --> bundle["static/js/bundle.js<br/>static/css/bundle.css"]
+    wp --> chunks["static/js/name.hash.bundle.js<br/>per-level lazy chunks"]
+    wp --> media["static/media/*"]
+    bundle --> live["live: bind mount serves static/ from disk"]
+    chunks --> live
+    media --> live
