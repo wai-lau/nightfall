@@ -30,11 +30,14 @@ NODE_ENV=production npm run build     # webpack → ../static/ (live)
 - Run the build with `run_in_background: true` — it takes ~45s.
 - `static/js/` and `static/css/` are **gitignored** — only source is tracked.
   Building locally on the server IS the deploy; commit the source separately.
-- `static/media/` is gitignored too (built); `node_modules/`, save JSONs
-  (`save*.json`, `gamesave_*.json`) and `graphify-out/` as well.
+- `static/media/` is in `.gitignore` too, but 112 files already in it ARE tracked (committed
+  before the ignore), so a rebuild that renames a hashed asset shows as a tracked change;
+  `node_modules/`, save JSONs (`save*.json`, `gamesave_*.json`) and `graphify-out/` are
+  properly ignored.
 - Verify: `curl -sf https://wai-lau.net/nightfall | head -c 200` (200 = healthy).
 - `index.html` loads `./static/css/bundle.css` + `./static/js/bundle.js` (not
-  hashed); exec-fn appends `?v=<mtime>` to them at serve time, so a rebuild
+  hashed); exec-fn appends `?v=<mtime>` to them at serve time (the save-sync loader adds
+  `v=Date.now()` to the script, so it is refetched every load), so a rebuild
   needs no manual cache-bust. Lazy per-level chunks are content-hashed.
 
 The page `/nightfall` is built per request by exec-fn (`api/routes_nightfall.py`);
@@ -53,11 +56,13 @@ has not recorded.
 
 ## Git hooks
 
-**Pre-commit** lints staged files: ESLint on `nightfall-src/**/*.ts(x)`,
-stylelint on `nightfall-src/**/*.css`. Errors block the commit; warnings
-print and pass. Source of truth is `scripts/pre-commit` (version-controlled);
-`.git/hooks/pre-commit` is a symlink — run `bash scripts/install-hooks.sh`
-to (re)install on a fresh clone.
+**Pre-commit** is this repo's OWN lint hook, not exec-fn's sub-repo shim (exec-fn's
+session hook skips it; it does not go through `core.hooksPath` or `.exec-fn/`). It lints
+staged files: ESLint on `nightfall-src/**/*.ts(x)`, stylelint on `nightfall-src/**/*.css`.
+Errors block the commit; warnings print and pass. Source of truth is `scripts/pre-commit`
+(version-controlled); `.git/hooks/pre-commit` is a symlink — run
+`bash scripts/install-hooks.sh` to (re)install on a fresh clone. It runs no tests and no
+type-check.
 
 **Post-commit / post-checkout** belong to graphify (would rebuild the generated,
 untracked `graphify-out/`, but `GRAPHIFY_SKIP_HOOK=1` in `~/.zshenv` keeps them inert;
@@ -69,8 +74,8 @@ Reinstall with `graphify hook install`.
 type-touching changes. Neither ESLint (not type-aware) nor the build
 (`transpileOnly`) catches type errors.
 
-**Claude Code guard hooks** are exec-fn's (`.claude/hooks/` there — exec-fn owns
-every hook and check, ARCHITECTURE.md §1e there), registered in its
+**Claude Code guard hooks** are exec-fn's (`.claude/hooks/` there; exec-fn's ARCHITECTURE.md
+§1e covers its sub-repo shims, which this repo does not use), registered in its
 `.claude/settings.json`; every one fails open. They only fire for Claude Code running in exec-fn:
 - `nightfall-build-guard.py` (PreToolUse Bash): denies a webpack build that lacks
   `NODE_ENV=production` or is not run in the background.
@@ -94,7 +99,9 @@ Kuang-12 / Kuang-13 are now *identical* in art too (both = the `emet` sprite,
 merge. Program icons follow tile-bg == `color`; emet's slate tile sets it.
 
 **program.list ordering** (`components/uploadEntries.ts`): programs group by line
-(`PROGRAM_CATEGORIES`), groups render in that order; within a group order is by
+(`PROGRAM_CATEGORIES`; a line the player owns fewer than two distinct programs of, and any
+uncategorized program, falls into the trailing `everything-else` group), groups render in
+that order; within a group order is by
 **warez tier** (which warez node sells it, lowest-left). A program sold at no
 warez node (e.g. starter Clog.01) carries forward the preceding line member's
 tier so starters lead and upgrade variants trail their base; tie-break by
@@ -111,19 +118,22 @@ context, fires a 1-sample blip, and loops `audio/silence.wav` through an
 switch does NOT mute, so audio plays in silent mode / DnD. Mirrors the /hosaka
 TTS page in exec-fn.
 
-**Move undo** (`components/Battle.tsx`, `undoState`): snapshot of full state taken
-**before each move** (`createOnMove`); restored by `undo()`, then nulled. Cleared
-after an action commits (`createOnAct`) and at `nextTurn` — never undo past an
-attack or across a turn. NOT captured on selection change, so moving a unit then
-selecting another keeps the last move undoable.
+**Move undo** (`components/Battle.tsx`, `undoStates`): a per-program map of full-state
+snapshots. One is taken the first time a program is selected while still pristine
+(`movesRemaining === numMoves && !hasActed`, in `componentDidUpdate`) and never
+overwritten by re-selection, so `undo()` reverts ALL of that program's moves this turn;
+`undo()` restores a fresh clone and keeps the snapshot for repeat undos. The program's
+snapshot is deleted when it acts (`createOnAct`) and all are cleared at `nextTurn` — never
+undo past an attack or across a turn.
 
 **Tutorial** (`components/Tutorial.tsx` + `index.css`): blocks input via a
 window-capture click/keydown listener (no overlay) — only clicks whose path
 includes the highlighted `.tutorial-target`, the `.dialogue-buttons`, or the
-exec-fn wrapper's `#wai-fs-btn` (fullscreen) pass through. `body.tutorial-active`
-suppresses the white selected-unit outline flash on every unit so the only
-flashing outline is the tutorial ring (`tutorial-pulse`, 0.16s, Superphreak-hair
-gold `#f8b308`). State toggled by the `body.tutorial-active` class.
+exec-fn wrapper's `#wai-fs-btn` (fullscreen) pass through; game keys are blocked
+except the current stage's allowed keys. `body.tutorial-active` suppresses the white
+selected-unit outline flash on every unit so the only flashing outline is the tutorial
+ring (`tutorial-pulse`, 0.16s, Superphreak yellow `#f5d71e`, `index.css`). State toggled
+by the `body.tutorial-active` class.
 
 **Recolour rule:** recolouring a program means updating BOTH its `.ts` `color`
 AND its icon PNG (`nightfall-src/bin/recolor_icons.py`). See also: only `Netmap3D.tsx` is

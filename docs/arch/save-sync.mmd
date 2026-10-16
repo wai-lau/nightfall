@@ -3,10 +3,10 @@ sequenceDiagram
     participant Sync as wai-save-sync.js
     participant API as FastAPI /api/gamesave
     Note over Sync: page load
-    Sync->>API: POST each local slot (save1..3)
+    Sync->>API: POST each local slot (save1..3), not awaited
     Sync->>API: GET /api/gamesave
     API-->>Sync: slots present on server
-    Sync->>Game: overwrite IndexedDB slot, server wins
+    Sync->>Game: overwrite IndexedDB for each slot the server has, server wins
     Sync->>Game: then load bundle scripts
     Note over Game: play, saves write to IndexedDB
     Game-->>Sync: IDBObjectStore.put intercepted

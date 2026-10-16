@@ -1,5 +1,5 @@
 flowchart LR
-    subgraph gen["generated sources (committed)"]
+    subgraph gen["committed sources and their generated files"]
         netmap["campaign/netmap.ts<br/>hand-edited map"]
         bake["scripts/bakeNetmap.js"]
         baked["campaign/netmap.baked.ts<br/>+ NETMAP_SOURCE_HASH"]
@@ -17,6 +17,7 @@ flowchart LR
     end
     src["nightfall-src/**"] --> wp
     baked --> guard
+    netmap --> guard
     wp --> bundle["static/js/bundle.js<br/>static/css/bundle.css"]
     wp --> chunks["static/js/name.hash.bundle.js<br/>per-level lazy chunks"]
     wp --> media["static/media/*"]

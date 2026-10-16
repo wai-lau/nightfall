@@ -1,16 +1,17 @@
 flowchart TD
-    boot["index.tsx<br/>font preload"] --> loader["Loader<br/>load save via db/"]
-    loader --> sel["SaveSelector / Landing"]
-    loader --> app["App<br/>owns IGameStatus"]
-    app --> netmap["Netmap3D<br/>overworld, r3f canvas"]
-    app --> battle["Battle<br/>grid combat"]
+    boot["index.tsx<br/>font preload"] --> loader["Loader<br/>3 save slots via db/, audio + image preload"]
+    loader --> land["Landing"]
+    loader --> sel["SaveSelector / GameCredits<br/>when no slot is selected"]
+    loader --> app["App<br/>owns IGameStatus, currentUI"]
+    app -->|"currentUI NETMAP, WAREZ, SMARTHQ"| netmap["Netmap3D<br/>overworld, r3f canvas"]
+    app -->|"currentUI BATTLE"| battle["Battle<br/>grid combat, BattleIntro"]
+    app --> nodeinfo["NodeInfo / PostVictory"]
     app --> dialogue["Dialogue"]
     app --> warez["WarezMenu"]
-    app --> smart["SMART<br/>corp HQ minigame"]
-    app --> misc["BattleIntro / PostVictory / GameCredits"]
-    netmap -->|"node click: import levels/id"| battle
-    battle -->|IBattleResult| app
-    dialogue -->|parseDialogue scripts| app
+    app --> smart["SMART<br/>text screen"]
+    app --> tut["Tutorial"]
+    netmap -->|"node click: App imports campaign/levels/id"| app
+    battle -->|"onFinishBattle(IBattleResult)"| app
     subgraph n3d["components/netmap3d/"]
         cam["CameraController"]
         node3d["NetmapNode"]

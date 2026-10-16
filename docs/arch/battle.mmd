@@ -1,8 +1,9 @@
 flowchart LR
-    leveldef["campaign/levels/*.ts<br/>grid, enemies, creditValues"] --> battle["Battle.tsx<br/>BattleState, undoState"]
-    battle --> logic["util/battleLogic.ts"]
-    battle --> ai["util/AIController.ts<br/>+ util/path.ts"]
-    battle --> entries["components/uploadEntries.ts"]
-    programs["programs/*.ts<br/>IProgram.actions run"] --> battle
-    programs --> logic
-    battle --> gridui["GridProgram / UploadZone /<br/>AttackAnimation / CurrentPrograms"]
+    leveldef["campaign/levels/*.ts<br/>ILevel: grid, uploadZones, programs, credits"] --> battle["Battle.tsx<br/>BattleState, undoStates"]
+    battle --> logic["util/battleLogic.ts<br/>pure rules"]
+    battle --> ai["util/AIController.ts<br/>drives Battle via IGameAI"]
+    battle --> path["util/path.ts"]
+    logic --> path
+    battle --> entries["components/uploadEntries.ts<br/>buildUploadEntries"]
+    programs["programs/*.ts<br/>IProgram.actions run(ac, ...)"] -->|"effects via ac.*"| battle
+    battle --> gridui["GridProgram / UploadZone / UploadMenu /<br/>ProgramMenu / AttackAnimation"]
